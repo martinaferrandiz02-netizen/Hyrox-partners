@@ -99,7 +99,7 @@ function Inicio({ pareja }) {
       </div>
       <div className="next-race">
         <div className="race-label">Próxima carrera</div>
-        <div className="race-name">Pairx Madrid · Doubles</div>
+        <div className="race-name">HYROX Madrid · Doubles</div>
         <div className="race-meta">
           <span>📅 14 jun</span>
           <span>👥 {pareja ? pareja.nombre : 'Marta G.'}</span>
@@ -375,7 +375,7 @@ function Rankings() {
 
 function Perfil() {
   const carreras = [
-    {nombre:'Pairx Madrid 2024', tipo:'Doubles · con Marta G.', tiempo:'1:18:42', top:'Top 8%'},
+    {nombre:'HYROX Madrid 2024', tipo:'Doubles · con Marta G.', tiempo:'1:18:42', top:'Top 8%'},
     {nombre:'Pairx Barcelona 2024', tipo:'Individual', tiempo:'58:14', top:'Top 15%'},
     {nombre:'CrossFit Open 2023', tipo:'Prueba acreditada', tiempo:'Acreditado', top:''},
   ]
