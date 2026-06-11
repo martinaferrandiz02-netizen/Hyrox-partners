@@ -3,12 +3,12 @@ import './App.css'
 
 const candidatos = [
   { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid · 3.2 km', rating:1820, club:'CrossFit Retiro', fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
-  { id:2, iniciales:'JM', color:'blue', nombre:'Javi Molina', ciudad:'Madrid · 5.8 km', rating:1795, club:'Pairx MAD', fortalezas:[{ex:'Rowing',pct:95},{ex:'Sled push',pct:80},{ex:'Burpees',pct:78}] },
+  { id:2, iniciales:'JM', color:'blue', nombre:'Javi Molina', ciudad:'Madrid · 5.8 km', rating:1795, club:'HYROX MAD', fortalezas:[{ex:'Rowing',pct:95},{ex:'Sled push',pct:80},{ex:'Burpees',pct:78}] },
   { id:3, iniciales:'SR', color:'green', nombre:'Sara Ruiz', ciudad:'Madrid · 2.1 km', rating:1855, club:'Sin club', fortalezas:[{ex:'Wall balls',pct:91},{ex:'Farmer carry',pct:88},{ex:'Ski erg',pct:82}] },
 ]
 
 const solicitudesRecibidas = [
-  { id:4, iniciales:'PM', color:'orange', nombre:'Pablo Martín', ciudad:'Madrid · 4.5 km', rating:1810, club:'Pairx MAD', mensaje:'Hola! Vi tu perfil y creo que somos buena pareja. Tengo competición en junio.' },
+  { id:4, iniciales:'PM', color:'orange', nombre:'Pablo Martín', ciudad:'Madrid · 4.5 km', rating:1810, club:'HYROX MAD', mensaje:'Hola! Vi tu perfil y creo que somos buena pareja. Tengo competición en junio.' },
   { id:5, iniciales:'LG', color:'teal', nombre:'Laura García', ciudad:'Madrid · 1.8 km', rating:1830, club:'CrossFit Retiro', mensaje:'Me complemento bien contigo en los ejercicios. ¿Hablamos?' },
 ]
 
@@ -296,11 +296,11 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatAc
 
 function Rankings() {
   const clubRanking = [
-    { pos:1, nombre:'Pairx Elite BCN', pts:1920, miembros:12, bandera:'🥇' },
+    { pos:1, nombre:'HYROX Elite BCN', pts:1920, miembros:12, bandera:'🥇' },
     { pos:2, nombre:'CrossFit Retiro MAD', pts:1875, miembros:18, bandera:'🥈' },
-    { pos:3, nombre:'Pairx MAD', pts:1842, miembros:9, bandera:'🥉' },
+    { pos:3, nombre:'HYROX MAD', pts:1842, miembros:9, bandera:'🥉' },
     { pos:4, nombre:'Athletic Club BIL', pts:1810, miembros:15, bandera:'' },
-    { pos:5, nombre:'Valencia Pairx', pts:1798, miembros:11, bandera:'' },
+    { pos:5, nombre:'Valencia HYROX', pts:1798, miembros:11, bandera:'' },
   ]
 
   return (
@@ -335,7 +335,7 @@ function Rankings() {
       <div className="card" style={{marginBottom:12}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
           <div>
-            <div className="partner-name">Pairx MAD</div>
+            <div className="partner-name">HYROX MAD</div>
             <div className="partner-sub">9 miembros acreditados</div>
           </div>
           <div className="rating-badge">1.842 pts</div>
@@ -360,7 +360,7 @@ function Rankings() {
 
       <div className="section-label">🏆 Ranking de clubs — España</div>
       {clubRanking.map(c => (
-        <div key={c.pos} className={`ranking-row ${c.nombre === 'Pairx MAD' ? 'my-club' : ''}`}>
+        <div key={c.pos} className={`ranking-row ${c.nombre === 'HYROX MAD' ? 'my-club' : ''}`}>
           <div className="rank-num">{c.bandera || `#${c.pos}`}</div>
           <div className="partner-info">
             <div className="partner-name" style={{fontSize:11}}>{c.nombre}</div>
@@ -376,7 +376,7 @@ function Rankings() {
 function Perfil() {
   const carreras = [
     {nombre:'HYROX Madrid 2024', tipo:'Doubles · con Marta G.', tiempo:'1:18:42', top:'Top 8%'},
-    {nombre:'Pairx Barcelona 2024', tipo:'Individual', tiempo:'58:14', top:'Top 15%'},
+    {nombre:'HYROX Barcelona 2024', tipo:'Individual', tiempo:'58:14', top:'Top 15%'},
     {nombre:'CrossFit Open 2023', tipo:'Prueba acreditada', tiempo:'Acreditado', top:''},
   ]
   const marcas = [
@@ -391,7 +391,7 @@ function Perfil() {
         <div className="avatar yellow large">CR</div>
         <div style={{flex:1}}>
           <div className="partner-name" style={{fontSize:16}}>Carlos R.</div>
-          <div className="partner-sub">📍 Madrid · Pairx MAD</div>
+          <div className="partner-sub">📍 Madrid · HYROX MAD</div>
         </div>
         <div style={{textAlign:'right'}}>
           <div className="rating-badge">1.840</div>
