@@ -1,464 +1,809 @@
-import { useState } from 'react'
-import './App.css'
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-const candidatos = [
-  { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid · 3.2 km', rating:1820, club:'CrossFit Retiro', fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
-  { id:2, iniciales:'JM', color:'blue', nombre:'Javi Molina', ciudad:'Madrid · 5.8 km', rating:1795, club:'HYROX MAD', fortalezas:[{ex:'Rowing',pct:95},{ex:'Sled push',pct:80},{ex:'Burpees',pct:78}] },
-  { id:3, iniciales:'SR', color:'green', nombre:'Sara Ruiz', ciudad:'Madrid · 2.1 km', rating:1855, club:'Sin club', fortalezas:[{ex:'Wall balls',pct:91},{ex:'Farmer carry',pct:88},{ex:'Ski erg',pct:82}] },
-]
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-const solicitudesRecibidas = [
-  { id:4, iniciales:'PM', color:'orange', nombre:'Pablo Martín', ciudad:'Madrid · 4.5 km', rating:1810, club:'HYROX MAD', mensaje:'Hola! Vi tu perfil y creo que somos buena pareja. Tengo competición en junio.' },
-  { id:5, iniciales:'LG', color:'teal', nombre:'Laura García', ciudad:'Madrid · 1.8 km', rating:1830, club:'CrossFit Retiro', mensaje:'Me complemento bien contigo en los ejercicios. ¿Hablamos?' },
-]
-
-export default function App() {
-  const [pantalla, setPantalla] = useState('inicio')
-  const [subPantalla, setSubPantalla] = useState('buscar')
-  const [indice, setIndice] = useState(0)
-  const [chats, setChats] = useState([])
-  const [chatActivo, setChatActivo] = useState(null)
-  const [mensajes, setMensajes] = useState({})
-  const [inputMsg, setInputMsg] = useState('')
-  const [pareja, setPareja] = useState(null)
-
-  const aceptarSolicitud = (persona) => {
-    if (!chats.find(c => c.id === persona.id)) {
-      setChats(prev => [...prev, persona])
-      setMensajes(prev => ({ ...prev, [persona.id]: [{ de:'ellos', texto: persona.mensaje }] }))
-    }
-    setSubPantalla('chats')
-  }
-
-  const enviarMensaje = (id) => {
-    if (!inputMsg.trim()) return
-    setMensajes(prev => ({
-      ...prev,
-      [id]: [...(prev[id] || []), { de:'yo', texto: inputMsg }]
-    }))
-    setInputMsg('')
-  }
-
-  const elegirPareja = (persona) => {
-    setPareja(persona)
-    setSubPantalla('buscar')
-    setPantalla('inicio')
-  }
-
-  return (
-    <div className="app">
-      <div className="phone">
-        <div className="notch"></div>
-        {pantalla === 'inicio' && <Inicio pareja={pareja} />}
-        {pantalla === 'entrenos' && <Entrenos />}
-        {pantalla === 'parejas' && (
-          <Parejas
-            subPantalla={subPantalla}
-            setSubPantalla={setSubPantalla}
-            indice={indice}
-            setIndice={setIndice}
-            chats={chats}
-            chatActivo={chatActivo}
-            setChatActivo={setChatActivo}
-            mensajes={mensajes}
-            inputMsg={inputMsg}
-            setInputMsg={setInputMsg}
-            enviarMensaje={enviarMensaje}
-            aceptarSolicitud={aceptarSolicitud}
-            elegirPareja={elegirPareja}
-            solicitudesRecibidas={solicitudesRecibidas}
-            pareja={pareja}
-          />
-        )}
-        {pantalla === 'rankings' && <Rankings />}
-        {pantalla === 'ia' && <PlanIA />}
-        {pantalla === 'perfil' && <Perfil />}
-        <nav className="tab-bar">
-          <button className={pantalla==='inicio'?'active':''} onClick={()=>setPantalla('inicio')}><span>⌂</span><span>Inicio</span></button>
-          <button className={pantalla==='entrenos'?'active':''} onClick={()=>setPantalla('entrenos')}><span>▦</span><span>Entrenos</span></button>
-          <button className={pantalla==='parejas'?'active':''} onClick={()=>{setPantalla('parejas');setSubPantalla('buscar')}}><span>⚇</span><span>Parejas</span></button>
-          <button className={pantalla==='ia'?'active':''} onClick={()=>setPantalla('ia')}><span>◈</span><span>IA</span></button>
-          <button className={pantalla==='rankings'?'active':''} onClick={()=>setPantalla('rankings')}><span>🏆</span><span>Rankings</span></button>
-          <button className={pantalla==='perfil'?'active':''} onClick={()=>setPantalla('perfil')}><span>◉</span><span>Perfil</span></button>
-        </nav>
-      </div>
-    </div>
-  )
+body {
+  background: #0a0a0a;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  font-family: 'Inter', Arial, sans-serif;
+  padding: 24px 0;
 }
 
-function Inicio({ pareja }) {
-  return (
-    <div className="screen">
-      <div className="hero-header">
-        <div>
-          <div className="greeting">Buenos días</div>
-          <div className="name">Carlos R.</div>
-        </div>
-        <div>
-          <div className="rating-badge">1.840 pts</div>
-          <div className="rating-sub">Acreditado · Top 12%</div>
-        </div>
-      </div>
-      <div className="next-race">
-        <div className="race-label">Próxima carrera</div>
-        <div className="race-name">HYROX Madrid · Doubles</div>
-        <div className="race-meta">
-          <span>📅 14 jun</span>
-          <span>👥 {pareja ? pareja.nombre : 'Marta G.'}</span>
-          <span>⏱ 23 días</span>
-        </div>
-      </div>
-      <div className="section-label">Tu pareja</div>
-      <div className="card">
-        <div className="partner-row">
-          <div className="avatar yellow">CR</div>
-          <div className="partner-info">
-            <div className="partner-name">Tú — Carlos R.</div>
-            <div className="partner-sub">Sesión hace 1 día</div>
-          </div>
-          <div className="partner-rating">1.840</div>
-        </div>
-        <div className="divider-text">+ pareja</div>
-        <div className="partner-row">
-          <div className={`avatar ${pareja ? pareja.color : 'dark'}`}>{pareja ? pareja.iniciales : 'MG'}</div>
-          <div className="partner-info">
-            <div className="partner-name">{pareja ? pareja.nombre : 'Marta G.'}</div>
-            <div className="partner-sub">Sesión hace 3 días</div>
-          </div>
-          <div className="partner-rating">{pareja ? pareja.rating : '1.790'}</div>
-        </div>
-      </div>
-      <div className="section-label">Esta semana</div>
-      <div className="stat-grid">
-        <div className="stat-card"><div className="stat-val">6<span className="stat-unit">sess</span></div><div className="stat-lbl">Registradas</div></div>
-        <div className="stat-card"><div className="stat-val">+42<span className="stat-unit">pts</span></div><div className="stat-lbl">Rating ganado</div></div>
-        <div className="stat-card"><div className="stat-val">82<span className="stat-unit">kg</span></div><div className="stat-lbl">Farmer carry PR</div></div>
-        <div className="stat-card"><div className="stat-val">4:12<span className="stat-unit">min</span></div><div className="stat-lbl">Ski erg 500m</div></div>
-      </div>
-    </div>
-  )
+.app {
+  display: flex;
+  justify-content: center;
 }
 
-function Entrenos() {
-  return (
-    <div className="screen">
-      <div className="screen-title">Retos</div>
-      <div className="screen-sub">Con Marta G.</div>
-      <div className="section-label">Activos</div>
-      <div className="reto-card">
-        <div className="reto-header"><span className="reto-name">Ski erg 500m</span><span className="badge active">Activo</span></div>
-        <div className="reto-desc">Marta te reta a bajar de <strong>4:20 min</strong></div>
-        <div className="reto-footer"><span>⏱ 5 días restantes</span><span>Tu mejor: 4:28</span></div>
-      </div>
-      <div className="reto-card">
-        <div className="reto-header"><span className="reto-name">Wall balls · 50 reps</span><span className="badge active">Activo</span></div>
-        <div className="reto-desc">Tú retas a Marta: <strong>&lt;3:45 min</strong></div>
-        <div className="reto-footer"><span>⏱ 2 días restantes</span><span>Mejor de Marta: 3:52</span></div>
-      </div>
-      <div className="section-label">Completados</div>
-      <div className="reto-card faded">
-        <div className="reto-header"><span className="reto-name">Rowing 500m</span><span className="badge done">Conseguido</span></div>
-        <div className="reto-desc">Marta bajó de 1:58 min · hace 4 días</div>
-      </div>
-      <div className="btn-primary">+ Lanzar nuevo reto</div>
-    </div>
-  )
+.phone {
+  width: 360px;
+  background: #0a0a0a;
+  border-radius: 44px;
+  padding: 10px;
+  border: 1.5px solid #1e1e1e;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.6);
 }
 
-function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
-
-  if (chatActivo) {
-    const msgs = mensajes[chatActivo.id] || []
-    return (
-      <div className="screen" style={{display:'flex',flexDirection:'column',height:'100%'}}>
-        <div className="chat-header">
-          <button className="back-btn" onClick={()=>setChatActivo(null)}>←</button>
-          <div className={`avatar ${chatActivo.color}`} style={{width:28,height:28,fontSize:10}}>{chatActivo.iniciales}</div>
-          <div style={{flex:1}}>
-            <div className="partner-name" style={{fontSize:12}}>{chatActivo.nombre}</div>
-            <div className="partner-sub">Rating {chatActivo.rating}</div>
-          </div>
-          <button className="btn-elegir" onClick={()=>elegirPareja(chatActivo)}>Elegir pareja ⚡</button>
-        </div>
-        <div className="chat-messages">
-          {msgs.map((m,i) => (
-            <div key={i} className={`msg ${m.de==='yo'?'msg-yo':'msg-ellos'}`}>{m.texto}</div>
-          ))}
-        </div>
-        <div className="chat-input">
-          <input
-            value={inputMsg}
-            onChange={e=>setInputMsg(e.target.value)}
-            onKeyDown={e=>e.key==='Enter'&&enviarMensaje(chatActivo.id)}
-            placeholder="Escribe un mensaje..."
-          />
-          <button onClick={()=>enviarMensaje(chatActivo.id)}>→</button>
-        </div>
-      </div>
-    )
-  }
-
-  const candidato = candidatos[indice]
-
-  return (
-    <div className="screen">
-      <div className="parejas-tabs">
-        <button className={subPantalla==='buscar'?'active':''} onClick={()=>setSubPantalla('buscar')}>Buscar</button>
-        <button className={subPantalla==='solicitudes'?'active':''} onClick={()=>setSubPantalla('solicitudes')}>
-          Solicitudes {solicitudesRecibidas.length > 0 && <span className="notif">{solicitudesRecibidas.length}</span>}
-        </button>
-        <button className={subPantalla==='chats'?'active':''} onClick={()=>setSubPantalla('chats')}>
-          Chats {chats.length > 0 && <span className="notif">{chats.length}</span>}
-        </button>
-      </div>
-
-      {subPantalla === 'buscar' && (
-        <div>
-          {indice < candidatos.length ? (
-            <div className="swipe-card">
-              <div className="swipe-avatar-wrap">
-                <div className={`avatar ${candidato.color}`} style={{width:64,height:64,fontSize:22}}>{candidato.iniciales}</div>
-              </div>
-              <div className="swipe-name">{candidato.nombre}</div>
-              <div className="swipe-sub">📍 {candidato.ciudad} · {candidato.club}</div>
-              <div className="rating-badge" style={{margin:'6px auto',display:'block',width:'fit-content'}}>{candidato.rating} pts</div>
-              <div className="bars" style={{marginTop:12}}>
-                {candidato.fortalezas.map(f => (
-                  <div className="bar-row" key={f.ex}>
-                    <span className="bar-lbl">{f.ex}</span>
-                    <div className="bar-track"><div className="bar-fill" style={{width:`${f.pct}%`}}></div></div>
-                    <span className="bar-val">{f.pct}%</span>
-                  </div>
-                ))}
-              </div>
-              <div className="swipe-actions">
-                <button className="btn-pass" onClick={()=>setIndice(i=>Math.min(i+1,candidatos.length))}>✕ Pasar</button>
-                <button className="btn-match" onClick={()=>setIndice(i=>Math.min(i+1,candidatos.length))}>Solicitar →</button>
-              </div>
-            </div>
-          ) : (
-            <div className="empty-state">
-              <div style={{fontSize:32}}>🎯</div>
-              <div style={{color:'#555',marginTop:8,fontSize:12}}>No hay más candidatos por ahora</div>
-              <button className="btn-primary" style={{marginTop:12}} onClick={()=>setIndice(0)}>Volver a empezar</button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {subPantalla === 'solicitudes' && (
-        <div>
-          <div className="screen-sub" style={{marginTop:8}}>Personas interesadas en ser tu pareja</div>
-          {solicitudesRecibidas.map(s => (
-            <div className="card" key={s.id}>
-              <div className="partner-row" style={{marginBottom:8}}>
-                <div className={`avatar ${s.color}`}>{s.iniciales}</div>
-                <div className="partner-info">
-                  <div className="partner-name">{s.nombre}</div>
-                  <div className="partner-sub">📍 {s.ciudad} · {s.rating} pts</div>
-                </div>
-              </div>
-              <div className="reto-desc" style={{marginBottom:10}}>"{s.mensaje}"</div>
-              <div className="match-actions">
-                <button className="btn-pass">Rechazar</button>
-                <button className="btn-match" onClick={()=>aceptarSolicitud(s)}>Aceptar y chatear →</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {subPantalla === 'chats' && (
-        <div>
-          <div className="screen-sub" style={{marginTop:8}}>Conversaciones activas</div>
-          {chats.length === 0 ? (
-            <div className="empty-state">
-              <div style={{fontSize:32}}>💬</div>
-              <div style={{color:'#555',marginTop:8,fontSize:12}}>Acepta solicitudes para empezar a chatear</div>
-            </div>
-          ) : (
-            chats.map(c => (
-              <div className="card" key={c.id} onClick={()=>setChatActivo(c)} style={{cursor:'pointer'}}>
-                <div className="partner-row">
-                  <div className={`avatar ${c.color}`}>{c.iniciales}</div>
-                  <div className="partner-info">
-                    <div className="partner-name">{c.nombre}</div>
-                    <div className="partner-sub">{(mensajes[c.id]||[]).slice(-1)[0]?.texto || 'Sin mensajes'}</div>
-                  </div>
-                  <div style={{fontSize:9,color:'#444'}}>ahora</div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  )
+.notch {
+  width: 100px;
+  height: 22px;
+  background: #0a0a0a;
+  border-radius: 0 0 14px 14px;
+  margin: 0 auto 2px;
 }
 
-function Rankings() {
-  const clubRanking = [
-    { pos:1, nombre:'HYROX Elite BCN', pts:1920, miembros:12, bandera:'🥇' },
-    { pos:2, nombre:'CrossFit Retiro MAD', pts:1875, miembros:18, bandera:'🥈' },
-    { pos:3, nombre:'HYROX MAD', pts:1842, miembros:9, bandera:'🥉' },
-    { pos:4, nombre:'Athletic Club BIL', pts:1810, miembros:15, bandera:'' },
-    { pos:5, nombre:'Valencia HYROX', pts:1798, miembros:11, bandera:'' },
-  ]
-
-  return (
-    <div className="screen">
-      <div className="screen-title">Rankings</div>
-
-      <div className="section-label">Tu posición personal</div>
-      <div className="card">
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-          <div className="partner-name">Carlos R.</div>
-          <div className="rating-badge">1.840 pts</div>
-        </div>
-        <div className="rank-levels">
-          <div className="rank-item">
-            <div className="rank-pos">#4</div>
-            <div className="rank-lbl">Madrid</div>
-          </div>
-          <div className="rank-divider"></div>
-          <div className="rank-item">
-            <div className="rank-pos">#47</div>
-            <div className="rank-lbl">España</div>
-          </div>
-          <div className="rank-divider"></div>
-          <div className="rank-item">
-            <div className="rank-pos">#312</div>
-            <div className="rank-lbl">Global</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="section-label">Tu club</div>
-      <div className="card" style={{marginBottom:12}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-          <div>
-            <div className="partner-name">HYROX MAD</div>
-            <div className="partner-sub">9 miembros acreditados</div>
-          </div>
-          <div className="rating-badge">1.842 pts</div>
-        </div>
-        <div className="rank-levels">
-          <div className="rank-item">
-            <div className="rank-pos">#2</div>
-            <div className="rank-lbl">Madrid</div>
-          </div>
-          <div className="rank-divider"></div>
-          <div className="rank-item">
-            <div className="rank-pos">#8</div>
-            <div className="rank-lbl">España</div>
-          </div>
-          <div className="rank-divider"></div>
-          <div className="rank-item">
-            <div className="rank-pos">#64</div>
-            <div className="rank-lbl">Global</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="section-label">🏆 Ranking de clubs — España</div>
-      {clubRanking.map(c => (
-        <div key={c.pos} className={`ranking-row ${c.nombre === 'HYROX MAD' ? 'my-club' : ''}`}>
-          <div className="rank-num">{c.bandera || `#${c.pos}`}</div>
-          <div className="partner-info">
-            <div className="partner-name" style={{fontSize:11}}>{c.nombre}</div>
-            <div className="partner-sub">{c.miembros} miembros acreditados</div>
-          </div>
-          <div className="partner-rating">{c.pts}</div>
-        </div>
-      ))}
-    </div>
-  )
+.screen {
+  background: #111111;
+  border-radius: 36px;
+  overflow-y: auto;
+  max-height: 720px;
+  padding: 0 16px 24px;
+  color: #f0f0f0;
 }
 
-function Perfil() {
-  const carreras = [
-    {nombre:'HYROX Madrid 2024', tipo:'Doubles · con Marta G.', tiempo:'1:18:42', top:'Top 8%'},
-    {nombre:'HYROX Barcelona 2024', tipo:'Individual', tiempo:'58:14', top:'Top 15%'},
-    {nombre:'CrossFit Open 2023', tipo:'Prueba acreditada', tiempo:'Acreditado', top:''},
-  ]
-  const marcas = [
-    {ex:'Ski erg', val:'4:12', pct:84},
-    {ex:'Rowing', val:'1:52', pct:91},
-    {ex:'Wall balls', val:'3:48', pct:76},
-    {ex:'Lunges', val:'4:55', pct:68},
-  ]
-  return (
-    <div className="screen">
-      <div className="profile-header">
-        <div className="avatar yellow large">CR</div>
-        <div style={{flex:1}}>
-          <div className="partner-name" style={{fontSize:16}}>Carlos R.</div>
-          <div className="partner-sub">📍 Madrid · HYROX MAD</div>
-        </div>
-        <div style={{textAlign:'right'}}>
-          <div className="rating-badge">1.840</div>
-          <div className="rating-sub">Top 12% nacional</div>
-        </div>
-      </div>
-      <div className="stat-grid">
-        <div className="stat-card"><div className="stat-val">8</div><div className="stat-lbl">Carreras oficiales</div></div>
-        <div className="stat-card"><div className="stat-val">3</div><div className="stat-lbl">En Doubles</div></div>
-        <div className="stat-card"><div className="stat-val">1:18<span className="stat-unit">h</span></div><div className="stat-lbl">Mejor tiempo</div></div>
-      </div>
-      <div className="section-label">Historial acreditado</div>
-      {carreras.map(c => (
-        <div className="oficial-row" key={c.nombre}>
-          <div style={{flex:1}}>
-            <div className="partner-name">{c.nombre}</div>
-            <div className="partner-sub">{c.tipo}</div>
-          </div>
-          <div style={{textAlign:'right'}}>
-            <div className="partner-rating">{c.tiempo}</div>
-            <div className="partner-sub">{c.top}</div>
-          </div>
-        </div>
-      ))}
-      <div className="section-label">Mejores marcas</div>
-      {marcas.map(m => (
-        <div className="bar-row" key={m.ex}>
-          <span className="bar-lbl">{m.ex}</span>
-          <div className="bar-track"><div className="bar-fill" style={{width:`${m.pct}%`}}></div></div>
-          <span className="bar-val">{m.val}</span>
-        </div>
-      ))}
-    </div>
-  )
+/* ── TIPOGRAFÍA BASE ── */
+.greeting {
+  font-size: 11px;
+  font-weight: 500;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
-function PlanIA() {
-  const splits = [
-    ['Ski erg','60%','40%'],
-    ['Sled push','50%','50%'],
-    ['Rowing','45%','55%'],
-    ['Lunges','40%','60%'],
-    ['Wall balls','55%','45%'],
-    ['Burpees','50%','50%'],
-  ]
-  return (
-    <div className="screen">
-      <div className="screen-title">Plan de carrera</div>
-      <div className="screen-sub">HYROX Madrid · 14 jun · con Marta G.</div>
-      <div className="ai-card">
-        <div className="ai-header"><span className="ai-dot"></span><span className="ai-label">IA · basado en 34 sesiones</span></div>
-        <div className="ai-title">Distribución óptima para vuestro dúo</div>
-        <div className="split-header"><span style={{flex:1}}>Ejercicio</span><span>Tú</span><span>Marta</span></div>
-        {splits.map(([ex, tu, ella]) => (
-          <div className="split-row" key={ex}>
-            <span style={{flex:1}}>{ex}</span>
-            <span className="split-you">{tu}</span>
-            <span className="split-partner">{ella}</span>
-          </div>
-        ))}
-      </div>
-      <div className="time-card">
-        <div className="time-label">Tiempo estimado</div>
-        <div className="time-val">1:24:30</div>
-        <div className="time-sub">Top 15% de vuestra categoría</div>
-      </div>
-    </div>
-  )
+
+.name {
+  font-size: 30px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.05;
+  letter-spacing: -0.5px;
 }
+
+.screen-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  padding: 16px 0 4px;
+}
+
+.screen-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #444;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: #333;
+  text-transform: uppercase;
+  margin: 16px 0 8px;
+}
+
+/* ── RATING ── */
+.rating-badge {
+  background: #E8FF3C;
+  color: #0a0a0a;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.rating-sub {
+  font-size: 9px;
+  font-weight: 500;
+  color: #444;
+  text-align: right;
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+}
+
+/* ── HERO HEADER ── */
+.hero-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 0 10px;
+}
+
+/* ── PRÓXIMA CARRERA ── */
+.next-race {
+  background: #E8FF3C;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.race-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.race-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0a0a0a;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.race-meta {
+  display: flex;
+  gap: 12px;
+}
+
+.race-meta span {
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ── CARDS ── */
+.card {
+  background: #181818;
+  border-radius: 14px;
+  padding: 14px;
+  border: 1px solid #1e1e1e;
+  margin-bottom: 8px;
+}
+
+.card.faded { opacity: 0.45; }
+
+/* ── PARTNERS ── */
+.partner-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.avatar.yellow { background: #E8FF3C; color: #0a0a0a; }
+.avatar.dark { background: #222; color: #555; }
+.avatar.purple { background: #1a1a2e; color: #7777cc; }
+.avatar.blue { background: #1a2030; color: #6699cc; }
+.avatar.green { background: #1a2a1a; color: #55aa55; }
+.avatar.orange { background: #2a1a08; color: #cc8833; }
+.avatar.teal { background: #0a2020; color: #33aaaa; }
+.avatar.large { width: 46px; height: 46px; font-size: 15px; }
+
+.partner-info { flex: 1; }
+
+.partner-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f0f0f0;
+  letter-spacing: -0.2px;
+}
+
+.partner-sub {
+  font-size: 10px;
+  font-weight: 500;
+  color: #444;
+  margin-top: 2px;
+}
+
+.partner-rating {
+  font-size: 14px;
+  font-weight: 800;
+  color: #E8FF3C;
+  letter-spacing: -0.3px;
+}
+
+.divider-text {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  color: #222;
+  letter-spacing: 2px;
+  padding: 6px 0;
+  text-transform: uppercase;
+}
+
+/* ── STATS ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.stat-card {
+  background: #181818;
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid #1e1e1e;
+}
+
+.stat-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.stat-unit {
+  font-size: 11px;
+  font-weight: 600;
+  color: #444;
+  margin-left: 2px;
+}
+
+.stat-lbl {
+  font-size: 9px;
+  font-weight: 600;
+  color: #333;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── RETOS ── */
+.reto-card {
+  background: #181818;
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid #1e1e1e;
+  margin-bottom: 8px;
+}
+
+.reto-card.faded { opacity: 0.5; }
+
+.reto-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 5px;
+}
+
+.reto-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f0f0f0;
+  letter-spacing: -0.2px;
+}
+
+.reto-desc {
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.reto-desc strong { color: #E8FF3C; font-weight: 700; }
+
+.reto-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ── BADGES ── */
+.badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.badge.active { background: rgba(232,255,60,0.12); color: #E8FF3C; }
+.badge.done { background: #1a2a1a; color: #55aa55; }
+.badge.norating { background: #1e1e1e; color: #444; }
+
+/* ── BOTONES ── */
+.btn-primary {
+  background: #E8FF3C;
+  color: #0a0a0a;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 8px;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
+
+.btn-pass {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #222;
+  background: transparent;
+  color: #444;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
+
+.btn-match {
+  flex: 2;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #E8FF3C;
+  color: #0a0a0a;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
+
+/* ── BARS ── */
+.bars { margin: 10px 0; }
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.bar-lbl {
+  font-size: 10px;
+  font-weight: 600;
+  color: #444;
+  width: 60px;
+}
+
+.bar-track {
+  flex: 1;
+  height: 3px;
+  background: #1e1e1e;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: #E8FF3C;
+}
+
+.bar-val {
+  font-size: 10px;
+  font-weight: 700;
+  color: #555;
+  width: 30px;
+  text-align: right;
+}
+
+.match-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ── PLAN IA ── */
+.ai-card {
+  background: #141414;
+  border: 1px solid #1e1e1e;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ai-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #E8FF3C;
+  display: inline-block;
+}
+
+.ai-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #333;
+  text-transform: uppercase;
+}
+
+.ai-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 12px;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.split-header {
+  display: flex;
+  font-size: 9px;
+  font-weight: 700;
+  color: #2a2a2a;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #1e1e1e;
+}
+
+.split-header span:last-child,
+.split-header span:nth-child(2) {
+  width: 50px;
+  text-align: center;
+}
+
+.split-row {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #161616;
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+}
+
+.split-row:last-child { border: none; }
+
+.split-you {
+  width: 50px;
+  text-align: center;
+  font-weight: 800;
+  color: #E8FF3C;
+  font-size: 12px;
+}
+
+.split-partner {
+  width: 50px;
+  text-align: center;
+  font-weight: 700;
+  color: #333;
+  font-size: 12px;
+}
+
+.time-card {
+  background: #181818;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #1e1e1e;
+}
+
+.time-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.time-val {
+  font-size: 36px;
+  font-weight: 900;
+  color: #E8FF3C;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.time-sub {
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* ── RANKINGS ── */
+.rank-levels {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 4px 0;
+}
+
+.rank-item { text-align: center; }
+
+.rank-pos {
+  font-size: 24px;
+  font-weight: 900;
+  color: #E8FF3C;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.rank-lbl {
+  font-size: 9px;
+  font-weight: 600;
+  color: #333;
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.rank-divider {
+  width: 1px;
+  height: 32px;
+  background: #1e1e1e;
+}
+
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  background: #181818;
+  border: 1px solid #1e1e1e;
+}
+
+.ranking-row.my-club {
+  border-color: rgba(232,255,60,0.25);
+  background: #161610;
+}
+
+.rank-num {
+  font-size: 14px;
+  font-weight: 800;
+  color: #333;
+  width: 26px;
+  text-align: center;
+}
+
+/* ── PERFIL ── */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0 12px;
+}
+
+.oficial-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #161616;
+  gap: 10px;
+}
+
+.oficial-row:last-child { border: none; }
+
+/* ── PAREJAS TABS ── */
+.parejas-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.parejas-tabs button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #1e1e1e;
+  background: #181818;
+  color: #333;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.parejas-tabs button.active {
+  background: #E8FF3C;
+  color: #0a0a0a;
+  border-color: #E8FF3C;
+}
+
+.notif {
+  background: #E8FF3C;
+  color: #0a0a0a;
+  border-radius: 8px;
+  padding: 1px 5px;
+  font-size: 8px;
+  font-weight: 800;
+  margin-left: 4px;
+}
+
+/* ── SWIPE ── */
+.swipe-card {
+  background: #181818;
+  border-radius: 16px;
+  padding: 22px 18px;
+  border: 1px solid #1e1e1e;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.swipe-avatar-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.swipe-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.swipe-sub {
+  font-size: 10px;
+  font-weight: 500;
+  color: #444;
+  margin-top: 4px;
+  margin-bottom: 6px;
+}
+
+.swipe-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ── CHAT ── */
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0 10px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: #E8FF3C;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 700;
+}
+
+.btn-elegir {
+  background: #E8FF3C;
+  color: #0a0a0a;
+  border: none;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 300px;
+  max-height: 300px;
+}
+
+.msg {
+  max-width: 78%;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.msg-yo {
+  background: #E8FF3C;
+  color: #0a0a0a;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+  font-weight: 600;
+}
+
+.msg-ellos {
+  background: #1e1e1e;
+  color: #aaa;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.chat-input {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid #1a1a1a;
+}
+
+.chat-input input {
+  flex: 1;
+  background: #181818;
+  border: 1px solid #222;
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: #f0f0f0;
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.chat-input button {
+  background: #E8FF3C;
+  color: #0a0a0a;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+}
+
+/* ── TAB BAR ── */
+.tab-bar {
+  display: flex;
+  border-top: 1px solid #161616;
+  padding: 10px 0 12px;
+  background: #0e0e0e;
+  border-radius: 0 0 36px 36px;
+}
+
+.tab-bar button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #2a2a2a;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.tab-bar button span:first-child { font-size: 18px; }
+.tab-bar button.active { color: #E8FF3C; }
