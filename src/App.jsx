@@ -429,3 +429,36 @@ function Perfil() {
     </div>
   )
 }
+function PlanIA() {
+  const splits = [
+    ['Ski erg','60%','40%'],
+    ['Sled push','50%','50%'],
+    ['Rowing','45%','55%'],
+    ['Lunges','40%','60%'],
+    ['Wall balls','55%','45%'],
+    ['Burpees','50%','50%'],
+  ]
+  return (
+    <div className="screen">
+      <div className="screen-title">Plan de carrera</div>
+      <div className="screen-sub">HYROX Madrid · 14 jun · con Marta G.</div>
+      <div className="ai-card">
+        <div className="ai-header"><span className="ai-dot"></span><span className="ai-label">IA · basado en 34 sesiones</span></div>
+        <div className="ai-title">Distribución óptima para vuestro dúo</div>
+        <div className="split-header"><span style={{flex:1}}>Ejercicio</span><span>Tú</span><span>Marta</span></div>
+        {splits.map(([ex, tu, ella]) => (
+          <div className="split-row" key={ex}>
+            <span style={{flex:1}}>{ex}</span>
+            <span className="split-you">{tu}</span>
+            <span className="split-partner">{ella}</span>
+          </div>
+        ))}
+      </div>
+      <div className="time-card">
+        <div className="time-label">Tiempo estimado</div>
+        <div className="time-val">1:24:30</div>
+        <div className="time-sub">Top 15% de vuestra categoría</div>
+      </div>
+    </div>
+  )
+}
