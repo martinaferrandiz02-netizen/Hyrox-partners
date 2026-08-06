@@ -372,7 +372,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatAc
           ) : (
             <div className="empty-state">
               <div style={{fontSize:32}}>🎯</div>
-              <div style={{color:'#555',marginTop:8,fontSize:12}}>No hay más candidatos por ahora</div>
+              <div style={{color:'#aaa',marginTop:8,fontSize:12}}>No hay más candidatos por ahora</div>
               <button className="btn-primary" style={{marginTop:12}} onClick={()=>setIndice(0)}>Volver a empezar</button>
             </div>
           )}
@@ -405,7 +405,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatAc
           {chats.length === 0 ? (
             <div className="empty-state">
               <div style={{fontSize:32}}>💬</div>
-              <div style={{color:'#555',marginTop:8,fontSize:12}}>Acepta solicitudes para empezar a chatear</div>
+              <div style={{color:'#aaa',marginTop:8,fontSize:12}}>Acepta solicitudes para empezar a chatear</div>
             </div>
           ) : (
             chats.map(c => (
@@ -416,7 +416,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatAc
                     <div className="partner-name">{c.nombre}</div>
                     <div className="partner-sub">{(mensajes[c.id]||[]).slice(-1)[0]?.texto || 'Sin mensajes'}</div>
                   </div>
-                  <div style={{fontSize:9,color:'#444'}}>ahora</div>
+                  <div style={{fontSize:9,color:'#aaa'}}>ahora</div>
                 </div>
               </div>
             ))
