@@ -70,14 +70,12 @@ export default function App() {
             pareja={pareja}
           />
         )}
-        {pantalla === 'ia' && <PlanIA />}
         {pantalla === 'rankings' && <Rankings />}
         {pantalla === 'perfil' && <Perfil />}
         <nav className="tab-bar">
           <button className={pantalla==='inicio'?'active':''} onClick={()=>setPantalla('inicio')}><span>⌂</span><span>Inicio</span></button>
           <button className={pantalla==='entrenos'?'active':''} onClick={()=>setPantalla('entrenos')}><span>▦</span><span>Entrenos</span></button>
           <button className={pantalla==='parejas'?'active':''} onClick={()=>{setPantalla('parejas');setSubPantalla('buscar')}}><span>⚇</span><span>Parejas</span></button>
-          <button className={pantalla==='ia'?'active':''} onClick={()=>setPantalla('ia')}><span>◈</span><span>IA</span></button>
           <button className={pantalla==='rankings'?'active':''} onClick={()=>setPantalla('rankings')}><span>🏆</span><span>Rankings</span></button>
           <button className={pantalla==='perfil'?'active':''} onClick={()=>setPantalla('perfil')}><span>◉</span><span>Perfil</span></button>
         </nav>
@@ -165,6 +163,7 @@ export function Entrenos() {
   )
 }
 
+// Fase 2: plan de carrera con IA (oculto en el MVP, no se muestra en la navegación)
 export function PlanIA() {
   const splits = [
     ['Ski erg','60%','40%'],
