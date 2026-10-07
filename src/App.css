@@ -342,3 +342,14 @@ body {
 .preficha { cursor: pointer; border-radius: 10px; }
 .preficha:hover .ver-perfil { color: #f0f0f0; }
 .ver-perfil { font-size: 9px; color: #E8FF3C; font-weight: 700; margin-top: 8px; }
+
+/* Plazas disponibles */
+.plazas-intro { font-size: 9px; color: #888; line-height: 1.4; margin: 4px 0; }
+.plaza-card { text-align: left; }
+.plaza-top { display: flex; justify-content: space-between; align-items: center; }
+.plaza-flex { font-size: 8px; font-weight: 700; border-radius: 4px; padding: 2px 6px; }
+.plaza-flex.ok { background: #1e2a1e; color: #6aaa6a; }
+.plaza-flex.no { background: #2a1e1e; color: #cc7777; }
+.plaza-nota { font-size: 9px; color: #bbb; margin-top: 4px; line-height: 1.4; }
+.plaza-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 7px; }
+.plaza-bottom .btn-primary { padding: 5px 10px; font-size: 10px; margin: 0; }

@@ -11,6 +11,12 @@ const candidatos = [
   { id:8, iniciales:'IV', color:'blue', nombre:'Iker Villa', ciudad:'Valencia', distancia:'6.3 km', sexo:'Hombre', categoria:'Open', compitio:false, rating:null, club:'CrossFit Turia', mejorTiempo:null, carreras:[], marcas:[{ex:'Burpee broad jumps 80m',val:'3:55'},{ex:'Sled push 50m',val:'2:30'},{ex:'Ski erg 1000m',val:'4:25'},{ex:'Run 1 km',val:'4:10'}], fortalezas:[{ex:'Burpees',pct:87},{ex:'Sled push',pct:84},{ex:'Ski erg',pct:70}] },
 ]
 
+const plazasIniciales = [
+  { id:101, autor:{ id:101, iniciales:'MR', color:'teal', nombre:'Marcos Ríos' }, tipo:'Busco sustituto', carrera:'HYROX Madrid', fecha:'14 jun', categoria:'Doubles Open', flex:true, nota:'Mi pareja se ha lesionado. Buscamos chico ritmo ~1:15.' },
+  { id:102, autor:{ id:102, iniciales:'EG', color:'purple', nombre:'Elena Gil' }, tipo:'Cedo mi plaza', carrera:'HYROX Barcelona', fecha:'22 may', categoria:'Individual Open', flex:true, nota:'No puedo ir por trabajo. Cambio de nombre vía HYROX.' },
+  { id:103, autor:{ id:103, iniciales:'TS', color:'orange', nombre:'Toni Serra' }, tipo:'Cedo mi plaza', carrera:'HYROX Valencia', fecha:'8 mar', categoria:'Doubles Pro', flex:false, nota:'Entrada sin Flex, consultar con HYROX antes.' },
+]
+
 const CIUDADES = [...new Set(candidatos.map(c => c.ciudad))]
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
 
@@ -30,6 +36,17 @@ export default function App() {
   const [mensajes, setMensajes] = useState({})
   const [inputMsg, setInputMsg] = useState('')
   const [pareja, setPareja] = useState(null)
+
+  const [plazas, setPlazas] = useState(plazasIniciales)
+
+  const contactarPlaza = (plaza) => {
+    const persona = plaza.autor
+    if (!chats.find(c => c.id === persona.id)) {
+      setChats(prev => [...prev, persona])
+      setMensajes(prev => ({ ...prev, [persona.id]: [{ de:'yo', texto:`Hola! Me interesa tu plaza para ${plaza.carrera} (${plaza.categoria}, ${plaza.fecha}).` }] }))
+    }
+    setChatActivo(persona)
+  }
 
   const aceptarSolicitud = (persona) => {
     if (!chats.find(c => c.id === persona.id)) {
@@ -68,6 +85,9 @@ export default function App() {
             filtros={filtros}
             setFiltros={setFiltros}
             perfilAbierto={perfilAbierto}
+            plazas={plazas}
+            setPlazas={setPlazas}
+            contactarPlaza={contactarPlaza}
             setPerfilAbierto={setPerfilAbierto}
             setIndice={setIndice}
             chats={chats}
@@ -324,7 +344,7 @@ export function Perfil() {
   )
 }
 
-function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
+function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, setPlazas, contactarPlaza, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
   if (chatActivo) {
     const msgs = mensajes[chatActivo.id] || []
     return (
@@ -369,6 +389,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
         <button className={subPantalla==='buscar'?'active':''} onClick={()=>setSubPantalla('buscar')}>Buscar</button>
         <button className={subPantalla==='solicitudes'?'active':''} onClick={()=>setSubPantalla('solicitudes')}>Solicitudes {solicitudesRecibidas.length > 0 && <span className="notif">{solicitudesRecibidas.length}</span>}</button>
         <button className={subPantalla==='chats'?'active':''} onClick={()=>setSubPantalla('chats')}>Chats {chats.length > 0 && <span className="notif">{chats.length}</span>}</button>
+        <button className={subPantalla==='plazas'?'active':''} onClick={()=>setSubPantalla('plazas')}>Plazas</button>
       </div>
       {subPantalla === 'buscar' && (
         <div>
@@ -431,6 +452,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
           ))}
         </div>
       )}
+      {subPantalla === 'plazas' && <Plazas plazas={plazas} setPlazas={setPlazas} contactar={contactarPlaza} />}
       {subPantalla === 'chats' && (
         <div>
           <div className="screen-sub" style={{marginTop:8}}>Conversaciones activas</div>
@@ -545,6 +567,83 @@ function PerfilOtro({ persona, volver, solicitar }) {
       ))}
       <VideosDe autor={persona.nombre} />
       <button className="btn-match" style={{width:'100%',marginTop:10}} onClick={solicitar}>Solicitar como pareja →</button>
+    </div>
+  )
+}
+
+const CATEGORIAS_PLAZA = ['Doubles Open','Doubles Pro','Individual Open','Individual Pro','Relay']
+const PLAZA_VACIA = { tipo:'Busco sustituto', carrera:'', fecha:'', categoria:'Doubles Open', flex:true, nota:'' }
+
+function Plazas({ plazas, setPlazas, contactar }) {
+  const [form, setForm] = useState(null)
+  const [filtro, setFiltro] = useState('Todas')
+  const yo = { id:0, iniciales:'CR', color:'yellow', nombre:'Carlos R.' }
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const publicar = () => {
+    if (!form.carrera.trim() || !form.fecha.trim()) return
+    setPlazas(prev => [{ ...form, id: Date.now(), autor: yo }, ...prev])
+    setForm(null)
+  }
+  const lista = plazas.filter(p => filtro === 'Todas' || p.tipo === filtro)
+  return (
+    <div>
+      <div className="plazas-intro">¿Tu pareja no puede ir o no puedes asistir? Publica tu plaza y encuentra a alguien. El cambio de nombre y el pago se hacen directamente con HYROX.</div>
+      {form ? (
+        <div className="card upload-card">
+          <div className="chips">
+            {['Busco sustituto','Cedo mi plaza'].map(t => (
+              <button key={t} className={form.tipo===t?'chip active':'chip'} onClick={()=>set('tipo',t)}>{t}</button>
+            ))}
+          </div>
+          <div className="upload-row">
+            <input value={form.carrera} onChange={e=>set('carrera',e.target.value)} placeholder="Carrera (ej. HYROX Madrid)" />
+            <input value={form.fecha} onChange={e=>set('fecha',e.target.value)} placeholder="Fecha" style={{maxWidth:70}} />
+          </div>
+          <div className="upload-row">
+            <select value={form.categoria} onChange={e=>set('categoria',e.target.value)}>
+              {CATEGORIAS_PLAZA.map(c => <option key={c}>{c}</option>)}
+            </select>
+            <select value={form.flex?'si':'no'} onChange={e=>set('flex',e.target.value==='si')}>
+              <option value="si">Con Flex (cambio de nombre)</option>
+              <option value="no">Sin Flex</option>
+            </select>
+          </div>
+          <div className="upload-row">
+            <input value={form.nota} onChange={e=>set('nota',e.target.value)} placeholder="Detalles (ritmo, motivo...)" />
+          </div>
+          <div className="upload-actions">
+            <button className="btn-secondary" onClick={()=>setForm(null)}>Cancelar</button>
+            <button className="btn-primary" disabled={!form.carrera.trim() || !form.fecha.trim()} onClick={publicar}>Publicar</button>
+          </div>
+        </div>
+      ) : (
+        <button className="btn-match" style={{width:'100%',margin:'6px 0'}} onClick={()=>setForm(PLAZA_VACIA)}>+ Publicar plaza</button>
+      )}
+      <div className="chips" style={{margin:'8px 0'}}>
+        {['Todas','Busco sustituto','Cedo mi plaza'].map(t => (
+          <button key={t} className={filtro===t?'chip active':'chip'} onClick={()=>setFiltro(t)}>{t}</button>
+        ))}
+      </div>
+      {lista.map(p => (
+        <div className="card plaza-card" key={p.id}>
+          <div className="plaza-top">
+            <span className={p.tipo==='Busco sustituto'?'badge active':'badge done'}>{p.tipo}</span>
+            <span className={p.flex?'plaza-flex ok':'plaza-flex no'}>{p.flex?'✓ Flex':'Sin Flex'}</span>
+          </div>
+          <div className="partner-name" style={{marginTop:5}}>{p.carrera} · {p.fecha}</div>
+          <div className="partner-sub">{p.categoria}</div>
+          {p.nota && <div className="plaza-nota">{p.nota}</div>}
+          <div className="plaza-bottom">
+            <div className="partner-row" style={{gap:6}}>
+              <div className={`avatar ${p.autor.color}`} style={{width:22,height:22,fontSize:8}}>{p.autor.iniciales}</div>
+              <span className="partner-sub">{p.autor.nombre}</span>
+            </div>
+            {p.autor.id === 0
+              ? <button className="link-btn" onClick={()=>setPlazas(prev=>prev.filter(x=>x.id!==p.id))}>Retirar</button>
+              : <button className="btn-primary" onClick={()=>contactar(p)}>Contactar</button>}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
