@@ -163,7 +163,7 @@ export function MisVideos({ autor }) {
         <div className="video-empty">Cargando vídeos…</div>
       ) : videos.length === 0 && !abierto ? (
         <div className="video-empty">
-          Sube un vídeo de tus ejercicios: tus compañeros verán tu técnica y, si aún no has corrido un HYROX, servirá para demostrar tus tiempos.
+          Sube un vídeo de tus ejercicios: tus compañeros verán tu técnica y, si aún no has competido, servirá para demostrar tus tiempos.
         </div>
       ) : (
         <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} />)}</div>

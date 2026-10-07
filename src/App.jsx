@@ -3,25 +3,25 @@ import './App.css'
 import { MisVideos, VideosDe } from './Videos'
 
 const candidatos = [
-  { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid', distancia:'3.2 km', sexo:'Mujer', categoria:'Open', compitio:true, rating:1820, club:'CrossFit Retiro', mejorTiempo:'1:14:20', carreras:[{nombre:'HYROX Madrid 2025',tipo:'Doubles Open',tiempo:'1:14:20'},{nombre:'HYROX Valencia 2025',tipo:'Individual Open',tiempo:'1:22:05'}], marcas:[{ex:'Ski erg 1000m',val:'4:05'},{ex:'Rowing 1000m',val:'4:12'},{ex:'Wall balls 100',val:'5:40'},{ex:'Run 1 km',val:'4:35'}], fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
-  { id:2, iniciales:'JM', color:'blue', nombre:'Javi Molina', ciudad:'Madrid', distancia:'5.8 km', sexo:'Hombre', categoria:'Pro', compitio:true, rating:1795, club:'HYROX MAD', mejorTiempo:'1:02:48', carreras:[{nombre:'HYROX Barcelona 2025',tipo:'Doubles Pro',tiempo:'1:02:48'}], marcas:[{ex:'Ski erg 1000m',val:'3:41'},{ex:'Rowing 1000m',val:'3:28'},{ex:'Sled push 50m',val:'2:10'},{ex:'Run 1 km',val:'3:55'}], fortalezas:[{ex:'Rowing',pct:95},{ex:'Sled push',pct:80},{ex:'Burpees',pct:78}] },
+  { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid', distancia:'3.2 km', sexo:'Mujer', categoria:'Open', compitio:true, rating:1820, club:'CrossFit Retiro', mejorTiempo:'1:14:20', carreras:[{nombre:'Madrid 2025',tipo:'Doubles Open',tiempo:'1:14:20'},{nombre:'Valencia 2025',tipo:'Individual Open',tiempo:'1:22:05'}], marcas:[{ex:'Ski erg 1000m',val:'4:05'},{ex:'Rowing 1000m',val:'4:12'},{ex:'Wall balls 100',val:'5:40'},{ex:'Run 1 km',val:'4:35'}], fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
+  { id:2, iniciales:'JM', color:'blue', nombre:'Javi Molina', ciudad:'Madrid', distancia:'5.8 km', sexo:'Hombre', categoria:'Pro', compitio:true, rating:1795, club:'Hybrid MAD', mejorTiempo:'1:02:48', carreras:[{nombre:'Barcelona 2025',tipo:'Doubles Pro',tiempo:'1:02:48'}], marcas:[{ex:'Ski erg 1000m',val:'3:41'},{ex:'Rowing 1000m',val:'3:28'},{ex:'Sled push 50m',val:'2:10'},{ex:'Run 1 km',val:'3:55'}], fortalezas:[{ex:'Rowing',pct:95},{ex:'Sled push',pct:80},{ex:'Burpees',pct:78}] },
   { id:3, iniciales:'SR', color:'green', nombre:'Sara Ruiz', ciudad:'Madrid', distancia:'2.1 km', sexo:'Mujer', categoria:'Open', compitio:false, rating:null, club:'Sin club', mejorTiempo:null, carreras:[], marcas:[{ex:'Ski erg 1000m',val:'4:18'},{ex:'Wall balls 100',val:'5:05'},{ex:'Farmer carry 200m',val:'1:48'},{ex:'Run 1 km',val:'4:40'}], fortalezas:[{ex:'Wall balls',pct:91},{ex:'Farmer carry',pct:88},{ex:'Ski erg',pct:82}] },
-  { id:6, iniciales:'DP', color:'orange', nombre:'David Pons', ciudad:'Barcelona', distancia:'1.4 km', sexo:'Hombre', categoria:'Open', compitio:true, rating:1760, club:'Hybrid BCN', mejorTiempo:'1:09:30', carreras:[{nombre:'HYROX Barcelona 2025',tipo:'Doubles Open',tiempo:'1:09:30'}], marcas:[{ex:'Sled pull 50m',val:'2:25'},{ex:'Run 1 km',val:'3:50'},{ex:'Rowing 1000m',val:'3:45'},{ex:'Lunges 100m',val:'4:30'}], fortalezas:[{ex:'Sled pull',pct:90},{ex:'Running',pct:85},{ex:'Lunges',pct:72}] },
-  { id:7, iniciales:'CM', color:'teal', nombre:'Clara Martí', ciudad:'Valencia', distancia:'2.7 km', sexo:'Mujer', categoria:'Pro', compitio:true, rating:1870, club:'Valencia HYROX', mejorTiempo:'1:05:12', carreras:[{nombre:'HYROX Valencia 2025',tipo:'Doubles Pro',tiempo:'1:05:12'},{nombre:'HYROX Madrid 2025',tipo:'Individual Pro',tiempo:'1:11:40'}], marcas:[{ex:'Run 1 km',val:'3:42'},{ex:'Rowing 1000m',val:'3:52'},{ex:'Wall balls 100',val:'4:20'},{ex:'Ski erg 1000m',val:'3:58'}], fortalezas:[{ex:'Running',pct:94},{ex:'Rowing',pct:89},{ex:'Wall balls',pct:83}] },
+  { id:6, iniciales:'DP', color:'orange', nombre:'David Pons', ciudad:'Barcelona', distancia:'1.4 km', sexo:'Hombre', categoria:'Open', compitio:true, rating:1760, club:'Hybrid BCN', mejorTiempo:'1:09:30', carreras:[{nombre:'Barcelona 2025',tipo:'Doubles Open',tiempo:'1:09:30'}], marcas:[{ex:'Sled pull 50m',val:'2:25'},{ex:'Run 1 km',val:'3:50'},{ex:'Rowing 1000m',val:'3:45'},{ex:'Lunges 100m',val:'4:30'}], fortalezas:[{ex:'Sled pull',pct:90},{ex:'Running',pct:85},{ex:'Lunges',pct:72}] },
+  { id:7, iniciales:'CM', color:'teal', nombre:'Clara Martí', ciudad:'Valencia', distancia:'2.7 km', sexo:'Mujer', categoria:'Pro', compitio:true, rating:1870, club:'Valencia Hybrid', mejorTiempo:'1:05:12', carreras:[{nombre:'Valencia 2025',tipo:'Doubles Pro',tiempo:'1:05:12'},{nombre:'Madrid 2025',tipo:'Individual Pro',tiempo:'1:11:40'}], marcas:[{ex:'Run 1 km',val:'3:42'},{ex:'Rowing 1000m',val:'3:52'},{ex:'Wall balls 100',val:'4:20'},{ex:'Ski erg 1000m',val:'3:58'}], fortalezas:[{ex:'Running',pct:94},{ex:'Rowing',pct:89},{ex:'Wall balls',pct:83}] },
   { id:8, iniciales:'IV', color:'blue', nombre:'Iker Villa', ciudad:'Valencia', distancia:'6.3 km', sexo:'Hombre', categoria:'Open', compitio:false, rating:null, club:'CrossFit Turia', mejorTiempo:null, carreras:[], marcas:[{ex:'Burpee broad jumps 80m',val:'3:55'},{ex:'Sled push 50m',val:'2:30'},{ex:'Ski erg 1000m',val:'4:25'},{ex:'Run 1 km',val:'4:10'}], fortalezas:[{ex:'Burpees',pct:87},{ex:'Sled push',pct:84},{ex:'Ski erg',pct:70}] },
 ]
 
 const plazasIniciales = [
-  { id:101, autor:{ id:101, iniciales:'MR', color:'teal', nombre:'Marcos Ríos' }, tipo:'Busco sustituto', carrera:'HYROX Madrid', fecha:'14 jun', categoria:'Doubles Open', flex:true, nota:'Mi pareja se ha lesionado. Buscamos chico ritmo ~1:15.' },
-  { id:102, autor:{ id:102, iniciales:'EG', color:'purple', nombre:'Elena Gil' }, tipo:'Cedo mi plaza', carrera:'HYROX Barcelona', fecha:'22 may', categoria:'Individual Open', flex:true, nota:'No puedo ir por trabajo. Cambio de nombre vía HYROX.' },
-  { id:103, autor:{ id:103, iniciales:'TS', color:'orange', nombre:'Toni Serra' }, tipo:'Cedo mi plaza', carrera:'HYROX Valencia', fecha:'8 mar', categoria:'Doubles Pro', flex:false, nota:'Entrada sin Flex, consultar con HYROX antes.' },
+  { id:101, autor:{ id:101, iniciales:'MR', color:'teal', nombre:'Marcos Ríos' }, tipo:'Busco sustituto', carrera:'Madrid', fecha:'14 jun', categoria:'Doubles Open', flex:true, nota:'Mi pareja se ha lesionado. Buscamos chico ritmo ~1:15.' },
+  { id:102, autor:{ id:102, iniciales:'EG', color:'purple', nombre:'Elena Gil' }, tipo:'Cedo mi plaza', carrera:'Barcelona', fecha:'22 may', categoria:'Individual Open', flex:true, nota:'No puedo ir por trabajo. Cambio de nombre con el organizador.' },
+  { id:103, autor:{ id:103, iniciales:'TS', color:'orange', nombre:'Toni Serra' }, tipo:'Cedo mi plaza', carrera:'Valencia', fecha:'8 mar', categoria:'Doubles Pro', flex:false, nota:'Entrada sin Flex, consultar con antes.' },
 ]
 
 const CIUDADES = [...new Set(candidatos.map(c => c.ciudad))]
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
 
 const solicitudesRecibidas = [
-  { id:4, iniciales:'PM', color:'orange', nombre:'Pablo Martín', ciudad:'Madrid · 4.5 km', rating:1810, club:'HYROX MAD', mensaje:'Hola! Vi tu perfil y creo que somos buena pareja. Tengo competición en junio.' },
+  { id:4, iniciales:'PM', color:'orange', nombre:'Pablo Martín', ciudad:'Madrid · 4.5 km', rating:1810, club:'Hybrid MAD', mensaje:'Hola! Vi tu perfil y creo que somos buena pareja. Tengo competición en junio.' },
   { id:5, iniciales:'LG', color:'teal', nombre:'Laura García', ciudad:'Madrid · 1.8 km', rating:1830, club:'CrossFit Retiro', mensaje:'Me complemento bien contigo en los ejercicios. ¿Hablamos?' },
 ]
 
@@ -132,7 +132,7 @@ export function Inicio({ pareja }) {
       </div>
       <div className="next-race">
         <div className="race-label">Próxima carrera</div>
-        <div className="race-name">HYROX Madrid · Doubles</div>
+        <div className="race-name">Madrid · Doubles</div>
         <div className="race-meta">
           <span>📅 14 jun</span>
           <span>👥 {pareja ? pareja.nombre : 'Marta G.'}</span>
@@ -209,7 +209,7 @@ export function PlanIA() {
   return (
     <div className="screen">
       <div className="screen-title">Plan de carrera</div>
-      <div className="screen-sub">HYROX Madrid · 14 jun · con Marta G.</div>
+      <div className="screen-sub">Madrid · 14 jun · con Marta G.</div>
       <div className="ai-card">
         <div className="ai-header"><span className="ai-dot"></span><span className="ai-label">IA · basado en 34 sesiones</span></div>
         <div className="ai-title">Distribución óptima para vuestro dúo</div>
@@ -233,11 +233,11 @@ export function PlanIA() {
 
 export function Rankings() {
   const clubRanking = [
-    { pos:1, nombre:'HYROX Elite BCN', pts:1920, miembros:12, bandera:'🥇' },
+    { pos:1, nombre:'Elite Hybrid BCN', pts:1920, miembros:12, bandera:'🥇' },
     { pos:2, nombre:'CrossFit Retiro MAD', pts:1875, miembros:18, bandera:'🥈' },
-    { pos:3, nombre:'HYROX MAD', pts:1842, miembros:9, bandera:'🥉' },
+    { pos:3, nombre:'Hybrid MAD', pts:1842, miembros:9, bandera:'🥉' },
     { pos:4, nombre:'Athletic Club BIL', pts:1810, miembros:15, bandera:'' },
-    { pos:5, nombre:'Valencia HYROX', pts:1798, miembros:11, bandera:'' },
+    { pos:5, nombre:'Valencia Hybrid', pts:1798, miembros:11, bandera:'' },
   ]
   return (
     <div className="screen">
@@ -260,7 +260,7 @@ export function Rankings() {
       <div className="card" style={{marginBottom:12}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
           <div>
-            <div className="partner-name">HYROX MAD</div>
+            <div className="partner-name">Hybrid MAD</div>
             <div className="partner-sub">9 miembros acreditados</div>
           </div>
           <div className="rating-badge">1.842 pts</div>
@@ -275,7 +275,7 @@ export function Rankings() {
       </div>
       <div className="section-label">🏆 Ranking de clubs — España</div>
       {clubRanking.map(c => (
-        <div key={c.pos} className={`ranking-row ${c.nombre === 'HYROX MAD' ? 'my-club' : ''}`}>
+        <div key={c.pos} className={`ranking-row ${c.nombre === 'Hybrid MAD' ? 'my-club' : ''}`}>
           <div className="rank-num">{c.bandera || '#'+c.pos}</div>
           <div className="partner-info">
             <div className="partner-name" style={{fontSize:11}}>{c.nombre}</div>
@@ -290,8 +290,8 @@ export function Rankings() {
 
 export function Perfil() {
   const carreras = [
-    {nombre:'HYROX Madrid 2024', tipo:'Doubles · con Marta G.', tiempo:'1:18:42', top:'Top 8%'},
-    {nombre:'HYROX Barcelona 2024', tipo:'Individual', tiempo:'58:14', top:'Top 15%'},
+    {nombre:'Madrid 2024', tipo:'Doubles · con Marta G.', tiempo:'1:18:42', top:'Top 8%'},
+    {nombre:'Barcelona 2024', tipo:'Individual', tiempo:'58:14', top:'Top 15%'},
     {nombre:'CrossFit Open 2023', tipo:'Prueba acreditada', tiempo:'Acreditado', top:''},
   ]
   const marcas = [
@@ -306,7 +306,7 @@ export function Perfil() {
         <div className="avatar yellow large">CR</div>
         <div style={{flex:1}}>
           <div className="partner-name" style={{fontSize:16}}>Carlos R.</div>
-          <div className="partner-sub">📍 Madrid · HYROX MAD</div>
+          <div className="partner-sub">📍 Madrid · Hybrid MAD</div>
         </div>
         <div style={{textAlign:'right'}}>
           <div className="rating-badge">1.840</div>
@@ -402,7 +402,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
               </div>
               <div className="swipe-name">{candidato.nombre}</div>
               <div className="swipe-sub">📍 {candidato.ciudad} · {candidato.distancia} · {candidato.club}</div>
-              <div className="swipe-tags"><span>{candidato.sexo}</span><span>HYROX {candidato.categoria}</span>{candidato.mejorTiempo && <span>⏱ Mejor: {candidato.mejorTiempo}</span>}</div>
+              <div className="swipe-tags"><span>{candidato.sexo}</span><span>{candidato.categoria}</span>{candidato.mejorTiempo && <span>⏱ Mejor: {candidato.mejorTiempo}</span>}</div>
               {candidato.compitio
                 ? <div className="rating-badge" style={{margin:'6px auto',display:'block',width:'fit-content'}}>{candidato.rating} pts</div>
                 : <div className="badge norating" style={{margin:'6px auto',display:'block',width:'fit-content'}}>Aún no ha competido</div>}
@@ -494,7 +494,7 @@ function Buscador({ filtros, cambiarFiltro, total, limpiar }) {
         <div className="filtros-panel">
           <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="compitio" titulo="Experiencia" opciones={['Todos','Ya ha competido','Aún no ha competido']} />
           <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="ciudad" titulo="Localización" opciones={['Todas', ...CIUDADES]} />
-          <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="categoria" titulo="Tipo de HYROX" opciones={['Todas','Open','Pro']} />
+          <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="categoria" titulo="Categoría" opciones={['Todas','Open','Pro']} />
           <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="sexo" titulo="Sexo" opciones={['Todos','Mujer','Hombre']} />
           <div className="filtros-footer">
             <span>{total} {total===1?'resultado':'resultados'}</span>
@@ -536,7 +536,7 @@ function PerfilOtro({ persona, volver, solicitar }) {
         </div>
       </div>
       <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
-        <span>{persona.sexo}</span><span>HYROX {persona.categoria}</span><span>{persona.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
+        <span>{persona.sexo}</span><span>{persona.categoria}</span><span>{persona.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
       </div>
       <div className="section-label">Puntos fuertes</div>
       {persona.fortalezas.map(f => (
@@ -555,7 +555,7 @@ function PerfilOtro({ persona, volver, solicitar }) {
       ))}
       <div className="section-label">Carreras</div>
       {persona.carreras.length === 0 ? (
-        <div className="video-empty">Aún no ha competido en HYROX: mira sus vídeos para comprobar sus tiempos.</div>
+        <div className="video-empty">Aún no ha competido: mira sus vídeos para comprobar sus tiempos.</div>
       ) : persona.carreras.map(c => (
         <div className="oficial-row" key={c.nombre}>
           <div style={{flex:1}}>
@@ -587,7 +587,7 @@ function Plazas({ plazas, setPlazas, contactar }) {
   const lista = plazas.filter(p => filtro === 'Todas' || p.tipo === filtro)
   return (
     <div>
-      <a className="plazas-link" href="https://hyrox.com" target="_blank" rel="noopener noreferrer">Gestionar tu entrada en HYROX ↗</a>
+      <a className="plazas-link" href="https://hyrox.com" target="_blank" rel="noopener noreferrer">Gestionar tu entrada con el organizador ↗</a>
       {form ? (
         <div className="card upload-card">
           <div className="chips">
@@ -596,7 +596,7 @@ function Plazas({ plazas, setPlazas, contactar }) {
             ))}
           </div>
           <div className="upload-row">
-            <input value={form.carrera} onChange={e=>set('carrera',e.target.value)} placeholder="Carrera (ej. HYROX Madrid)" />
+            <input value={form.carrera} onChange={e=>set('carrera',e.target.value)} placeholder="Carrera (ej. Madrid · Doubles)" />
             <input value={form.fecha} onChange={e=>set('fecha',e.target.value)} placeholder="Fecha" style={{maxWidth:70}} />
           </div>
           <div className="upload-row">
