@@ -323,3 +323,4 @@ body {
 .upload-actions { display: flex; gap: 6px; justify-content: flex-end; }
 .btn-secondary { background: transparent; border: 0.5px solid #555; color: #aaa; border-radius: 7px; padding: 6px 10px; font-size: 10px; cursor: pointer; }
 .upload-actions .btn-primary:disabled { opacity: 0.4; cursor: default; }
+.video-views { font-size: 8px; color: #888; padding: 0 6px 5px; }

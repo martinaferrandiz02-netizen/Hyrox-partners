@@ -24,3 +24,20 @@ on conflict (id) do nothing;
 
 create policy "videos archivos lectura" on storage.objects for select using (bucket_id = 'videos');
 create policy "videos archivos subida" on storage.objects for insert with check (bucket_id = 'videos');
+
+-- 3. Visualizaciones públicas
+alter table public.videos add column if not exists visualizaciones integer not null default 0;
+
+-- Suma 1 visualización y devuelve el total (los usuarios no pueden editar el número directamente)
+create or replace function public.sumar_visualizacion(video_id bigint)
+returns integer
+language sql
+security definer
+set search_path = public
+as $$
+  update public.videos set visualizaciones = visualizaciones + 1
+  where id = video_id
+  returning visualizaciones;
+$$;
+
+grant execute on function public.sumar_visualizacion(bigint) to anon, authenticated;

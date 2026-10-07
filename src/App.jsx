@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import { MisVideos, VideosDe } from './Videos'
+import { MisVideos } from './Videos'
 
 const candidatos = [
   { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid · 3.2 km', rating:1820, club:'CrossFit Retiro', fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
@@ -127,7 +127,6 @@ export function Inicio({ pareja }) {
           <div className="partner-rating">{pareja ? pareja.rating : '1.790'}</div>
         </div>
       </div>
-      {pareja && <VideosDe autor={pareja.nombre} titulo={`Técnica de ${pareja.nombre.split(' ')[0]}`} />}
       <div className="section-label">Esta semana</div>
       <div className="stat-grid">
         <div className="stat-card"><div className="stat-val">6<span className="stat-unit">sess</span></div><div className="stat-lbl">Registradas</div></div>
@@ -366,7 +365,6 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatAc
                   </div>
                 ))}
               </div>
-              <VideosDe key={candidato.id} autor={candidato.nombre} titulo="Su técnica" />
               <div className="swipe-actions">
                 <button className="btn-pass" onClick={()=>setIndice(i=>Math.min(i+1,candidatos.length))}>✕ Pasar</button>
                 <button className="btn-match" onClick={()=>setIndice(i=>Math.min(i+1,candidatos.length))}>Solicitar →</button>

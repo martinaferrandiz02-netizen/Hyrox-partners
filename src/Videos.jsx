@@ -32,31 +32,32 @@ function useVideos(autor) {
   return { videos, setVideos, cargando }
 }
 
-function VideoCard({ v }) {
+// Formato corto: 1.234 → 1,2K
+function formatoVistas(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M'
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K'
+  return String(n)
+}
+
+function VideoCard({ v, onVista }) {
+  const contada = useRef(false)
+
+  // Cuenta una visualización la primera vez que se reproduce
+  const alReproducir = async () => {
+    if (contada.current) return
+    contada.current = true
+    const { data, error } = await supabase.rpc('sumar_visualizacion', { video_id: v.id })
+    if (!error && typeof data === 'number') onVista(v.id, data)
+  }
+
   return (
     <div className="video-card">
-      <video src={v.url} controls playsInline preload="metadata" />
+      <video src={v.url} controls playsInline preload="metadata" onPlay={alReproducir} />
       <div className="video-meta">
         <span className="video-ex">{v.ejercicio}</span>
         {v.tiempo && <span className="video-time">⏱ {v.tiempo}</span>}
       </div>
-    </div>
-  )
-}
-
-// Vídeos de otra persona (solo lectura): candidatos, tu pareja...
-export function VideosDe({ autor, titulo = 'Técnica' }) {
-  const { videos, cargando } = useVideos(autor)
-  return (
-    <div className="videos-block">
-      <div className="section-label">{titulo}</div>
-      {cargando ? (
-        <div className="video-empty">Cargando vídeos…</div>
-      ) : videos.length === 0 ? (
-        <div className="video-empty">{autor.split(' ')[0]} todavía no ha subido vídeos.</div>
-      ) : (
-        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} />)}</div>
-      )}
+      <div className="video-views">👁 {formatoVistas(v.visualizaciones || 0)} visualizaciones</div>
     </div>
   )
 }
@@ -70,6 +71,9 @@ export function MisVideos({ autor }) {
   const [tiempo, setTiempo] = useState('')
   const [estado, setEstado] = useState('')
   const inputRef = useRef(null)
+
+  const actualizarVistas = (id, total) =>
+    setVideos(prev => prev.map(x => x.id === id ? { ...x, visualizaciones: total } : x))
 
   const reset = () => {
     setArchivo(null); setTiempo(''); setEstado(''); setAbierto(false)
@@ -143,7 +147,7 @@ export function MisVideos({ autor }) {
           Sube un vídeo de tus ejercicios: tus compañeros verán tu técnica y, si aún no has corrido un HYROX, servirá para demostrar tus tiempos.
         </div>
       ) : (
-        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} />)}</div>
+        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} />)}</div>
       )}
     </div>
   )
