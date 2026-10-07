@@ -354,3 +354,20 @@ body {
 .plaza-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 7px; }
 .plaza-bottom .btn-primary { padding: 5px 10px; font-size: 10px; margin: 0; }
 .plazas-link { display: block; font-size: 10px; font-weight: 700; color: #E8FF3C; text-decoration: none; margin: 4px 0; }
+
+/* Acceso y perfil */
+.cargando { display: flex; align-items: center; justify-content: center; color: #888; font-size: 11px; }
+.acceso { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; }
+.acceso-logo { font-size: 32px; font-weight: 800; color: #E8FF3C; letter-spacing: 4px; }
+.acceso-sub { font-size: 11px; color: #aaa; margin-bottom: 14px; }
+.acceso-form { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.acceso-form input, .perfil-form input { background: #1a1a1a; border: 0.5px solid #2a2a2a; border-radius: 8px; color: #f0f0f0; font-size: 12px; padding: 10px; width: 100%; box-sizing: border-box; }
+.acceso-form .btn-match { padding: 10px; }
+.acceso-estado { font-size: 10px; color: #E8FF3C; line-height: 1.4; }
+.perfil-form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.perfil-form label { display: flex; flex-direction: column; gap: 4px; font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+.perfil-form label span { text-transform: none; letter-spacing: 0; color: #666; }
+.perfil-acciones { display: flex; gap: 6px; margin: 10px 0 4px; }
+.perfil-acciones .btn-secondary { flex: 1; }
+.video-views { display: flex; justify-content: space-between; align-items: center; }
+.video-borrar { background: none; border: none; color: #cc7777; font-size: 8px; cursor: pointer; padding: 0; }

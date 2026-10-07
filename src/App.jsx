@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import { MisVideos, VideosDe } from './Videos'
+import { Acceso, FormPerfil } from './Auth'
+import { supabase } from './supabase'
 
-const candidatos = [
+const candidatosDemo = [
   { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid', distancia:'3.2 km', sexo:'Mujer', categoria:'Open', compitio:true, rating:1820, club:'CrossFit Retiro', mejorTiempo:'1:14:20', carreras:[{nombre:'Madrid 2025',tipo:'Doubles Open',tiempo:'1:14:20'},{nombre:'Valencia 2025',tipo:'Individual Open',tiempo:'1:22:05'}], marcas:[{ex:'Ski erg 1000m',val:'4:05'},{ex:'Rowing 1000m',val:'4:12'},{ex:'Wall balls 100',val:'5:40'},{ex:'Run 1 km',val:'4:35'}], fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
   { id:2, iniciales:'JM', color:'blue', nombre:'Javi Molina', ciudad:'Madrid', distancia:'5.8 km', sexo:'Hombre', categoria:'Pro', compitio:true, rating:1795, club:'Hybrid MAD', mejorTiempo:'1:02:48', carreras:[{nombre:'Barcelona 2025',tipo:'Doubles Pro',tiempo:'1:02:48'}], marcas:[{ex:'Ski erg 1000m',val:'3:41'},{ex:'Rowing 1000m',val:'3:28'},{ex:'Sled push 50m',val:'2:10'},{ex:'Run 1 km',val:'3:55'}], fortalezas:[{ex:'Rowing',pct:95},{ex:'Sled push',pct:80},{ex:'Burpees',pct:78}] },
   { id:3, iniciales:'SR', color:'green', nombre:'Sara Ruiz', ciudad:'Madrid', distancia:'2.1 km', sexo:'Mujer', categoria:'Open', compitio:false, rating:null, club:'Sin club', mejorTiempo:null, carreras:[], marcas:[{ex:'Ski erg 1000m',val:'4:18'},{ex:'Wall balls 100',val:'5:05'},{ex:'Farmer carry 200m',val:'1:48'},{ex:'Run 1 km',val:'4:40'}], fortalezas:[{ex:'Wall balls',pct:91},{ex:'Farmer carry',pct:88},{ex:'Ski erg',pct:82}] },
@@ -17,7 +19,17 @@ const plazasIniciales = [
   { id:103, autor:{ id:103, iniciales:'TS', color:'orange', nombre:'Toni Serra' }, tipo:'Cedo mi plaza', carrera:'Valencia', fecha:'8 mar', categoria:'Doubles Pro', flex:false, nota:'Entrada sin Flex, consultar con antes.' },
 ]
 
-const CIUDADES = [...new Set(candidatos.map(c => c.ciudad))]
+const COLORES = ['purple','blue','green','orange','teal']
+const iniciales = (nombre) => nombre.split(/\s+/).filter(Boolean).slice(0,2).map(p => p[0].toUpperCase()).join('')
+
+// Convierte un perfil de la base de datos al formato de candidato
+const aCandidato = (p) => ({
+  id: p.id, userId: p.id, nombre: p.nombre, iniciales: iniciales(p.nombre),
+  color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
+  ciudad: p.ciudad, distancia: null, sexo: p.sexo, categoria: p.categoria,
+  compitio: p.compitio, rating: null, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo,
+  carreras: [], marcas: [], fortalezas: [],
+})
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
 
 const solicitudesRecibidas = [
@@ -26,6 +38,32 @@ const solicitudesRecibidas = [
 ]
 
 export default function App() {
+  const [sesion, setSesion] = useState(undefined)
+  const [perfil, setPerfil] = useState(undefined)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSesion(data.session))
+    const { data } = supabase.auth.onAuthStateChange((_evento, s) => setSesion(s))
+    return () => data.subscription.unsubscribe()
+  }, [])
+
+  const userId = sesion?.user?.id
+  useEffect(() => {
+    if (!userId) return
+    supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+      .then(({ data }) => setPerfil(data ?? null))
+  }, [userId])
+
+  let contenido
+  if (sesion === undefined || (sesion && (perfil === undefined || (perfil && perfil.id !== userId)))) contenido = <div className="screen cargando">Cargando…</div>
+  else if (!sesion) contenido = <Acceso />
+  else if (!perfil) contenido = <FormPerfil userId={userId} onGuardado={setPerfil} />
+  else return <Pairx perfil={perfil} setPerfil={setPerfil} />
+
+  return <div className="app"><div className="phone"><div className="notch"></div>{contenido}</div></div>
+}
+
+function Pairx({ perfil, setPerfil }) {
   const [pantalla, setPantalla] = useState('inicio')
   const [subPantalla, setSubPantalla] = useState('buscar')
   const [indice, setIndice] = useState(0)
@@ -38,6 +76,14 @@ export default function App() {
   const [pareja, setPareja] = useState(null)
 
   const [plazas, setPlazas] = useState(plazasIniciales)
+  const [candidatosReales, setCandidatosReales] = useState([])
+
+  useEffect(() => {
+    supabase.from('profiles').select('*').neq('id', perfil.id).order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setCandidatosReales(data.map(aCandidato)) })
+  }, [perfil.id])
+  const candidatos = [...candidatosReales, ...candidatosDemo]
+  const yo = { id: perfil.id, iniciales: iniciales(perfil.nombre), color: 'yellow', nombre: perfil.nombre }
 
   const contactarPlaza = (plaza) => {
     const persona = plaza.autor
@@ -75,7 +121,7 @@ export default function App() {
     <div className="app">
       <div className="phone">
         <div className="notch"></div>
-        {pantalla === 'inicio' && <Inicio pareja={pareja} />}
+        {pantalla === 'inicio' && <Inicio pareja={pareja} yo={yo} />}
         {pantalla === 'entrenos' && <Entrenos />}
         {pantalla === 'parejas' && (
           <Parejas
@@ -86,6 +132,8 @@ export default function App() {
             setFiltros={setFiltros}
             perfilAbierto={perfilAbierto}
             plazas={plazas}
+            candidatos={candidatos}
+            yo={yo}
             setPlazas={setPlazas}
             contactarPlaza={contactarPlaza}
             setPerfilAbierto={setPerfilAbierto}
@@ -103,8 +151,8 @@ export default function App() {
             pareja={pareja}
           />
         )}
-        {pantalla === 'rankings' && <Rankings />}
-        {pantalla === 'perfil' && <Perfil />}
+        {pantalla === 'rankings' && <Rankings yo={yo} />}
+        {pantalla === 'perfil' && <Perfil perfil={perfil} setPerfil={setPerfil} />}
         <nav className="tab-bar">
           <button className={pantalla==='inicio'?'active':''} onClick={()=>setPantalla('inicio')}><span>⌂</span><span>Inicio</span></button>
           <button className={pantalla==='entrenos'?'active':''} onClick={()=>setPantalla('entrenos')}><span>▦</span><span>Entrenos</span></button>
@@ -117,13 +165,13 @@ export default function App() {
   )
 }
 
-export function Inicio({ pareja }) {
+export function Inicio({ pareja, yo }) {
   return (
     <div className="screen">
       <div className="hero-header">
         <div>
           <div className="greeting">Buenos días</div>
-          <div className="name">Carlos R.</div>
+          <div className="name">{yo.nombre}</div>
         </div>
         <div>
           <div className="rating-badge">1.840 pts</div>
@@ -142,9 +190,9 @@ export function Inicio({ pareja }) {
       <div className="section-label">Tu pareja</div>
       <div className="card">
         <div className="partner-row">
-          <div className="avatar yellow">CR</div>
+          <div className="avatar yellow">{yo.iniciales}</div>
           <div className="partner-info">
-            <div className="partner-name">Tú — Carlos R.</div>
+            <div className="partner-name">Tú — {yo.nombre}</div>
             <div className="partner-sub">Sesión hace 1 día</div>
           </div>
           <div className="partner-rating">1.840</div>
@@ -231,7 +279,7 @@ export function PlanIA() {
   )
 }
 
-export function Rankings() {
+export function Rankings({ yo }) {
   const clubRanking = [
     { pos:1, nombre:'Elite Hybrid BCN', pts:1920, miembros:12, bandera:'🥇' },
     { pos:2, nombre:'CrossFit Retiro MAD', pts:1875, miembros:18, bandera:'🥈' },
@@ -245,7 +293,7 @@ export function Rankings() {
       <div className="section-label">Tu posición personal</div>
       <div className="card">
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-          <div className="partner-name">Carlos R.</div>
+          <div className="partner-name">{yo.nombre}</div>
           <div className="rating-badge">1.840 pts</div>
         </div>
         <div className="rank-levels">
@@ -288,63 +336,38 @@ export function Rankings() {
   )
 }
 
-export function Perfil() {
-  const carreras = [
-    {nombre:'Madrid 2024', tipo:'Doubles · con Marta G.', tiempo:'1:18:42', top:'Top 8%'},
-    {nombre:'Barcelona 2024', tipo:'Individual', tiempo:'58:14', top:'Top 15%'},
-    {nombre:'CrossFit Open 2023', tipo:'Prueba acreditada', tiempo:'Acreditado', top:''},
-  ]
-  const marcas = [
-    {ex:'Ski erg', val:'4:12', pct:84},
-    {ex:'Rowing', val:'1:52', pct:91},
-    {ex:'Wall balls', val:'3:48', pct:76},
-    {ex:'Lunges', val:'4:55', pct:68},
-  ]
+export function Perfil({ perfil, setPerfil }) {
+  const [editando, setEditando] = useState(false)
+  if (editando) {
+    return <FormPerfil userId={perfil.id} perfil={perfil} onGuardado={(p)=>{setPerfil(p);setEditando(false)}} onCancelar={()=>setEditando(false)} />
+  }
   return (
     <div className="screen">
       <div className="profile-header">
-        <div className="avatar yellow large">CR</div>
+        <div className="avatar yellow large">{iniciales(perfil.nombre)}</div>
         <div style={{flex:1}}>
-          <div className="partner-name" style={{fontSize:16}}>Carlos R.</div>
-          <div className="partner-sub">📍 Madrid · Hybrid MAD</div>
+          <div className="partner-name" style={{fontSize:16}}>{perfil.nombre}</div>
+          <div className="partner-sub">📍 {perfil.ciudad}{perfil.club ? ` · ${perfil.club}` : ''}</div>
         </div>
         <div style={{textAlign:'right'}}>
-          <div className="rating-badge">1.840</div>
-          <div className="rating-sub">Top 12% nacional</div>
+          {perfil.compitio && perfil.mejor_tiempo
+            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">Mejor tiempo</div></>
+            : <div className="badge norating">{perfil.compitio ? 'Ha competido' : 'Aún sin carreras'}</div>}
         </div>
       </div>
-      <div className="stat-grid">
-        <div className="stat-card"><div className="stat-val">8</div><div className="stat-lbl">Carreras oficiales</div></div>
-        <div className="stat-card"><div className="stat-val">3</div><div className="stat-lbl">En Doubles</div></div>
-        <div className="stat-card"><div className="stat-val">1:18<span className="stat-unit">h</span></div><div className="stat-lbl">Mejor tiempo</div></div>
+      <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
+        <span>{perfil.sexo}</span><span>{perfil.categoria}</span><span>{perfil.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
       </div>
-      <div className="section-label">Historial acreditado</div>
-      {carreras.map(c => (
-        <div className="oficial-row" key={c.nombre}>
-          <div style={{flex:1}}>
-            <div className="partner-name">{c.nombre}</div>
-            <div className="partner-sub">{c.tipo}</div>
-          </div>
-          <div style={{textAlign:'right'}}>
-            <div className="partner-rating">{c.tiempo}</div>
-            <div className="partner-sub">{c.top}</div>
-          </div>
-        </div>
-      ))}
-      <div className="section-label">Mejores marcas</div>
-      {marcas.map(m => (
-        <div className="bar-row" key={m.ex}>
-          <span className="bar-lbl">{m.ex}</span>
-          <div className="bar-track"><div className="bar-fill" style={{width:m.pct+'%'}}></div></div>
-          <span className="bar-val">{m.val}</span>
-        </div>
-      ))}
-      <MisVideos autor="Carlos R." />
+      <div className="perfil-acciones">
+        <button className="btn-secondary" onClick={()=>setEditando(true)}>Editar perfil</button>
+        <button className="btn-secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button>
+      </div>
+      <MisVideos userId={perfil.id} />
     </div>
   )
 }
 
-function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, setPlazas, contactarPlaza, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
+function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, setPlazas, contactarPlaza, candidatos, yo, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
   if (chatActivo) {
     const msgs = mensajes[chatActivo.id] || []
     return (
@@ -373,6 +396,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
   if (perfilAbierto) {
     return <PerfilOtro persona={perfilAbierto} volver={()=>setPerfilAbierto(null)} solicitar={()=>{setPerfilAbierto(null);setIndice(i=>i+1)}} />
   }
+  const ciudades = [...new Set(candidatos.map(c => c.ciudad))]
   const t = filtros.texto.trim().toLowerCase()
   const lista = candidatos.filter(c =>
     (!t || c.nombre.toLowerCase().includes(t) || c.club.toLowerCase().includes(t)) &&
@@ -393,7 +417,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
       </div>
       {subPantalla === 'buscar' && (
         <div>
-          <Buscador filtros={filtros} cambiarFiltro={cambiarFiltro} total={lista.length} limpiar={()=>{setFiltros(FILTROS_INICIALES);setIndice(0)}} />
+          <Buscador filtros={filtros} cambiarFiltro={cambiarFiltro} ciudades={ciudades} total={lista.length} limpiar={()=>{setFiltros(FILTROS_INICIALES);setIndice(0)}} />
           {indice < lista.length ? (
             <div className="swipe-card">
               <div className="preficha" onClick={()=>setPerfilAbierto(candidato)}>
@@ -401,12 +425,12 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
                 <div className={`avatar ${candidato.color}`} style={{width:64,height:64,fontSize:22}}>{candidato.iniciales}</div>
               </div>
               <div className="swipe-name">{candidato.nombre}</div>
-              <div className="swipe-sub">📍 {candidato.ciudad} · {candidato.distancia} · {candidato.club}</div>
-              <div className="swipe-tags"><span>{candidato.sexo}</span><span>{candidato.categoria}</span>{candidato.mejorTiempo && <span>⏱ Mejor: {candidato.mejorTiempo}</span>}</div>
-              {candidato.compitio
+              <div className="swipe-sub">📍 {[candidato.ciudad, candidato.distancia, candidato.club].filter(Boolean).join(' · ')}</div>
+              <div className="swipe-tags"><span>{candidato.sexo}</span><span>{candidato.categoria}</span>{!candidato.userId && <span>Ejemplo</span>}{candidato.mejorTiempo && <span>⏱ Mejor: {candidato.mejorTiempo}</span>}</div>
+              {candidato.compitio && candidato.rating
                 ? <div className="rating-badge" style={{margin:'6px auto',display:'block',width:'fit-content'}}>{candidato.rating} pts</div>
-                : <div className="badge norating" style={{margin:'6px auto',display:'block',width:'fit-content'}}>Aún no ha competido</div>}
-              <div className="bars" style={{marginTop:12}}>
+                : <div className="badge norating" style={{margin:'6px auto',display:'block',width:'fit-content'}}>{candidato.compitio ? 'Ha competido' : 'Aún no ha competido'}</div>}
+              {candidato.fortalezas.length > 0 && <div className="bars" style={{marginTop:12}}>
                 {candidato.fortalezas.map(f => (
                   <div className="bar-row" key={f.ex}>
                     <span className="bar-lbl">{f.ex}</span>
@@ -414,7 +438,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
                     <span className="bar-val">{f.pct}%</span>
                   </div>
                 ))}
-              </div>
+              </div>}
               <div className="ver-perfil">Ver perfil y vídeos →</div>
               </div>
               <div className="swipe-actions">
@@ -452,7 +476,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
           ))}
         </div>
       )}
-      {subPantalla === 'plazas' && <Plazas plazas={plazas} setPlazas={setPlazas} contactar={contactarPlaza} />}
+      {subPantalla === 'plazas' && <Plazas plazas={plazas} setPlazas={setPlazas} contactar={contactarPlaza} yo={yo} />}
       {subPantalla === 'chats' && (
         <div>
           <div className="screen-sub" style={{marginTop:8}}>Conversaciones activas</div>
@@ -481,7 +505,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
   )
 }
 
-function Buscador({ filtros, cambiarFiltro, total, limpiar }) {
+function Buscador({ filtros, cambiarFiltro, ciudades, total, limpiar }) {
   const [abierto, setAbierto] = useState(false)
   const activos = ['compitio','ciudad','categoria','sexo'].filter(k => filtros[k] !== FILTROS_INICIALES[k]).length
   return (
@@ -493,7 +517,7 @@ function Buscador({ filtros, cambiarFiltro, total, limpiar }) {
       {abierto && (
         <div className="filtros-panel">
           <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="compitio" titulo="Experiencia" opciones={['Todos','Ya ha competido','Aún no ha competido']} />
-          <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="ciudad" titulo="Localización" opciones={['Todas', ...CIUDADES]} />
+          <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="ciudad" titulo="Localización" opciones={['Todas', ...ciudades]} />
           <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="categoria" titulo="Categoría" opciones={['Todas','Open','Pro']} />
           <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="sexo" titulo="Sexo" opciones={['Todos','Mujer','Hombre']} />
           <div className="filtros-footer">
@@ -530,15 +554,15 @@ function PerfilOtro({ persona, volver, solicitar }) {
           <div className="partner-sub">📍 {persona.ciudad} · {persona.club}</div>
         </div>
         <div style={{textAlign:'right'}}>
-          {persona.compitio
+          {persona.rating
             ? <div className="rating-badge">{persona.rating}</div>
-            : <div className="badge norating">Sin carreras</div>}
+            : persona.mejorTiempo ? <div className="rating-badge">⏱ {persona.mejorTiempo}</div> : <div className="badge norating">Sin carreras</div>}
         </div>
       </div>
       <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
         <span>{persona.sexo}</span><span>{persona.categoria}</span><span>{persona.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
       </div>
-      <div className="section-label">Puntos fuertes</div>
+      {persona.fortalezas.length > 0 && <div className="section-label">Puntos fuertes</div>}
       {persona.fortalezas.map(f => (
         <div className="bar-row" key={f.ex}>
           <span className="bar-lbl">{f.ex}</span>
@@ -546,7 +570,7 @@ function PerfilOtro({ persona, volver, solicitar }) {
           <span className="bar-val">{f.pct}%</span>
         </div>
       ))}
-      <div className="section-label">Mejores tiempos</div>
+      {persona.marcas.length > 0 && <div className="section-label">Mejores tiempos</div>}
       {persona.marcas.map(m => (
         <div className="oficial-row" key={m.ex}>
           <div style={{flex:1}} className="partner-name">{m.ex}</div>
@@ -565,7 +589,7 @@ function PerfilOtro({ persona, volver, solicitar }) {
           <div className="partner-rating">{c.tiempo}</div>
         </div>
       ))}
-      <VideosDe autor={persona.nombre} />
+      <VideosDe userId={persona.userId} nombre={persona.nombre} />
       <button className="btn-match" style={{width:'100%',marginTop:10}} onClick={solicitar}>Solicitar como pareja →</button>
     </div>
   )
@@ -574,10 +598,9 @@ function PerfilOtro({ persona, volver, solicitar }) {
 const CATEGORIAS_PLAZA = ['Doubles Open','Doubles Pro','Individual Open','Individual Pro','Relay']
 const PLAZA_VACIA = { tipo:'Busco sustituto', carrera:'', fecha:'', categoria:'Doubles Open', flex:true, nota:'' }
 
-function Plazas({ plazas, setPlazas, contactar }) {
+function Plazas({ plazas, setPlazas, contactar, yo }) {
   const [form, setForm] = useState(null)
   const [filtro, setFiltro] = useState('Todas')
-  const yo = { id:0, iniciales:'CR', color:'yellow', nombre:'Carlos R.' }
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const publicar = () => {
     if (!form.carrera.trim() || !form.fecha.trim()) return
@@ -638,7 +661,7 @@ function Plazas({ plazas, setPlazas, contactar }) {
               <div className={`avatar ${p.autor.color}`} style={{width:22,height:22,fontSize:8}}>{p.autor.iniciales}</div>
               <span className="partner-sub">{p.autor.nombre}</span>
             </div>
-            {p.autor.id === 0
+            {p.autor.id === yo.id
               ? <button className="link-btn" onClick={()=>setPlazas(prev=>prev.filter(x=>x.id!==p.id))}>Retirar</button>
               : <button className="btn-primary" onClick={()=>contactar(p)}>Contactar</button>}
           </div>

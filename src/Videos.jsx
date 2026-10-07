@@ -9,17 +9,18 @@ const EJERCICIOS = [
 const BUCKET = 'videos'
 const MAX_MB = 50
 
-// Carga los vídeos de un usuario desde Supabase
-function useVideos(autor) {
+// Carga los vídeos de un usuario desde Supabase (sin id = perfil de ejemplo, sin vídeos)
+function useVideos(userId) {
   const [videos, setVideos] = useState([])
-  const [cargando, setCargando] = useState(true)
+  const [cargando, setCargando] = useState(Boolean(userId))
 
   useEffect(() => {
+    if (!userId) return
     let activo = true
     supabase
       .from('videos')
       .select('*')
-      .eq('autor', autor)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (!activo) return
@@ -27,7 +28,7 @@ function useVideos(autor) {
         setCargando(false)
       })
     return () => { activo = false }
-  }, [autor])
+  }, [userId])
 
   return { videos, setVideos, cargando }
 }
@@ -39,7 +40,7 @@ function formatoVistas(n) {
   return String(n)
 }
 
-function VideoCard({ v, onVista }) {
+function VideoCard({ v, onVista, onBorrar }) {
   const contada = useRef(false)
 
   // Cuenta una visualización la primera vez que se reproduce
@@ -57,14 +58,17 @@ function VideoCard({ v, onVista }) {
         <span className="video-ex">{v.ejercicio}</span>
         {v.tiempo && <span className="video-time">⏱ {v.tiempo}</span>}
       </div>
-      <div className="video-views">👁 {formatoVistas(v.visualizaciones || 0)} visualizaciones</div>
+      <div className="video-views">
+        <span>👁 {formatoVistas(v.visualizaciones || 0)} visualizaciones</span>
+        {onBorrar && <button className="video-borrar" onClick={() => onBorrar(v)}>Borrar</button>}
+      </div>
     </div>
   )
 }
 
 // Vídeos de otra persona (solo lectura), en su perfil
-export function VideosDe({ autor }) {
-  const { videos, setVideos, cargando } = useVideos(autor)
+export function VideosDe({ userId, nombre }) {
+  const { videos, setVideos, cargando } = useVideos(userId)
   const actualizarVistas = (id, total) =>
     setVideos(prev => prev.map(x => x.id === id ? { ...x, visualizaciones: total } : x))
   return (
@@ -73,7 +77,7 @@ export function VideosDe({ autor }) {
       {cargando ? (
         <div className="video-empty">Cargando vídeos…</div>
       ) : videos.length === 0 ? (
-        <div className="video-empty">{autor.split(' ')[0]} todavía no ha subido vídeos.</div>
+        <div className="video-empty">{nombre.split(' ')[0]} todavía no ha subido vídeos.</div>
       ) : (
         <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} />)}</div>
       )}
@@ -82,8 +86,8 @@ export function VideosDe({ autor }) {
 }
 
 // Vídeos propios con subida
-export function MisVideos({ autor }) {
-  const { videos, setVideos, cargando } = useVideos(autor)
+export function MisVideos({ userId }) {
+  const { videos, setVideos, cargando } = useVideos(userId)
   const [abierto, setAbierto] = useState(false)
   const [archivo, setArchivo] = useState(null)
   const [ejercicio, setEjercicio] = useState(EJERCICIOS[0])
@@ -93,6 +97,14 @@ export function MisVideos({ autor }) {
 
   const actualizarVistas = (id, total) =>
     setVideos(prev => prev.map(x => x.id === id ? { ...x, visualizaciones: total } : x))
+
+  const borrar = async (v) => {
+    if (!window.confirm('¿Borrar este vídeo?')) return
+    const { error } = await supabase.from('videos').delete().eq('id', v.id)
+    if (error) return
+    await supabase.storage.from(BUCKET).remove([v.ruta])
+    setVideos(prev => prev.filter(x => x.id !== v.id))
+  }
 
   const reset = () => {
     setArchivo(null); setTiempo(''); setEstado(''); setAbierto(false)
@@ -114,7 +126,7 @@ export function MisVideos({ autor }) {
     if (!archivo) return
     setEstado('Subiendo…')
     const ext = archivo.name.split('.').pop() || 'mp4'
-    const ruta = `${autor.replace(/\W+/g, '-').toLowerCase()}/${Date.now()}.${ext}`
+    const ruta = `${userId}/${Date.now()}.${ext}`
 
     const { error: errSubida } = await supabase.storage.from(BUCKET).upload(ruta, archivo, { contentType: archivo.type })
     if (errSubida) {
@@ -122,10 +134,11 @@ export function MisVideos({ autor }) {
       return
     }
     const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(ruta)
-    const fila = { autor, ejercicio, tiempo: tiempo.trim() || null, url: pub.publicUrl }
+    const fila = { user_id: userId, ejercicio, tiempo: tiempo.trim() || null, url: pub.publicUrl, ruta }
     const { data, error } = await supabase.from('videos').insert(fila).select().single()
     if (error) {
-      setEstado('El vídeo se ha subido pero no se ha podido guardar. Inténtalo de nuevo.')
+      await supabase.storage.from(BUCKET).remove([ruta])
+      setEstado('No se ha podido guardar el vídeo. Inténtalo de nuevo.')
       return
     }
     setVideos(prev => [data, ...prev])
@@ -166,7 +179,7 @@ export function MisVideos({ autor }) {
           Sube un vídeo de tus ejercicios: tus compañeros verán tu técnica y, si aún no has competido, servirá para demostrar tus tiempos.
         </div>
       ) : (
-        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} />)}</div>
+        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} onBorrar={borrar} />)}</div>
       )}
     </div>
   )
