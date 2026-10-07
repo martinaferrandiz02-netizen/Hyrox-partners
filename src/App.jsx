@@ -587,7 +587,7 @@ function Plazas({ plazas, setPlazas, contactar }) {
   const lista = plazas.filter(p => filtro === 'Todas' || p.tipo === filtro)
   return (
     <div>
-      <a className="plazas-link" href="https://hyrox.com" target="_blank" rel="noopener noreferrer">Gestionar tu entrada con el organizador ↗</a>
+      <a className="plazas-link" href="https://hyrox.es/faqs/" target="_blank" rel="noopener noreferrer">Cómo cambiar el nombre de tu entrada ↗</a>
       {form ? (
         <div className="card upload-card">
           <div className="chips">
