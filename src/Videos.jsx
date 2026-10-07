@@ -62,6 +62,25 @@ function VideoCard({ v, onVista }) {
   )
 }
 
+// Vídeos de otra persona (solo lectura), en su perfil
+export function VideosDe({ autor }) {
+  const { videos, setVideos, cargando } = useVideos(autor)
+  const actualizarVistas = (id, total) =>
+    setVideos(prev => prev.map(x => x.id === id ? { ...x, visualizaciones: total } : x))
+  return (
+    <div className="videos-block">
+      <div className="section-label">Su técnica</div>
+      {cargando ? (
+        <div className="video-empty">Cargando vídeos…</div>
+      ) : videos.length === 0 ? (
+        <div className="video-empty">{autor.split(' ')[0]} todavía no ha subido vídeos.</div>
+      ) : (
+        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} />)}</div>
+      )}
+    </div>
+  )
+}
+
 // Vídeos propios con subida
 export function MisVideos({ autor }) {
   const { videos, setVideos, cargando } = useVideos(autor)

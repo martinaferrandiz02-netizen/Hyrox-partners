@@ -1,12 +1,18 @@
 import { useState } from 'react'
 import './App.css'
-import { MisVideos } from './Videos'
+import { MisVideos, VideosDe } from './Videos'
 
 const candidatos = [
-  { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid · 3.2 km', rating:1820, club:'CrossFit Retiro', fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
-  { id:2, iniciales:'JM', color:'blue', nombre:'Javi Molina', ciudad:'Madrid · 5.8 km', rating:1795, club:'HYROX MAD', fortalezas:[{ex:'Rowing',pct:95},{ex:'Sled push',pct:80},{ex:'Burpees',pct:78}] },
-  { id:3, iniciales:'SR', color:'green', nombre:'Sara Ruiz', ciudad:'Madrid · 2.1 km', rating:1855, club:'Sin club', fortalezas:[{ex:'Wall balls',pct:91},{ex:'Farmer carry',pct:88},{ex:'Ski erg',pct:82}] },
+  { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid', distancia:'3.2 km', sexo:'Mujer', categoria:'Open', compitio:true, rating:1820, club:'CrossFit Retiro', mejorTiempo:'1:14:20', carreras:[{nombre:'HYROX Madrid 2025',tipo:'Doubles Open',tiempo:'1:14:20'},{nombre:'HYROX Valencia 2025',tipo:'Individual Open',tiempo:'1:22:05'}], marcas:[{ex:'Ski erg 1000m',val:'4:05'},{ex:'Rowing 1000m',val:'4:12'},{ex:'Wall balls 100',val:'5:40'},{ex:'Run 1 km',val:'4:35'}], fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
+  { id:2, iniciales:'JM', color:'blue', nombre:'Javi Molina', ciudad:'Madrid', distancia:'5.8 km', sexo:'Hombre', categoria:'Pro', compitio:true, rating:1795, club:'HYROX MAD', mejorTiempo:'1:02:48', carreras:[{nombre:'HYROX Barcelona 2025',tipo:'Doubles Pro',tiempo:'1:02:48'}], marcas:[{ex:'Ski erg 1000m',val:'3:41'},{ex:'Rowing 1000m',val:'3:28'},{ex:'Sled push 50m',val:'2:10'},{ex:'Run 1 km',val:'3:55'}], fortalezas:[{ex:'Rowing',pct:95},{ex:'Sled push',pct:80},{ex:'Burpees',pct:78}] },
+  { id:3, iniciales:'SR', color:'green', nombre:'Sara Ruiz', ciudad:'Madrid', distancia:'2.1 km', sexo:'Mujer', categoria:'Open', compitio:false, rating:null, club:'Sin club', mejorTiempo:null, carreras:[], marcas:[{ex:'Ski erg 1000m',val:'4:18'},{ex:'Wall balls 100',val:'5:05'},{ex:'Farmer carry 200m',val:'1:48'},{ex:'Run 1 km',val:'4:40'}], fortalezas:[{ex:'Wall balls',pct:91},{ex:'Farmer carry',pct:88},{ex:'Ski erg',pct:82}] },
+  { id:6, iniciales:'DP', color:'orange', nombre:'David Pons', ciudad:'Barcelona', distancia:'1.4 km', sexo:'Hombre', categoria:'Open', compitio:true, rating:1760, club:'Hybrid BCN', mejorTiempo:'1:09:30', carreras:[{nombre:'HYROX Barcelona 2025',tipo:'Doubles Open',tiempo:'1:09:30'}], marcas:[{ex:'Sled pull 50m',val:'2:25'},{ex:'Run 1 km',val:'3:50'},{ex:'Rowing 1000m',val:'3:45'},{ex:'Lunges 100m',val:'4:30'}], fortalezas:[{ex:'Sled pull',pct:90},{ex:'Running',pct:85},{ex:'Lunges',pct:72}] },
+  { id:7, iniciales:'CM', color:'teal', nombre:'Clara Martí', ciudad:'Valencia', distancia:'2.7 km', sexo:'Mujer', categoria:'Pro', compitio:true, rating:1870, club:'Valencia HYROX', mejorTiempo:'1:05:12', carreras:[{nombre:'HYROX Valencia 2025',tipo:'Doubles Pro',tiempo:'1:05:12'},{nombre:'HYROX Madrid 2025',tipo:'Individual Pro',tiempo:'1:11:40'}], marcas:[{ex:'Run 1 km',val:'3:42'},{ex:'Rowing 1000m',val:'3:52'},{ex:'Wall balls 100',val:'4:20'},{ex:'Ski erg 1000m',val:'3:58'}], fortalezas:[{ex:'Running',pct:94},{ex:'Rowing',pct:89},{ex:'Wall balls',pct:83}] },
+  { id:8, iniciales:'IV', color:'blue', nombre:'Iker Villa', ciudad:'Valencia', distancia:'6.3 km', sexo:'Hombre', categoria:'Open', compitio:false, rating:null, club:'CrossFit Turia', mejorTiempo:null, carreras:[], marcas:[{ex:'Burpee broad jumps 80m',val:'3:55'},{ex:'Sled push 50m',val:'2:30'},{ex:'Ski erg 1000m',val:'4:25'},{ex:'Run 1 km',val:'4:10'}], fortalezas:[{ex:'Burpees',pct:87},{ex:'Sled push',pct:84},{ex:'Ski erg',pct:70}] },
 ]
+
+const CIUDADES = [...new Set(candidatos.map(c => c.ciudad))]
+const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
 
 const solicitudesRecibidas = [
   { id:4, iniciales:'PM', color:'orange', nombre:'Pablo Martín', ciudad:'Madrid · 4.5 km', rating:1810, club:'HYROX MAD', mensaje:'Hola! Vi tu perfil y creo que somos buena pareja. Tengo competición en junio.' },
@@ -17,6 +23,8 @@ export default function App() {
   const [pantalla, setPantalla] = useState('inicio')
   const [subPantalla, setSubPantalla] = useState('buscar')
   const [indice, setIndice] = useState(0)
+  const [filtros, setFiltros] = useState(FILTROS_INICIALES)
+  const [perfilAbierto, setPerfilAbierto] = useState(null)
   const [chats, setChats] = useState([])
   const [chatActivo, setChatActivo] = useState(null)
   const [mensajes, setMensajes] = useState({})
@@ -57,6 +65,10 @@ export default function App() {
             subPantalla={subPantalla}
             setSubPantalla={setSubPantalla}
             indice={indice}
+            filtros={filtros}
+            setFiltros={setFiltros}
+            perfilAbierto={perfilAbierto}
+            setPerfilAbierto={setPerfilAbierto}
             setIndice={setIndice}
             chats={chats}
             chatActivo={chatActivo}
@@ -76,7 +88,7 @@ export default function App() {
         <nav className="tab-bar">
           <button className={pantalla==='inicio'?'active':''} onClick={()=>setPantalla('inicio')}><span>⌂</span><span>Inicio</span></button>
           <button className={pantalla==='entrenos'?'active':''} onClick={()=>setPantalla('entrenos')}><span>▦</span><span>Entrenos</span></button>
-          <button className={pantalla==='parejas'?'active':''} onClick={()=>{setPantalla('parejas');setSubPantalla('buscar')}}><span>⚇</span><span>Parejas</span></button>
+          <button className={pantalla==='parejas'?'active':''} onClick={()=>{setPantalla('parejas');setSubPantalla('buscar');setPerfilAbierto(null)}}><span>⚇</span><span>Parejas</span></button>
           <button className={pantalla==='rankings'?'active':''} onClick={()=>setPantalla('rankings')}><span>🏆</span><span>Rankings</span></button>
           <button className={pantalla==='perfil'?'active':''} onClick={()=>setPantalla('perfil')}><span>◉</span><span>Perfil</span></button>
         </nav>
@@ -312,7 +324,7 @@ export function Perfil() {
   )
 }
 
-function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
+function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
   if (chatActivo) {
     const msgs = mensajes[chatActivo.id] || []
     return (
@@ -338,7 +350,19 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatAc
       </div>
     )
   }
-  const candidato = candidatos[indice]
+  if (perfilAbierto) {
+    return <PerfilOtro persona={perfilAbierto} volver={()=>setPerfilAbierto(null)} solicitar={()=>{setPerfilAbierto(null);setIndice(i=>i+1)}} />
+  }
+  const t = filtros.texto.trim().toLowerCase()
+  const lista = candidatos.filter(c =>
+    (!t || c.nombre.toLowerCase().includes(t) || c.club.toLowerCase().includes(t)) &&
+    (filtros.compitio === 'Todos' || (filtros.compitio === 'Ya ha competido') === c.compitio) &&
+    (filtros.ciudad === 'Todas' || c.ciudad === filtros.ciudad) &&
+    (filtros.categoria === 'Todas' || c.categoria === filtros.categoria) &&
+    (filtros.sexo === 'Todos' || c.sexo === filtros.sexo)
+  )
+  const candidato = lista[indice]
+  const cambiarFiltro = (campo, valor) => { setFiltros(f => ({ ...f, [campo]: valor })); setIndice(0) }
   return (
     <div className="screen">
       <div className="parejas-tabs">
@@ -348,14 +372,19 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatAc
       </div>
       {subPantalla === 'buscar' && (
         <div>
-          {indice < candidatos.length ? (
+          <Buscador filtros={filtros} cambiarFiltro={cambiarFiltro} total={lista.length} limpiar={()=>{setFiltros(FILTROS_INICIALES);setIndice(0)}} />
+          {indice < lista.length ? (
             <div className="swipe-card">
+              <div className="preficha" onClick={()=>setPerfilAbierto(candidato)}>
               <div className="swipe-avatar-wrap">
                 <div className={`avatar ${candidato.color}`} style={{width:64,height:64,fontSize:22}}>{candidato.iniciales}</div>
               </div>
               <div className="swipe-name">{candidato.nombre}</div>
-              <div className="swipe-sub">📍 {candidato.ciudad} · {candidato.club}</div>
-              <div className="rating-badge" style={{margin:'6px auto',display:'block',width:'fit-content'}}>{candidato.rating} pts</div>
+              <div className="swipe-sub">📍 {candidato.ciudad} · {candidato.distancia} · {candidato.club}</div>
+              <div className="swipe-tags"><span>{candidato.sexo}</span><span>HYROX {candidato.categoria}</span>{candidato.mejorTiempo && <span>⏱ Mejor: {candidato.mejorTiempo}</span>}</div>
+              {candidato.compitio
+                ? <div className="rating-badge" style={{margin:'6px auto',display:'block',width:'fit-content'}}>{candidato.rating} pts</div>
+                : <div className="badge norating" style={{margin:'6px auto',display:'block',width:'fit-content'}}>Aún no ha competido</div>}
               <div className="bars" style={{marginTop:12}}>
                 {candidato.fortalezas.map(f => (
                   <div className="bar-row" key={f.ex}>
@@ -365,15 +394,17 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatAc
                   </div>
                 ))}
               </div>
+              <div className="ver-perfil">Ver perfil y vídeos →</div>
+              </div>
               <div className="swipe-actions">
-                <button className="btn-pass" onClick={()=>setIndice(i=>Math.min(i+1,candidatos.length))}>✕ Pasar</button>
-                <button className="btn-match" onClick={()=>setIndice(i=>Math.min(i+1,candidatos.length))}>Solicitar →</button>
+                <button className="btn-pass" onClick={()=>setIndice(i=>Math.min(i+1,lista.length))}>✕ Pasar</button>
+                <button className="btn-match" onClick={()=>setIndice(i=>Math.min(i+1,lista.length))}>Solicitar →</button>
               </div>
             </div>
           ) : (
             <div className="empty-state">
               <div style={{fontSize:32}}>🎯</div>
-              <div style={{color:'#aaa',marginTop:8,fontSize:12}}>No hay más candidatos por ahora</div>
+              <div style={{color:'#aaa',marginTop:8,fontSize:12}}>No hay más candidatos con estos filtros</div>
               <button className="btn-primary" style={{marginTop:12}} onClick={()=>setIndice(0)}>Volver a empezar</button>
             </div>
           )}
@@ -424,6 +455,96 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, chats, chatAc
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+function Buscador({ filtros, cambiarFiltro, total, limpiar }) {
+  const [abierto, setAbierto] = useState(false)
+  const activos = ['compitio','ciudad','categoria','sexo'].filter(k => filtros[k] !== FILTROS_INICIALES[k]).length
+  return (
+    <div className="buscador">
+      <div className="buscador-row">
+        <input className="buscador-input" value={filtros.texto} onChange={e=>cambiarFiltro('texto',e.target.value)} placeholder="🔍 Buscar por nombre o club" />
+        <button className={activos?'filtro-btn active':'filtro-btn'} onClick={()=>setAbierto(a=>!a)}>⚙ Filtros{activos ? ` (${activos})` : ''}</button>
+      </div>
+      {abierto && (
+        <div className="filtros-panel">
+          <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="compitio" titulo="Experiencia" opciones={['Todos','Ya ha competido','Aún no ha competido']} />
+          <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="ciudad" titulo="Localización" opciones={['Todas', ...CIUDADES]} />
+          <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="categoria" titulo="Tipo de HYROX" opciones={['Todas','Open','Pro']} />
+          <Grupo filtros={filtros} cambiarFiltro={cambiarFiltro} campo="sexo" titulo="Sexo" opciones={['Todos','Mujer','Hombre']} />
+          <div className="filtros-footer">
+            <span>{total} {total===1?'resultado':'resultados'}</span>
+            <button className="link-btn" onClick={limpiar}>Limpiar filtros</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Grupo({ filtros, cambiarFiltro, campo, titulo, opciones }) {
+  return (
+    <div className="filtro-grupo">
+      <div className="filtro-titulo">{titulo}</div>
+      <div className="chips">
+        {opciones.map(o => (
+          <button key={o} className={filtros[campo]===o?'chip active':'chip'} onClick={()=>cambiarFiltro(campo,o)}>{o}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PerfilOtro({ persona, volver, solicitar }) {
+  return (
+    <div className="screen">
+      <button className="link-btn" style={{margin:'10px 0'}} onClick={volver}>← Volver</button>
+      <div className="profile-header">
+        <div className={`avatar ${persona.color} large`}>{persona.iniciales}</div>
+        <div style={{flex:1}}>
+          <div className="partner-name" style={{fontSize:16}}>{persona.nombre}</div>
+          <div className="partner-sub">📍 {persona.ciudad} · {persona.club}</div>
+        </div>
+        <div style={{textAlign:'right'}}>
+          {persona.compitio
+            ? <div className="rating-badge">{persona.rating}</div>
+            : <div className="badge norating">Sin carreras</div>}
+        </div>
+      </div>
+      <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
+        <span>{persona.sexo}</span><span>HYROX {persona.categoria}</span><span>{persona.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
+      </div>
+      <div className="section-label">Puntos fuertes</div>
+      {persona.fortalezas.map(f => (
+        <div className="bar-row" key={f.ex}>
+          <span className="bar-lbl">{f.ex}</span>
+          <div className="bar-track"><div className="bar-fill" style={{width:f.pct+'%'}}></div></div>
+          <span className="bar-val">{f.pct}%</span>
+        </div>
+      ))}
+      <div className="section-label">Mejores tiempos</div>
+      {persona.marcas.map(m => (
+        <div className="oficial-row" key={m.ex}>
+          <div style={{flex:1}} className="partner-name">{m.ex}</div>
+          <div className="partner-rating">{m.val}</div>
+        </div>
+      ))}
+      <div className="section-label">Carreras</div>
+      {persona.carreras.length === 0 ? (
+        <div className="video-empty">Aún no ha competido en HYROX: mira sus vídeos para comprobar sus tiempos.</div>
+      ) : persona.carreras.map(c => (
+        <div className="oficial-row" key={c.nombre}>
+          <div style={{flex:1}}>
+            <div className="partner-name">{c.nombre}</div>
+            <div className="partner-sub">{c.tipo}</div>
+          </div>
+          <div className="partner-rating">{c.tiempo}</div>
+        </div>
+      ))}
+      <VideosDe autor={persona.nombre} />
+      <button className="btn-match" style={{width:'100%',marginTop:10}} onClick={solicitar}>Solicitar como pareja →</button>
     </div>
   )
 }

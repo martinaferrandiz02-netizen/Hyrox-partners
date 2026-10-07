@@ -324,3 +324,21 @@ body {
 .btn-secondary { background: transparent; border: 0.5px solid #555; color: #aaa; border-radius: 7px; padding: 6px 10px; font-size: 10px; cursor: pointer; }
 .upload-actions .btn-primary:disabled { opacity: 0.4; cursor: default; }
 .video-views { font-size: 8px; color: #888; padding: 0 6px 5px; }
+
+/* Buscador de parejas */
+.buscador { margin-bottom: 6px; }
+.buscador-row { display: flex; gap: 6px; }
+.buscador-input { flex: 1; min-width: 0; background: #1a1a1a; border: 0.5px solid #2a2a2a; border-radius: 8px; color: #f0f0f0; font-size: 10px; padding: 7px 8px; }
+.filtro-btn { background: #1a1a1a; border: 0.5px solid #2a2a2a; color: #aaa; border-radius: 8px; font-size: 10px; padding: 0 9px; cursor: pointer; white-space: nowrap; }
+.filtro-btn.active { border-color: #E8FF3C; color: #E8FF3C; }
+.filtros-panel { background: #141414; border: 0.5px solid #252525; border-radius: 10px; padding: 8px; margin-top: 6px; display: flex; flex-direction: column; gap: 7px; }
+.filtro-titulo { font-size: 8px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { background: #1e1e1e; border: 0.5px solid #333; color: #aaa; border-radius: 12px; padding: 3px 8px; font-size: 9px; cursor: pointer; }
+.chip.active { background: #E8FF3C; color: #0a0a0a; border-color: #E8FF3C; font-weight: 700; }
+.filtros-footer { display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #aaa; }
+.swipe-tags { display: flex; justify-content: center; gap: 4px; margin-top: 5px; }
+.swipe-tags span { background: #252525; color: #ccc; font-size: 8px; border-radius: 4px; padding: 2px 6px; }
+.preficha { cursor: pointer; border-radius: 10px; }
+.preficha:hover .ver-perfil { color: #f0f0f0; }
+.ver-perfil { font-size: 9px; color: #E8FF3C; font-weight: 700; margin-top: 8px; }
