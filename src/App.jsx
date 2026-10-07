@@ -587,7 +587,7 @@ function Plazas({ plazas, setPlazas, contactar }) {
   const lista = plazas.filter(p => filtro === 'Todas' || p.tipo === filtro)
   return (
     <div>
-      <div className="plazas-intro">¿Tu pareja no puede ir o no puedes asistir? Publica tu plaza y encuentra a alguien. El cambio de nombre y el pago se hacen directamente con HYROX.</div>
+      <a className="plazas-link" href="https://hyrox.com" target="_blank" rel="noopener noreferrer">Gestionar tu entrada en HYROX ↗</a>
       {form ? (
         <div className="card upload-card">
           <div className="chips">

@@ -353,3 +353,4 @@ body {
 .plaza-nota { font-size: 9px; color: #bbb; margin-top: 4px; line-height: 1.4; }
 .plaza-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 7px; }
 .plaza-bottom .btn-primary { padding: 5px 10px; font-size: 10px; margin: 0; }
+.plazas-link { display: block; font-size: 10px; font-weight: 700; color: #E8FF3C; text-decoration: none; margin: 4px 0; }
