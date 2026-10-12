@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 
-// Las 8 estaciones en orden de carrera, más la carrera a pie
+// Las 8 estaciones en orden de carrera
 const EJERCICIOS = [
   { nombre: 'Ski erg', detalle: '1000 m' },
   { nombre: 'Sled push', detalle: '50 m' },
@@ -11,7 +11,6 @@ const EJERCICIOS = [
   { nombre: 'Farmer carry', detalle: '200 m' },
   { nombre: 'Sandbag lunges', detalle: '100 m' },
   { nombre: 'Wall balls', detalle: '100 reps' },
-  { nombre: 'Running', detalle: '1 km' },
 ]
 
 const BUCKET = 'videos'
@@ -206,7 +205,7 @@ export function MisVideos({ userId }) {
       </div>
       <div className="video-empty">Graba o sube tu técnica en cada ejercicio. Otros atletas la verán en tu perfil y, si aún no has competido, sirve para demostrar tus tiempos.</div>
       {cargando ? <div className="video-empty">Cargando vídeos…</div> : EJERCICIOS.map((ej, i) => (
-        <Estacion key={ej.nombre} ej={ej} numero={i < 8 ? i + 1 : '🏃'} userId={userId}
+        <Estacion key={ej.nombre} ej={ej} numero={i + 1} userId={userId}
           videos={videos.filter(v => v.ejercicio === ej.nombre)}
           onSubido={v => setVideos(prev => [v, ...prev])}
           onVista={actualizarVistas} onBorrar={borrar} />
