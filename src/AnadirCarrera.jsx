@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from './supabase'
-import { comprobarCertificado, formatoParcial, formatoTiempo, huellaCertificado, leerCertificado, parcialesEnTexto } from './certificado'
+import { aSegundos, comprobarCertificado, formatoParcial, formatoTiempo, huellaCertificado, leerCertificado, parcialesEnTexto } from './certificado'
 import { ESTACIONES, guardarResultado } from './resultados'
 
 const TIPOS = ['application/pdf', 'image/png', 'image/jpeg']
@@ -17,6 +17,8 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
   const [leyendo, setLeyendo] = useState(false)
   const [estado, setEstado] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [manual, setManual] = useState(false)   // no se pudo leer: tiempo a mano y revisión manual
+  const [tiempoManual, setTiempoManual] = useState('')
 
   const comprobacion = texto !== null && nombreCompleto.trim() ? comprobarCertificado(texto, nombreCompleto, '') : null
   const parciales = texto ? parcialesEnTexto(texto) : {}
@@ -28,14 +30,26 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
     if (!f) return
     if (!TIPOS.includes(f.type)) { setEstado('El certificado tiene que ser PDF, PNG o JPG.'); return }
     if (f.size > 10 * 1024 * 1024) { setEstado('El certificado pesa más de 10 MB.'); return }
-    setEstado(''); setArchivo(f); setTexto(null); setLeyendo(true)
-    try { setTexto(await leerCertificado(f)) } catch { setEstado('No hemos podido leer el certificado. Prueba con otro archivo.'); setArchivo(null) }
+    setEstado(''); setArchivo(f); setTexto(null); setManual(false); setLeyendo(true)
+    try {
+      const t = await leerCertificado(f)
+      setTexto(t)
+      if (!comprobarCertificado(t, nombreCompleto || 'x x', '').tiempoTotal) setManual(true)
+    } catch (err) {
+      console.error('leerCertificado', err)
+      setManual(true)
+      setEstado(`No hemos podido leer el certificado automáticamente (${err?.message || err}). Escribe tu tiempo total y lo revisaremos a mano.`)
+    }
     setLeyendo(false)
   }
 
   const guardar = async () => {
     if (!carrera.trim()) { setEstado('Escribe el nombre de la carrera (ej. Ginebra 2026).'); return }
-    if (!comprobacion?.ok) { setEstado(comprobacion?.motivo || 'Sube el certificado y escribe tu nombre completo.'); return }
+    if (!archivo) { setEstado('Sube el certificado.'); return }
+    if (!nombreCompleto.trim()) { setEstado('Escribe tu nombre completo tal y como aparece en el certificado.'); return }
+    if (manual) {
+      if (aSegundos(tiempoManual) === null) { setEstado('Escribe tu tiempo total con el formato 1:31:56.'); return }
+    } else if (!comprobacion?.ok) { setEstado(comprobacion?.motivo || 'Sube el certificado y escribe tu nombre completo.'); return }
     setGuardando(true); setEstado('Guardando…')
     if (nombreCompleto.trim() !== (perfil.nombre_completo || '')) {
       const { data } = await supabase.from('profiles').update({ nombre_completo: nombreCompleto.trim() }).eq('id', perfil.id).select().single()
@@ -49,9 +63,9 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
         fecha: fecha || null,
         division,
         categoria,
-        tiempo: formatoTiempo(total),
-        parciales,
-        huella: huellaCertificado(texto),
+        tiempo: manual ? formatoTiempo(aSegundos(tiempoManual)) : formatoTiempo(total),
+        parciales: manual ? {} : parciales,
+        huella: manual ? null : huellaCertificado(texto),
       },
     })
     setGuardando(false)
@@ -88,7 +102,12 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
         </label>
 
         {leyendo && <div className="cert-estado">⏳ Leyendo el certificado…</div>}
-        {!leyendo && comprobacion && (comprobacion.ok
+        {!leyendo && manual && (
+          <label>Tiempo total <span>(lo revisaremos a mano)</span>
+            <input value={tiempoManual} onChange={e => setTiempoManual(e.target.value)} placeholder="Ej. 1:31:56" maxLength={10} />
+          </label>
+        )}
+        {!leyendo && !manual && comprobacion && (comprobacion.ok
           ? <div className="cert-estado ok">✓ Tu nombre aparece en el certificado</div>
           : <div className="cert-estado error">✕ {comprobacion.motivo}</div>)}
 
@@ -107,7 +126,7 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
         {estado && <div className="acceso-estado">{estado}</div>}
         <div className="upload-actions">
           <button className="btn-secondary" onClick={cerrar}>Cancelar</button>
-          <button className="btn-match" style={{ padding: '8px 16px' }} disabled={leyendo || guardando || !comprobacion?.ok} onClick={guardar}>Guardar carrera</button>
+          <button className="btn-match" style={{ padding: '8px 16px' }} disabled={leyendo || guardando || (!manual && !comprobacion?.ok)} onClick={guardar}>Guardar carrera</button>
         </div>
       </div>
     </div>
