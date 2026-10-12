@@ -95,4 +95,4 @@ async function manejar(req: Request) {
   return actualizar(r.ok ? 'verificado' : 'rechazado', r.motivo)
 }
 
-if (import.meta.main) Deno.serve(manejar)
+Deno.serve(manejar)
