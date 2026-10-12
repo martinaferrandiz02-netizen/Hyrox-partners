@@ -5,6 +5,7 @@ import { Acceso, EstadoCertificado, FormPerfil } from './Auth'
 import { supabase } from './supabase'
 import { nombreCiudad } from './ciudades'
 import { ChatReal } from './ChatReal'
+import { fechaCorta, publicarPlaza, retirarPlaza, usePlazas } from './plazas'
 import { enviarSolicitud, horaCorta, responderSolicitud, useSolicitudes, useUltimosMensajes } from './social'
 
 const candidatosDemo = [
@@ -142,7 +143,23 @@ function Pairx({ perfil, setPerfil }) {
   const yo = { id: perfil.id, iniciales: iniciales(perfil.nombre), color: 'yellow', nombre: perfil.nombre }
   const ranking = calcularRanking(perfil, candidatosReales)
 
-  const contactarPlaza = (plaza) => {
+  const { plazas: plazasReales, recargar: recargarPlazas } = usePlazas()
+  const listaPlazas = [
+    ...plazasReales.map(p => ({ ...p, real: true, autor: aCandidato(p.autor_perfil) })),
+    ...plazas,
+  ]
+
+  const contactarPlaza = async (plaza) => {
+    if (plaza.real) {
+      const autor = plaza.autor
+      const rel = estadoCon(autor.userId)
+      if (rel?.estado === 'aceptada') { setChatActivo(autor); return }
+      if (rel) return
+      await enviarSolicitud(perfil.id, autor.userId,
+        `¡Hola! Me interesa tu plaza: ${plaza.carrera} (${plaza.categoria}, ${fechaCorta(plaza.fecha)}).`)
+      recargar()
+      return
+    }
     const persona = plaza.autor
     if (!chats.find(c => c.id === persona.id)) {
       setChats(prev => [...prev, persona])
@@ -188,7 +205,8 @@ function Pairx({ perfil, setPerfil }) {
             filtros={filtros}
             setFiltros={setFiltros}
             perfilAbierto={perfilAbierto}
-            plazas={plazas}
+            plazas={listaPlazas}
+            recargarPlazas={recargarPlazas}
             candidatos={candidatos}
             yo={yo}
             recibidasReales={recibidasReales}
@@ -436,7 +454,7 @@ export function Perfil({ perfil, setPerfil }) {
   )
 }
 
-function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, setPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
+function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, setPlazas, recargarPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
   if (chatActivo?.userId) {
     return <ChatReal yo={yo} otro={chatActivo} volver={()=>setChatActivo(null)} elegirPareja={elegirPareja} abrirPerfil={()=>{setPerfilAbierto(chatActivo);setChatActivo(null)}} />
   }
@@ -573,7 +591,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
           ))}
         </div>
       )}
-      {subPantalla === 'plazas' && <Plazas plazas={plazas} setPlazas={setPlazas} contactar={contactarPlaza} yo={yo} />}
+      {subPantalla === 'plazas' && <Plazas plazas={plazas} setPlazas={setPlazas} recargar={recargarPlazas} contactar={contactarPlaza} estadoCon={estadoCon} yo={yo} />}
       {subPantalla === 'chats' && (
         <div>
           <div className="screen-sub" style={{marginTop:8}}>Conversaciones activas</div>
@@ -718,15 +736,29 @@ function PerfilOtro({ persona, relacion, volver, solicitar, chatear }) {
 
 const CATEGORIAS_PLAZA = ['Doubles Open','Doubles Pro','Individual Open','Individual Pro','Relay']
 const PLAZA_VACIA = { tipo:'Busco sustituto', carrera:'', fecha:'', categoria:'Doubles Open', flex:true, nota:'' }
+const hoyISO = () => new Date().toISOString().slice(0, 10)
 
-function Plazas({ plazas, setPlazas, contactar, yo }) {
+function Plazas({ plazas, setPlazas, recargar, contactar, estadoCon, yo }) {
   const [form, setForm] = useState(null)
   const [filtro, setFiltro] = useState('Todas')
+  const [error, setError] = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-  const publicar = () => {
-    if (!form.carrera.trim() || !form.fecha.trim()) return
-    setPlazas(prev => [{ ...form, id: Date.now(), autor: yo }, ...prev])
-    setForm(null)
+  const publicar = async () => {
+    if (!form.carrera.trim() || !form.fecha) return
+    const err = await publicarPlaza(yo.id, form)
+    if (err) { setError('No se ha podido publicar. Revisa los datos e inténtalo de nuevo.'); return }
+    setError(''); setForm(null); recargar()
+  }
+  const retirar = async (p) => {
+    if (!p.real) { setPlazas(prev=>prev.filter(x=>x.id!==p.id)); return }
+    if (!window.confirm('¿Retirar esta plaza?')) return
+    if (await retirarPlaza(p.id)) recargar()
+  }
+  const botonContacto = (p) => {
+    const rel = p.real ? estadoCon(p.autor.userId) : null
+    if (rel?.estado === 'aceptada') return <button className="btn-primary" onClick={()=>contactar(p)}>Abrir chat</button>
+    if (rel) return <button className="btn-primary" disabled style={{opacity:.5}}>{rel.enviada ? 'Solicitud enviada ✓' : 'Te ha escrito · ver Solicitudes'}</button>
+    return <button className="btn-primary" onClick={()=>contactar(p)}>Contactar</button>
   }
   const lista = plazas.filter(p => filtro === 'Todas' || p.tipo === filtro)
   return (
@@ -741,7 +773,7 @@ function Plazas({ plazas, setPlazas, contactar, yo }) {
           </div>
           <div className="upload-row">
             <input value={form.carrera} onChange={e=>set('carrera',e.target.value)} placeholder="Carrera (ej. Madrid · Doubles)" />
-            <input value={form.fecha} onChange={e=>set('fecha',e.target.value)} placeholder="Fecha" style={{maxWidth:70}} />
+            <input type="date" value={form.fecha} min={hoyISO()} onChange={e=>set('fecha',e.target.value)} style={{maxWidth:120}} />
           </div>
           <div className="upload-row">
             <select value={form.categoria} onChange={e=>set('categoria',e.target.value)}>
@@ -757,8 +789,9 @@ function Plazas({ plazas, setPlazas, contactar, yo }) {
           </div>
           <div className="upload-actions">
             <button className="btn-secondary" onClick={()=>setForm(null)}>Cancelar</button>
-            <button className="btn-primary" disabled={!form.carrera.trim() || !form.fecha.trim()} onClick={publicar}>Publicar</button>
+            <button className="btn-primary" disabled={!form.carrera.trim() || !form.fecha} onClick={publicar}>Publicar</button>
           </div>
+          {error && <div className="upload-status">{error}</div>}
         </div>
       ) : (
         <button className="btn-match" style={{width:'100%',margin:'6px 0'}} onClick={()=>setForm(PLAZA_VACIA)}>+ Publicar plaza</button>
@@ -768,13 +801,14 @@ function Plazas({ plazas, setPlazas, contactar, yo }) {
           <button key={t} className={filtro===t?'chip active':'chip'} onClick={()=>setFiltro(t)}>{t}</button>
         ))}
       </div>
+      {lista.length === 0 && <div className="video-empty">No hay plazas publicadas ahora mismo.</div>}
       {lista.map(p => (
-        <div className="card plaza-card" key={p.id}>
+        <div className="card plaza-card" key={(p.real ? 'r' : 'd') + p.id}>
           <div className="plaza-top">
             <span className={p.tipo==='Busco sustituto'?'badge active':'badge done'}>{p.tipo}</span>
             <span className={p.flex?'plaza-flex ok':'plaza-flex no'}>{p.flex?'✓ Flex':'Sin Flex'}</span>
           </div>
-          <div className="partner-name" style={{marginTop:5}}>{p.carrera} · {p.fecha}</div>
+          <div className="partner-name" style={{marginTop:5}}>{p.carrera} · {p.real ? fechaCorta(p.fecha) : p.fecha}</div>
           <div className="partner-sub">{p.categoria}</div>
           {p.nota && <div className="plaza-nota">{p.nota}</div>}
           <div className="plaza-bottom">
@@ -782,9 +816,9 @@ function Plazas({ plazas, setPlazas, contactar, yo }) {
               <div className={`avatar ${p.autor.color}`} style={{width:22,height:22,fontSize:8}}>{p.autor.iniciales}</div>
               <span className="partner-sub">{p.autor.nombre}</span>
             </div>
-            {p.autor.id === yo.id
-              ? <button className="link-btn" onClick={()=>setPlazas(prev=>prev.filter(x=>x.id!==p.id))}>Retirar</button>
-              : <button className="btn-primary" onClick={()=>contactar(p)}>Contactar</button>}
+            {(p.real ? p.user_id === yo.id : p.autor.id === yo.id)
+              ? <button className="link-btn" onClick={()=>retirar(p)}>Retirar</button>
+              : botonContacto(p)}
           </div>
         </div>
       ))}
