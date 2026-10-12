@@ -22,7 +22,7 @@ const plazasIniciales = [
   { id:103, autor:{ id:103, iniciales:'TS', color:'orange', nombre:'Toni Serra' }, tipo:'Cedo mi plaza', carrera:'Valencia', fecha:'8 mar', categoria:'Doubles Pro', flex:false, nota:'Entrada sin Flex, consultar con antes.' },
 ]
 
-const ETIQUETA_ESTADO = { verificado: '✓ Verificado', pendiente: '⏳ En revisión', rechazado: 'Sin verificar', sin_certificado: 'Sin verificar' }
+const ETIQUETA_ESTADO = { verificado: '✓ Verificado', pendiente: '⏳ Pendiente de revisión', rechazado: 'Sin verificar', sin_certificado: 'Sin verificar' }
 const COLORES = ['purple','blue','green','orange','teal']
 const iniciales = (nombre) => nombre.split(/\s+/).filter(Boolean).slice(0,2).map(p => p[0].toUpperCase()).join('')
 
@@ -422,7 +422,6 @@ export function Perfil({ perfil, setPerfil }) {
         <span>{perfil.sexo}</span><span>{perfil.categoria}</span><span>{perfil.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
       </div>
       {perfil.certificado_estado === 'rechazado' && <EstadoCertificado estado="rechazado" motivo={perfil.certificado_motivo} />}
-      {perfil.certificado_estado === 'pendiente' && <div className="video-empty">⏳ Tu certificado está en revisión. Los PDF se verifican al momento; las imágenes las revisa el equipo de Pairx a mano. Cuando esté aprobado, tu tiempo aparecerá como ✓ Verificado y sumarás puntos.</div>}
       {perfil.certificado_url ? (
         <div className="resultado-links">
           <a className="resultado-link" href={perfil.certificado_url} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>
