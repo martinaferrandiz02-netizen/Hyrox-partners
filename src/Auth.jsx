@@ -70,9 +70,10 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
     ? comprobarCertificado(textoCert, f.nombre_completo, f.mejor_tiempo.trim())
     : null
 
-  // Sigue verificado al editar si no se han tocado ni el nombre completo ni el tiempo
-  const sigueVerificado = Boolean(perfil?.certificado_verificado) && !certificado &&
-    f.nombre_completo.trim() === (perfil.nombre_completo || '') && f.mejor_tiempo.trim() === (perfil.mejor_tiempo || '')
+  // Si no se tocan certificado, nombre completo ni tiempo, el estado se mantiene
+  const sinCambios = !certificado &&
+    f.nombre_completo.trim() === (perfil?.nombre_completo || '') && f.mejor_tiempo.trim() === (perfil?.mejor_tiempo || '')
+  const estadoActual = sinCambios ? (perfil?.certificado_estado || 'sin_certificado') : null
 
   const elegirCertificado = async (e) => {
     const archivo = e.target.files?.[0]
@@ -117,7 +118,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       certificado_ruta = ruta
       certificado_url = supabase.storage.from('certificados').getPublicUrl(ruta).data.publicUrl
     }
-    const verificado = f.compitio && ((certificado && comprobacion?.ok) || sigueVerificado)
+    const tiempo = f.mejor_tiempo.trim()
     const fila = {
       id: userId,
       nombre: f.nombre.trim(),
@@ -127,13 +128,21 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       club: f.club.trim() || null,
       compitio: f.compitio,
       nombre_completo: f.compitio ? (f.nombre_completo.trim() || null) : null,
-      mejor_tiempo: f.compitio ? (verificado ? formatoTiempo(aSegundos(f.mejor_tiempo)) : (f.mejor_tiempo.trim() || null)) : null,
+      mejor_tiempo: f.compitio && tiempo ? (aSegundos(tiempo) !== null ? formatoTiempo(aSegundos(tiempo)) : tiempo) : null,
       certificado_url,
       certificado_ruta,
-      certificado_verificado: Boolean(verificado),
     }
     const { data, error } = await supabase.from('profiles').upsert(fila).select().single()
     if (error) { setEstado(`No se ha podido guardar (${error.message}).`); return }
+    // El servidor comprueba el certificado y decide el estado (verificado / pendiente / rechazado)
+    if (data.certificado_estado === 'pendiente') {
+      setEstado('Verificando certificado…')
+      const { error: errFn } = await supabase.functions.invoke('verificar-certificado')
+      if (!errFn) {
+        const { data: actualizado } = await supabase.from('profiles').select('*').eq('id', userId).single()
+        if (actualizado) { onGuardado(actualizado); return }
+      }
+    }
     onGuardado(data)
   }
 
@@ -175,8 +184,8 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
             {!leyendo && comprobacion && (comprobacion.ok
               ? <div className="cert-estado ok">✓ Nombre y tiempo coinciden con el certificado</div>
               : <div className="cert-estado error">✕ {comprobacion.motivo}</div>)}
-            {!leyendo && !certificado && sigueVerificado && <div className="cert-estado ok">✓ Tiempo verificado con certificado</div>}
-            {!leyendo && !certificado && !sigueVerificado && <div className="ayuda-form">Sin certificado, tu tiempo aparecerá como "sin verificar".</div>}
+            {!leyendo && !certificado && estadoActual && <EstadoCertificado estado={estadoActual} motivo={perfil?.certificado_motivo} />}
+            {!leyendo && !certificado && !perfil?.certificado_url && <div className="ayuda-form">Sin certificado, tu tiempo aparecerá como "sin verificar".</div>}
           </>
         )}
         {estado && <div className="acceso-estado">{estado}</div>}
@@ -187,4 +196,11 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       </form>
     </div>
   )
+}
+
+export function EstadoCertificado({ estado, motivo }) {
+  if (estado === 'verificado') return <div className="cert-estado ok">✓ Tiempo verificado con certificado</div>
+  if (estado === 'pendiente') return <div className="cert-estado">⏳ Certificado pendiente de revisión</div>
+  if (estado === 'rechazado') return <div className="cert-estado error">✕ Certificado no válido{motivo ? `: ${motivo}` : ''}</div>
+  return null
 }

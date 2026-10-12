@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { MisVideos, VideosDe } from './Videos'
-import { Acceso, FormPerfil } from './Auth'
+import { Acceso, EstadoCertificado, FormPerfil } from './Auth'
 import { supabase } from './supabase'
 
 const candidatosDemo = [
@@ -19,6 +19,7 @@ const plazasIniciales = [
   { id:103, autor:{ id:103, iniciales:'TS', color:'orange', nombre:'Toni Serra' }, tipo:'Cedo mi plaza', carrera:'Valencia', fecha:'8 mar', categoria:'Doubles Pro', flex:false, nota:'Entrada sin Flex, consultar con antes.' },
 ]
 
+const ETIQUETA_ESTADO = { verificado: '✓ Verificado', pendiente: '⏳ Pendiente de revisión', rechazado: 'Sin verificar', sin_certificado: 'Sin verificar' }
 const COLORES = ['purple','blue','green','orange','teal']
 const iniciales = (nombre) => nombre.split(/\s+/).filter(Boolean).slice(0,2).map(p => p[0].toUpperCase()).join('')
 
@@ -27,7 +28,7 @@ const aCandidato = (p) => ({
   id: p.id, userId: p.id, nombre: p.nombre, iniciales: iniciales(p.nombre),
   color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
   ciudad: p.ciudad, distancia: null, sexo: p.sexo, categoria: p.categoria,
-  compitio: p.compitio, rating: null, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_verificado,
+  compitio: p.compitio, rating: null, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
   carreras: [], marcas: [], fortalezas: [],
 })
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
@@ -351,13 +352,14 @@ export function Perfil({ perfil, setPerfil }) {
         </div>
         <div style={{textAlign:'right'}}>
           {perfil.compitio && perfil.mejor_tiempo
-            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">{perfil.certificado_verificado ? '✓ Verificado' : 'Sin verificar'}</div></>
+            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">{ETIQUETA_ESTADO[perfil.certificado_estado] || 'Sin verificar'}</div></>
             : <div className="badge norating">{perfil.compitio ? 'Ha competido' : 'Aún sin carreras'}</div>}
         </div>
       </div>
       <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
         <span>{perfil.sexo}</span><span>{perfil.categoria}</span><span>{perfil.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
       </div>
+      {perfil.certificado_estado === 'rechazado' && <EstadoCertificado estado="rechazado" motivo={perfil.certificado_motivo} />}
       {perfil.certificado_url ? (
         <div className="resultado-links">
           <a className="resultado-link" href={perfil.certificado_url} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>
