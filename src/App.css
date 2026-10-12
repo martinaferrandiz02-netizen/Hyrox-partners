@@ -375,3 +375,7 @@ body {
 .perfil-form .ayuda { text-transform: none; letter-spacing: 0; color: #666; font-size: 9px; line-height: 1.4; }
 .resultado-links { display: flex; gap: 6px; flex-wrap: wrap; }
 .perfil-form .upload-drop { text-transform: none; letter-spacing: 0; }
+.cert-estado { font-size: 10px; color: #aaa; line-height: 1.4; }
+.cert-estado.ok { color: #6aaa6a; font-weight: 700; }
+.cert-estado.error { color: #cc7777; }
+.ayuda-form { font-size: 9px; color: #666; }

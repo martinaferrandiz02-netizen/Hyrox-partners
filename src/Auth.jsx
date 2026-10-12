@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from './supabase'
+import { aSegundos, comprobarCertificado, formatoTiempo, leerCertificado, tiemposEnTexto } from './certificado'
 
 // Pantalla de acceso: iniciar sesión o crear cuenta con email y contraseña
 export function Acceso() {
@@ -49,41 +50,61 @@ export function Acceso() {
   )
 }
 
-// Solo se aceptan enlaces a la web pública de resultados
-function esEnlaceOficial(url) {
-  try {
-    const u = new URL(url)
-    return u.protocol === 'https:' && u.hostname === 'results.hyrox.com'
-  } catch {
-    return false
-  }
-}
-
 const TIPOS_CERTIFICADO = ['application/pdf', 'image/png', 'image/jpeg']
 
-const PERFIL_VACIO = { nombre: '', ciudad: '', sexo: 'Mujer', categoria: 'Open', club: '', compitio: false, mejor_tiempo: '', resultado_url: '' }
+const PERFIL_VACIO = { nombre: '', ciudad: '', sexo: 'Mujer', categoria: 'Open', club: '', compitio: false, mejor_tiempo: '', nombre_completo: '' }
 
 // Formulario de perfil: alta inicial y edición
 export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
-  const [f, setF] = useState(perfil ? { ...PERFIL_VACIO, ...perfil, club: perfil.club || '', mejor_tiempo: perfil.mejor_tiempo || '', resultado_url: perfil.resultado_url || '' } : PERFIL_VACIO)
+  const [f, setF] = useState(perfil
+    ? { ...PERFIL_VACIO, ...perfil, club: perfil.club || '', mejor_tiempo: perfil.mejor_tiempo || '', nombre_completo: perfil.nombre_completo || '' }
+    : PERFIL_VACIO)
   const [estado, setEstado] = useState('')
   const [certificado, setCertificado] = useState(null)
+  const [textoCert, setTextoCert] = useState(null)
+  const [leyendo, setLeyendo] = useState(false)
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
 
-  const elegirCertificado = (e) => {
+  // Comprobación en vivo en cuanto hay certificado y nombre completo
+  const comprobacion = textoCert !== null && f.nombre_completo.trim()
+    ? comprobarCertificado(textoCert, f.nombre_completo, f.mejor_tiempo.trim())
+    : null
+
+  // Sigue verificado al editar si no se han tocado ni el nombre completo ni el tiempo
+  const sigueVerificado = Boolean(perfil?.certificado_verificado) && !certificado &&
+    f.nombre_completo.trim() === (perfil.nombre_completo || '') && f.mejor_tiempo.trim() === (perfil.mejor_tiempo || '')
+
+  const elegirCertificado = async (e) => {
     const archivo = e.target.files?.[0]
     if (!archivo) return
     if (!TIPOS_CERTIFICADO.includes(archivo.type)) { setEstado('El certificado tiene que ser PDF, PNG o JPG.'); return }
     if (archivo.size > 10 * 1024 * 1024) { setEstado('El certificado pesa más de 10 MB.'); return }
     setEstado('')
     setCertificado(archivo)
+    setTextoCert(null)
+    setLeyendo(true)
+    try {
+      const texto = await leerCertificado(archivo)
+      setTextoCert(texto)
+      // Si aún no ha escrito el tiempo, lo rellenamos con el del certificado
+      const tiempos = tiemposEnTexto(texto)
+      if (tiempos.length && !f.mejor_tiempo.trim()) set('mejor_tiempo', formatoTiempo(Math.max(...tiempos)))
+    } catch (err) {
+      console.error('leerCertificado', err)
+      setEstado('No hemos podido leer el certificado. Prueba con otro archivo.')
+      setCertificado(null)
+    }
+    setLeyendo(false)
   }
 
   const guardar = async (e) => {
     e.preventDefault()
     if (!f.nombre.trim() || !f.ciudad.trim()) { setEstado('Completa tu nombre y tu ciudad.'); return }
-    const enlace = f.compitio ? f.resultado_url.trim() : ''
-    if (enlace && !esEnlaceOficial(enlace)) { setEstado('El enlace tiene que ser de results.hyrox.com.'); return }
+    if (leyendo) { setEstado('Espera a que terminemos de leer el certificado.'); return }
+    if (f.compitio && certificado) {
+      if (!f.nombre_completo.trim()) { setEstado('Escribe tu nombre completo tal y como aparece en el certificado.'); return }
+      if (!comprobacion?.ok) { setEstado(comprobacion?.motivo || 'No hemos podido comprobar el certificado.'); return }
+    }
     setEstado('Guardando…')
     let certificado_url = f.compitio ? (perfil?.certificado_url || null) : null
     let certificado_ruta = f.compitio ? (perfil?.certificado_ruta || null) : null
@@ -96,6 +117,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       certificado_ruta = ruta
       certificado_url = supabase.storage.from('certificados').getPublicUrl(ruta).data.publicUrl
     }
+    const verificado = f.compitio && ((certificado && comprobacion?.ok) || sigueVerificado)
     const fila = {
       id: userId,
       nombre: f.nombre.trim(),
@@ -104,10 +126,11 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       categoria: f.categoria,
       club: f.club.trim() || null,
       compitio: f.compitio,
-      mejor_tiempo: f.compitio ? (f.mejor_tiempo.trim() || null) : null,
-      resultado_url: enlace || null,
+      nombre_completo: f.compitio ? (f.nombre_completo.trim() || null) : null,
+      mejor_tiempo: f.compitio ? (verificado ? formatoTiempo(aSegundos(f.mejor_tiempo)) : (f.mejor_tiempo.trim() || null)) : null,
       certificado_url,
       certificado_ruta,
+      certificado_verificado: Boolean(verificado),
     }
     const { data, error } = await supabase.from('profiles').upsert(fila).select().single()
     if (error) { setEstado(`No se ha podido guardar (${error.message}).`); return }
@@ -134,25 +157,32 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
           <div className="filtro-titulo">¿Has competido ya?</div>
           <div className="chips">{[['Sí', true], ['Todavía no', false]].map(([l, v]) => <button type="button" key={l} className={f.compitio === v ? 'chip active' : 'chip'} onClick={() => set('compitio', v)}>{l}</button>)}</div>
         </div>
-        {f.compitio && <label>Mejor tiempo <span>(opcional)</span><input value={f.mejor_tiempo} onChange={e => set('mejor_tiempo', e.target.value)} placeholder="Ej. 1:12:30" maxLength={10} /></label>}
         {f.compitio && (
-          <label>Enlace a tu resultado oficial <span>(recomendado)</span>
-            <input value={f.resultado_url} onChange={e => set('resultado_url', e.target.value)} placeholder="https://results.hyrox.com/..." inputMode="url" />
-            <span className="ayuda">Búscate en results.hyrox.com, abre tu resultado y copia aquí el enlace. Así otros atletas pueden comprobar tu tiempo.</span>
-          </label>
-        )}
-        {f.compitio && (
-          <label>Certificado de resultado <span>(PDF, PNG o JPG)</span>
-            <span className="upload-drop">
-              <input type="file" accept="application/pdf,image/png,image/jpeg" onChange={elegirCertificado} />
-              {certificado ? `📄 ${certificado.name}` : perfil?.certificado_url ? '📄 Certificado subido · pulsa para cambiarlo' : 'Sube el certificado que descargas de la web de resultados'}
-            </span>
-          </label>
+          <>
+            <label>Nombre completo <span>(como aparece en el certificado)</span>
+              <input value={f.nombre_completo} onChange={e => set('nombre_completo', e.target.value)} placeholder="Ej. Laura García López" maxLength={80} />
+            </label>
+            <label>Certificado de resultado <span>(PDF, PNG o JPG)</span>
+              <span className="upload-drop">
+                <input type="file" accept="application/pdf,image/png,image/jpeg" onChange={elegirCertificado} />
+                {certificado ? `📄 ${certificado.name}` : perfil?.certificado_url ? '📄 Certificado subido · pulsa para cambiarlo' : 'Sube el certificado que descargas de la web de resultados'}
+              </span>
+            </label>
+            <label>Tiempo final
+              <input value={f.mejor_tiempo} onChange={e => set('mejor_tiempo', e.target.value)} placeholder="Ej. 1:12:30" maxLength={10} />
+            </label>
+            {leyendo && <div className="cert-estado">⏳ Leyendo el certificado…</div>}
+            {!leyendo && comprobacion && (comprobacion.ok
+              ? <div className="cert-estado ok">✓ Nombre y tiempo coinciden con el certificado</div>
+              : <div className="cert-estado error">✕ {comprobacion.motivo}</div>)}
+            {!leyendo && !certificado && sigueVerificado && <div className="cert-estado ok">✓ Tiempo verificado con certificado</div>}
+            {!leyendo && !certificado && !sigueVerificado && <div className="ayuda-form">Sin certificado, tu tiempo aparecerá como "sin verificar".</div>}
+          </>
         )}
         {estado && <div className="acceso-estado">{estado}</div>}
         <div className="upload-actions">
           {onCancelar && <button type="button" className="btn-secondary" onClick={onCancelar}>Cancelar</button>}
-          <button className="btn-match" type="submit" style={{ flex: onCancelar ? 0 : 1, padding: '8px 16px' }}>Guardar</button>
+          <button className="btn-match" type="submit" disabled={leyendo} style={{ flex: onCancelar ? 0 : 1, padding: '8px 16px' }}>Guardar</button>
         </div>
       </form>
     </div>

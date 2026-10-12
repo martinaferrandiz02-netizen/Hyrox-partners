@@ -27,7 +27,7 @@ const aCandidato = (p) => ({
   id: p.id, userId: p.id, nombre: p.nombre, iniciales: iniciales(p.nombre),
   color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
   ciudad: p.ciudad, distancia: null, sexo: p.sexo, categoria: p.categoria,
-  compitio: p.compitio, rating: null, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, resultadoUrl: p.resultado_url, certificadoUrl: p.certificado_url,
+  compitio: p.compitio, rating: null, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_verificado,
   carreras: [], marcas: [], fortalezas: [],
 })
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
@@ -351,19 +351,18 @@ export function Perfil({ perfil, setPerfil }) {
         </div>
         <div style={{textAlign:'right'}}>
           {perfil.compitio && perfil.mejor_tiempo
-            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">{perfil.resultado_url || perfil.certificado_url ? 'Con resultado oficial' : 'Tiempo declarado'}</div></>
+            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">{perfil.certificado_verificado ? '✓ Verificado' : 'Sin verificar'}</div></>
             : <div className="badge norating">{perfil.compitio ? 'Ha competido' : 'Aún sin carreras'}</div>}
         </div>
       </div>
       <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
         <span>{perfil.sexo}</span><span>{perfil.categoria}</span><span>{perfil.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
       </div>
-      {(perfil.resultado_url || perfil.certificado_url) ? (
+      {perfil.certificado_url ? (
         <div className="resultado-links">
-          {perfil.resultado_url && <a className="resultado-link" href={perfil.resultado_url} target="_blank" rel="noopener noreferrer">Ver resultado oficial ↗</a>}
-          {perfil.certificado_url && <a className="resultado-link" href={perfil.certificado_url} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>}
+          <a className="resultado-link" href={perfil.certificado_url} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>
         </div>
-      ) : perfil.compitio && <div className="video-empty">Añade el enlace a tu resultado oficial o sube tu certificado en "Editar perfil" para que otros puedan comprobar tu tiempo.</div>}
+      ) : perfil.compitio && <div className="video-empty">Sube tu certificado en "Editar perfil" para verificar tu tiempo.</div>}
       <div className="perfil-acciones">
         <button className="btn-secondary" onClick={()=>setEditando(true)}>Editar perfil</button>
         <button className="btn-secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button>
@@ -432,7 +431,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
               </div>
               <div className="swipe-name">{candidato.nombre}</div>
               <div className="swipe-sub">📍 {[candidato.ciudad, candidato.distancia, candidato.club].filter(Boolean).join(' · ')}</div>
-              <div className="swipe-tags"><span>{candidato.sexo}</span><span>{candidato.categoria}</span>{!candidato.userId && <span>Ejemplo</span>}{candidato.mejorTiempo && <span>⏱ Mejor: {candidato.mejorTiempo}</span>}</div>
+              <div className="swipe-tags"><span>{candidato.sexo}</span><span>{candidato.categoria}</span>{!candidato.userId && <span>Ejemplo</span>}{candidato.mejorTiempo && <span>⏱ Mejor: {candidato.mejorTiempo}{candidato.verificado ? ' ✓' : ''}</span>}</div>
               {candidato.compitio && candidato.rating
                 ? <div className="rating-badge" style={{margin:'6px auto',display:'block',width:'fit-content'}}>{candidato.rating} pts</div>
                 : <div className="badge norating" style={{margin:'6px auto',display:'block',width:'fit-content'}}>{candidato.compitio ? 'Ha competido' : 'Aún no ha competido'}</div>}
@@ -562,16 +561,15 @@ function PerfilOtro({ persona, volver, solicitar }) {
         <div style={{textAlign:'right'}}>
           {persona.rating
             ? <div className="rating-badge">{persona.rating}</div>
-            : persona.mejorTiempo ? <><div className="rating-badge">⏱ {persona.mejorTiempo}</div><div className="rating-sub">{persona.resultadoUrl || persona.certificadoUrl ? 'Con resultado oficial' : 'Tiempo declarado'}</div></> : <div className="badge norating">Sin carreras</div>}
+            : persona.mejorTiempo ? <><div className="rating-badge">⏱ {persona.mejorTiempo}</div><div className="rating-sub">{persona.verificado ? '✓ Verificado' : 'Sin verificar'}</div></> : <div className="badge norating">Sin carreras</div>}
         </div>
       </div>
       <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
         <span>{persona.sexo}</span><span>{persona.categoria}</span><span>{persona.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
       </div>
-      {(persona.resultadoUrl || persona.certificadoUrl) && (
+      {persona.certificadoUrl && (
         <div className="resultado-links">
-          {persona.resultadoUrl && <a className="resultado-link" href={persona.resultadoUrl} target="_blank" rel="noopener noreferrer">Ver resultado oficial ↗</a>}
-          {persona.certificadoUrl && <a className="resultado-link" href={persona.certificadoUrl} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>}
+          <a className="resultado-link" href={persona.certificadoUrl} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>
         </div>
       )}
       {persona.fortalezas.length > 0 && <div className="section-label">Puntos fuertes</div>}
