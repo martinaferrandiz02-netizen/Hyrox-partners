@@ -1,3 +1,4 @@
+import { Avatar } from './Avatar'
 import { useEffect, useRef, useState } from 'react'
 import { horaCorta, useConversacion } from './social'
 
@@ -22,7 +23,7 @@ export function ChatReal({ yo, otro, volver, elegirPareja, abrirPerfil }) {
     <div className="screen" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="chat-header">
         <button className="back-btn" onClick={volver}>←</button>
-        <div className={`avatar ${otro.color}`} style={{ width: 28, height: 28, fontSize: 10, cursor: 'pointer' }} onClick={abrirPerfil}>{otro.iniciales}</div>
+        <Avatar p={otro} style={{ width: 28, height: 28, fontSize: 10, cursor: 'pointer' }} onClick={abrirPerfil} />
         <div style={{ flex: 1, cursor: 'pointer' }} onClick={abrirPerfil}>
           <div className="partner-name" style={{ fontSize: 12 }}>{otro.nombre}</div>
           <div className="partner-sub">{otro.mejorTiempo ? `⏱ ${otro.mejorTiempo}${otro.verificado ? ' ✓' : ''}` : otro.ciudad}</div>

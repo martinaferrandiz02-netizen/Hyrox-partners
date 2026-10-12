@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Avatar } from './Avatar'
 import { formatoParcial } from './certificado'
 import { nombreCiudad } from './ciudades'
 import { borrarResultado, ESTACIONES, mejoresMarcas, useResultados } from './resultados'
@@ -14,7 +15,7 @@ function EstadoCarrera({ r, esPropio }) {
 }
 
 // Perfil tipo red social: el mismo diseño para el tuyo y para el de los demás
-export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEditar, onAnadirCarrera, onCerrarSesion }) {
+export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAjustes }) {
   const { resultados, cargando } = useResultados(perfil.id)
   const [pestana, setPestana] = useState('marcas')
   const verificadas = resultados.filter(r => r.estado === 'verificado')
@@ -26,8 +27,9 @@ export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEd
     <div className="screen pv">
       {/* Cabecera */}
       <div className="pv-hero">
+        {esPropio && <button className="pv-ajustes" onClick={onAjustes} aria-label="Ajustes">⚙</button>}
         <div className={`pv-avatar ${verificado ? 'verificado' : ''}`}>
-          <div className={`avatar ${color}`}>{iniciales(perfil.nombre)}</div>
+          <Avatar p={{ fotoUrl: perfil.foto_url, color, iniciales: iniciales(perfil.nombre) }} />
           {verificado && <span className="pv-check">✓</span>}
         </div>
         <div className="pv-nombre">{perfil.nombre}</div>
@@ -122,7 +124,6 @@ export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEd
 
       {pestana === 'tecnica' && (esPropio ? <MisVideos userId={perfil.id} /> : <VideosDe userId={perfil.id} nombre={perfil.nombre} />)}
 
-      {esPropio && <button className="link-btn pv-salir" onClick={onCerrarSesion}>Cerrar sesión</button>}
     </div>
   )
 }

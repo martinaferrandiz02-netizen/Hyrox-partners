@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import { Acceso, FormPerfil } from './Auth'
 import { supabase } from './supabase'
+import { Avatar } from './Avatar'
 import { nombreCiudad } from './ciudades'
 import { ChatReal } from './ChatReal'
 import { PerfilVista } from './PerfilVista'
 import { AnadirCarrera } from './AnadirCarrera'
+import { Ajustes } from './Ajustes'
 import { fechaCorta, publicarPlaza, retirarPlaza, usePlazas } from './plazas'
 import { enviarSolicitud, horaCorta, responderSolicitud, useSolicitudes, useUltimosMensajes } from './social'
 
@@ -18,7 +20,7 @@ const aCandidato = (p) => ({
   color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
   ciudad: nombreCiudad(p.ciudad), distancia: null, sexo: p.sexo, categoria: p.categoria,
   compitio: p.compitio, rating: p.puntos, division: p.division, parejaId: p.pareja_id, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
-  carreras: [], marcas: [], fortalezas: [], raw: p,
+  carreras: [], marcas: [], fortalezas: [], raw: p, fotoUrl: p.foto_url,
 })
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
 
@@ -225,7 +227,7 @@ export function Inicio({ pareja, yo, ranking, dejarPareja }) {
         <div className="divider-text">+ pareja</div>
         {pareja ? (
           <div className="partner-row">
-            <div className={`avatar ${pareja.color}`}>{pareja.iniciales}</div>
+            <Avatar p={pareja} />
             <div className="partner-info">
               <div className="partner-name">{pareja.nombre}</div>
               <div className="partner-sub">{pareja.mutua ? '✓ Pareja confirmada por los dos' : `Esperando a que ${pareja.nombre.split(' ')[0]} te elija también`}</div>
@@ -352,7 +354,8 @@ export function Perfil({ perfil, setPerfil }) {
     return <FormPerfil userId={perfil.id} perfil={perfil} onGuardado={(p)=>{setPerfil(p);setModo(null)}} onCancelar={()=>setModo(null)} />
   }
   if (modo === 'carrera') return <AnadirCarrera perfil={perfil} setPerfil={setPerfil} cerrar={()=>setModo(null)} />
-  return <PerfilVista perfil={perfil} esPropio onEditar={()=>setModo('editar')} onAnadirCarrera={()=>setModo('carrera')} onCerrarSesion={()=>supabase.auth.signOut()} />
+  if (modo === 'ajustes') return <Ajustes perfil={perfil} setPerfil={setPerfil} volver={()=>setModo(null)} editarPerfil={()=>setModo('editar')} />
+  return <PerfilVista perfil={perfil} esPropio onEditar={()=>setModo('editar')} onAnadirCarrera={()=>setModo('carrera')} onAjustes={()=>setModo('ajustes')} />
 }
 
 function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, recargarPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chatActivo, setChatActivo, elegirPareja }) {
@@ -391,7 +394,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
             <div className="swipe-card">
               <div className="preficha" onClick={()=>setPerfilAbierto(candidato)}>
               <div className="swipe-avatar-wrap">
-                <div className={`avatar ${candidato.color}`} style={{width:64,height:64,fontSize:22}}>{candidato.iniciales}</div>
+                <Avatar p={candidato} style={{width:64,height:64,fontSize:22}} />
               </div>
               <div className="swipe-name">{candidato.nombre}</div>
               <div className="swipe-sub">📍 {[candidato.ciudad, candidato.distancia, candidato.club].filter(Boolean).join(' · ')}</div>
@@ -434,7 +437,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
             return (
               <div className="card" key={'r'+s.id}>
                 <div className="partner-row" style={{marginBottom:8,cursor:'pointer'}} onClick={()=>setPerfilAbierto(p)}>
-                  <div className={`avatar ${p.color}`}>{p.iniciales}</div>
+                  <Avatar p={p} />
                   <div className="partner-info">
                     <div className="partner-name">{p.nombre}</div>
                     <div className="partner-sub">📍 {p.ciudad}{p.mejorTiempo ? ` · ⏱ ${p.mejorTiempo}${p.verificado ? ' ✓' : ''}` : ''}</div>
@@ -466,7 +469,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
             return (
               <div className="card" key={'c'+c.userId} onClick={()=>setChatActivo(c)} style={{cursor:'pointer'}}>
                 <div className="partner-row">
-                  <div className={`avatar ${c.color}`}>{c.iniciales}</div>
+                  <Avatar p={c} />
                   <div className="partner-info">
                     <div className="partner-name">{c.nombre}</div>
                     <div className="partner-sub">{u ? `${u.de === yo.id ? 'Tú: ' : ''}${u.texto}` : 'Conectados · escribe el primer mensaje'}</div>
@@ -618,7 +621,7 @@ function Plazas({ plazas, recargar, contactar, estadoCon, yo }) {
           {p.nota && <div className="plaza-nota">{p.nota}</div>}
           <div className="plaza-bottom">
             <div className="partner-row" style={{gap:6}}>
-              <div className={`avatar ${p.autor.color}`} style={{width:22,height:22,fontSize:8}}>{p.autor.iniciales}</div>
+              <Avatar p={p.autor} style={{width:22,height:22,fontSize:8}} />
               <span className="partner-sub">{p.autor.nombre}</span>
             </div>
             {p.user_id === yo.id
