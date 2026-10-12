@@ -52,7 +52,7 @@ export async function guardarResultado({ userId, archivo, datos }) {
   if (error) {
     await supabase.storage.from('certificados').remove([ruta])
     if (error.message.includes('certificado_ya_usado')) return { error: 'Este certificado ya lo están usando 2 personas.' }
-    if (error.message.includes('resultado_duplicado')) return { error: 'Ya habías subido este certificado.' }
+    if (error.message.includes('resultado_duplicado')) return { error: 'Este certificado ya está en tus carreras. Si quieres volver a subirlo, borra antes esa carrera en la pestaña Carreras.' }
     return { error: 'No se ha podido guardar la carrera. Inténtalo de nuevo.' }
   }
   // El servidor comprueba el certificado (los PDF al momento; las imágenes quedan para revisión)
