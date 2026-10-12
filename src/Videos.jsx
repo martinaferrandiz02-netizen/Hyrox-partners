@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 
-const EJERCICIOS = [
-  'Ski erg', 'Sled push', 'Sled pull', 'Burpee broad jumps',
-  'Rowing', 'Farmer carry', 'Sandbag lunges', 'Wall balls', 'Running',
-]
 
-const BUCKET = 'videos'
-const MAX_MB = 50
 
 // Carga los vídeos de un usuario desde Supabase
 function useVideos(autor) {
@@ -82,92 +76,65 @@ export function VideosDe({ autor }) {
 }
 
 // Vídeos propios con subida
-export function MisVideos({ autor }) {
-  const { videos, setVideos, cargando } = useVideos(autor)
-  const [abierto, setAbierto] = useState(false)
-  const [archivo, setArchivo] = useState(null)
-  const [ejercicio, setEjercicio] = useState(EJERCICIOS[0])
-  const [tiempo, setTiempo] = useState('')
-  const [estado, setEstado] = useState('')
-  const inputRef = useRef(null)
+// Las 8 estaciones en orden de carrera
+const ESTACIONES = [
+  { nombre: 'Ski erg', detalle: '1000 m' },
+  { nombre: 'Sled push', detalle: '50 m' },
+  { nombre: 'Sled pull', detalle: '50 m' },
+  { nombre: 'Burpee broad jumps', detalle: '80 m' },
+  { nombre: 'Rowing', detalle: '1000 m' },
+  { nombre: 'Farmer carry', detalle: '200 m' },
+  { nombre: 'Sandbag lunges', detalle: '100 m' },
+  { nombre: 'Wall balls', detalle: '100 reps' },
+]
 
-  const actualizarVistas = (id, total) =>
-    setVideos(prev => prev.map(x => x.id === id ? { ...x, visualizaciones: total } : x))
-
-  const reset = () => {
-    setArchivo(null); setTiempo(''); setEstado(''); setAbierto(false)
-    if (inputRef.current) inputRef.current.value = ''
-  }
-
-  const elegirArchivo = (e) => {
+// Demo: el vídeo se muestra en el momento (no se sube a ningún sitio)
+function EstacionDemo({ ej, numero }) {
+  const [video, setVideo] = useState(null)
+  const elegir = (e) => {
     const f = e.target.files?.[0]
-    if (!f) return
-    if (f.size > MAX_MB * 1024 * 1024) {
-      setEstado(`El vídeo pesa más de ${MAX_MB} MB. Prueba con un clip más corto.`)
-      return
-    }
-    setEstado('')
-    setArchivo(f)
+    if (f) setVideo(URL.createObjectURL(f))
+    e.target.value = ''
   }
+  return (
+    <div className="estacion">
+      <div className="estacion-cabecera">
+        <span className="estacion-num">{numero}</span>
+        <span className="estacion-nombre">{ej.nombre}</span>
+        <span className="estacion-detalle">{ej.detalle}</span>
+      </div>
+      {video && (
+        <div className="video-grid">
+          <div className="video-card">
+            <video src={video} controls playsInline preload="metadata" />
+            <div className="video-meta"><span className="video-ex">{ej.nombre}</span></div>
+            <div className="video-views"><span>👁 0 visualizaciones</span><button className="video-borrar" onClick={() => setVideo(null)}>Borrar</button></div>
+          </div>
+        </div>
+      )}
+      <div className="estacion-botones">
+        <label className="estacion-btn">
+          <input type="file" accept="video/*" capture="environment" onChange={elegir} />
+          🎥 Grabar
+        </label>
+        <label className="estacion-btn">
+          <input type="file" accept="video/*" onChange={elegir} />
+          🖼 Subir de galería
+        </label>
+      </div>
+    </div>
+  )
+}
 
-  const subir = async () => {
-    if (!archivo) return
-    setEstado('Subiendo…')
-    const ext = archivo.name.split('.').pop() || 'mp4'
-    const ruta = `${autor.replace(/\W+/g, '-').toLowerCase()}/${Date.now()}.${ext}`
-
-    const { error: errSubida } = await supabase.storage.from(BUCKET).upload(ruta, archivo, { contentType: archivo.type })
-    if (errSubida) {
-      setEstado('No se ha podido subir el vídeo. Inténtalo de nuevo más tarde.')
-      return
-    }
-    const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(ruta)
-    const fila = { autor, ejercicio, tiempo: tiempo.trim() || null, url: pub.publicUrl }
-    const { data, error } = await supabase.from('videos').insert(fila).select().single()
-    if (error) {
-      setEstado('El vídeo se ha subido pero no se ha podido guardar. Inténtalo de nuevo.')
-      return
-    }
-    setVideos(prev => [data, ...prev])
-    reset()
-  }
-
+export function MisVideos() {
   return (
     <div className="videos-block">
       <div className="section-header">
         <div className="section-label">Mi técnica</div>
-        {!abierto && <button className="link-btn" onClick={() => setAbierto(true)}>+ Subir vídeo</button>}
+        <span className="estacion-detalle">8 ejercicios</span>
       </div>
-
-      {abierto && (
-        <div className="card upload-card">
-          <label className="upload-drop">
-            <input ref={inputRef} type="file" accept="video/*" onChange={elegirArchivo} />
-            {archivo ? <span>🎬 {archivo.name}</span> : <span>Elige un vídeo (máx. {MAX_MB} MB)</span>}
-          </label>
-          <div className="upload-row">
-            <select value={ejercicio} onChange={e => setEjercicio(e.target.value)}>
-              {EJERCICIOS.map(x => <option key={x}>{x}</option>)}
-            </select>
-            <input value={tiempo} onChange={e => setTiempo(e.target.value)} placeholder="Tiempo (ej. 4:12)" />
-          </div>
-          {estado && <div className="upload-status">{estado}</div>}
-          <div className="upload-actions">
-            <button className="btn-secondary" onClick={reset}>Cancelar</button>
-            <button className="btn-primary" disabled={!archivo || estado === 'Subiendo…'} onClick={subir}>Publicar</button>
-          </div>
-        </div>
-      )}
-
-      {cargando ? (
-        <div className="video-empty">Cargando vídeos…</div>
-      ) : videos.length === 0 && !abierto ? (
-        <div className="video-empty">
-          Sube un vídeo de tus ejercicios: tus compañeros verán tu técnica y, si aún no has competido, servirá para demostrar tus tiempos.
-        </div>
-      ) : (
-        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} />)}</div>
-      )}
+      <div className="video-empty">Graba o sube tu técnica en cada ejercicio. Otros atletas la verán en tu perfil y, si aún no has competido, sirve para demostrar tus tiempos.</div>
+      {ESTACIONES.map((ej, i) => <EstacionDemo key={ej.nombre} ej={ej} numero={i + 1} />)}
     </div>
   )
 }

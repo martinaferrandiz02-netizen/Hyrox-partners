@@ -339,7 +339,7 @@ export function Perfil() {
           <span className="bar-val">{m.val}</span>
         </div>
       ))}
-      <MisVideos autor="Carlos R." />
+      <MisVideos />
     </div>
   )
 }
