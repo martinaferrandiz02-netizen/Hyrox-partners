@@ -3,6 +3,7 @@ import './App.css'
 import { MisVideos, VideosDe } from './Videos'
 import { Acceso, EstadoCertificado, FormPerfil } from './Auth'
 import { supabase } from './supabase'
+import { nombreCiudad } from './ciudades'
 
 const candidatosDemo = [
   { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid', distancia:'3.2 km', sexo:'Mujer', categoria:'Open', compitio:true, rating:1820, club:'CrossFit Retiro', mejorTiempo:'1:14:20', carreras:[{nombre:'Madrid 2025',tipo:'Doubles Open',tiempo:'1:14:20'},{nombre:'Valencia 2025',tipo:'Individual Open',tiempo:'1:22:05'}], marcas:[{ex:'Ski erg 1000m',val:'4:05'},{ex:'Rowing 1000m',val:'4:12'},{ex:'Wall balls 100',val:'5:40'},{ex:'Run 1 km',val:'4:35'}], fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
@@ -27,7 +28,7 @@ const iniciales = (nombre) => nombre.split(/\s+/).filter(Boolean).slice(0,2).map
 const aCandidato = (p) => ({
   id: p.id, userId: p.id, nombre: p.nombre, iniciales: iniciales(p.nombre),
   color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
-  ciudad: p.ciudad, distancia: null, sexo: p.sexo, categoria: p.categoria,
+  ciudad: nombreCiudad(p.ciudad), distancia: null, sexo: p.sexo, categoria: p.categoria,
   compitio: p.compitio, rating: null, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
   carreras: [], marcas: [], fortalezas: [],
 })
@@ -348,7 +349,7 @@ export function Perfil({ perfil, setPerfil }) {
         <div className="avatar yellow large">{iniciales(perfil.nombre)}</div>
         <div style={{flex:1}}>
           <div className="partner-name" style={{fontSize:16}}>{perfil.nombre}</div>
-          <div className="partner-sub">📍 {perfil.ciudad}{perfil.club ? ` · ${perfil.club}` : ''}</div>
+          <div className="partner-sub">📍 {nombreCiudad(perfil.ciudad)}{perfil.club ? ` · ${perfil.club}` : ''}</div>
         </div>
         <div style={{textAlign:'right'}}>
           {perfil.compitio && perfil.mejor_tiempo

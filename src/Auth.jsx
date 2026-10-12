@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from './supabase'
-import { aSegundos, comprobarCertificado, formatoTiempo, leerCertificado, tiemposEnTexto } from './certificado'
+import { CampoCiudad } from './Ciudad'
+import { aSegundos, comprobarCertificado, formatoTiempo, huellaCertificado, leerCertificado, tiemposEnTexto } from './certificado'
 
 // Pantalla de acceso: iniciar sesión o crear cuenta con email y contraseña
 export function Acceso() {
@@ -100,11 +101,19 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
 
   const guardar = async (e) => {
     e.preventDefault()
-    if (!f.nombre.trim() || !f.ciudad.trim()) { setEstado('Completa tu nombre y tu ciudad.'); return }
+    if (!f.nombre.trim()) { setEstado('Escribe tu nombre.'); return }
+    if (!f.ciudad.trim()) { setEstado('Elige tu ciudad de la lista.'); return }
     if (leyendo) { setEstado('Espera a que terminemos de leer el certificado.'); return }
     if (f.compitio && certificado) {
       if (!f.nombre_completo.trim()) { setEstado('Escribe tu nombre completo tal y como aparece en el certificado.'); return }
       if (!comprobacion?.ok) { setEstado(comprobacion?.motivo || 'No hemos podido comprobar el certificado.'); return }
+      // Un mismo certificado solo lo pueden usar 2 personas (la pareja de Doubles)
+      const huella = huellaCertificado(textoCert)
+      if (huella) {
+        const { count } = await supabase.from('profiles').select('id', { count: 'exact', head: true })
+          .eq('certificado_huella', huella).neq('id', userId)
+        if ((count ?? 0) >= 2) { setEstado('Este certificado ya lo están usando 2 personas.'); return }
+      }
     }
     setEstado('Guardando…')
     let certificado_url = f.compitio ? (perfil?.certificado_url || null) : null
@@ -131,9 +140,15 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       mejor_tiempo: f.compitio && tiempo ? (aSegundos(tiempo) !== null ? formatoTiempo(aSegundos(tiempo)) : tiempo) : null,
       certificado_url,
       certificado_ruta,
+      ...(f.compitio && certificado ? { certificado_huella: huellaCertificado(textoCert) } : {}),
+      ...(!f.compitio ? { certificado_huella: null } : {}),
     }
     const { data, error } = await supabase.from('profiles').upsert(fila).select().single()
-    if (error) { setEstado(`No se ha podido guardar (${error.message}).`); return }
+    if (error) {
+      if (certificado_ruta && certificado && certificado_ruta !== perfil?.certificado_ruta) await supabase.storage.from('certificados').remove([certificado_ruta])
+      setEstado(error.message.includes('certificado_ya_usado') ? 'Este certificado ya lo están usando 2 personas.' : `No se ha podido guardar (${error.message}).`)
+      return
+    }
     // El servidor comprueba el certificado y decide el estado (verificado / pendiente / rechazado)
     if (data.certificado_estado === 'pendiente') {
       setEstado('Verificando certificado…')
@@ -152,7 +167,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       <div className="screen-sub">{perfil ? 'Así te verán otros atletas' : 'Para que otros atletas puedan encontrarte'}</div>
       <form className="perfil-form" onSubmit={guardar}>
         <label>Nombre<input value={f.nombre} onChange={e => set('nombre', e.target.value)} placeholder="Ej. Laura G." maxLength={40} /></label>
-        <label>Ciudad<input value={f.ciudad} onChange={e => set('ciudad', e.target.value)} placeholder="Ej. Madrid" maxLength={40} /></label>
+        <label>Ciudad<CampoCiudad valor={f.ciudad} onChange={v => set('ciudad', v)} /></label>
         <label>Club <span>(opcional)</span><input value={f.club} onChange={e => set('club', e.target.value)} placeholder="Ej. CrossFit Retiro" maxLength={40} /></label>
         <div className="form-grupo">
           <div className="filtro-titulo">Sexo</div>

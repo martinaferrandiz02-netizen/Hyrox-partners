@@ -379,3 +379,11 @@ body {
 .cert-estado.ok { color: #6aaa6a; font-weight: 700; }
 .cert-estado.error { color: #cc7777; }
 .ayuda-form { font-size: 9px; color: #666; }
+
+/* Buscador de ciudad */
+.ciudad-campo { position: relative; text-transform: none; letter-spacing: 0; }
+.ciudad-lista { position: absolute; z-index: 10; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; background: #1a1a1a; border: 0.5px solid #333; border-radius: 8px; max-height: 220px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+.ciudad-lista li { display: flex; justify-content: space-between; gap: 8px; padding: 8px; border-radius: 6px; font-size: 12px; color: #f0f0f0; cursor: pointer; }
+.ciudad-lista li.activo, .ciudad-lista li:hover { background: #2a2a2a; }
+.ciudad-pais { color: #888; font-size: 10px; }
+.ciudad-lista.vacia { font-size: 10px; color: #888; padding: 8px; }

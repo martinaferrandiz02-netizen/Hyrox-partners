@@ -57,3 +57,27 @@ create policy "subir mi certificado" on storage.objects
 create policy "borrar mi certificado" on storage.objects
   for delete to authenticated
   using (bucket_id = 'certificados' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ───────── Un certificado solo lo pueden usar 2 personas (pareja de Doubles) ─────────
+alter table public.profiles add column if not exists certificado_huella text;
+create index if not exists profiles_certificado_huella on public.profiles (certificado_huella);
+
+create or replace function public.limitar_certificado()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.certificado_huella is not null and
+     (select count(*) from public.profiles where certificado_huella = new.certificado_huella and id <> new.id) >= 2 then
+    raise exception 'certificado_ya_usado';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists limitar_certificado on public.profiles;
+create trigger limitar_certificado
+  before insert or update of certificado_huella on public.profiles
+  for each row execute function public.limitar_certificado();

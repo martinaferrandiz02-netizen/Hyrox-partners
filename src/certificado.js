@@ -122,3 +122,10 @@ export function comprobarCertificado(texto, nombreCompleto, tiempoDeclarado) {
   }
   return { ok: true, motivo: '', tiempoTotal }
 }
+
+// "Huella" del certificado: la lista ordenada de todos sus tiempos (total y parciales).
+// Es prácticamente única por resultado, aunque el archivo sea una captura distinta.
+export function huellaCertificado(texto) {
+  const tiempos = tiemposEnTexto(texto).sort((a, b) => a - b)
+  return tiempos.length >= 3 ? tiempos.join('-') : null
+}
