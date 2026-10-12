@@ -106,3 +106,8 @@ create policy "subir mi certificado" on storage.objects
 create policy "borrar mi certificado" on storage.objects
   for delete to authenticated
   using (bucket_id = 'certificados' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ─────────────── PORTADAS DE LOS VÍDEOS ───────────────
+alter table public.videos add column if not exists poster_url text;
+alter table public.videos add column if not exists poster_ruta text;
+update storage.buckets set allowed_mime_types = array['video/*', 'image/jpeg'] where id = 'videos';

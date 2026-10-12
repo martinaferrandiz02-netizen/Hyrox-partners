@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
+import { crearMiniatura } from './miniatura'
 
 // Las 8 estaciones en orden de carrera
 const EJERCICIOS = [
@@ -58,13 +59,24 @@ function VideoCard({ v, onVista, onBorrar }) {
     if (!error && typeof data === 'number') onVista(v.id, data)
   }
 
+  const [reproduciendo, setReproduciendo] = useState(false)
+
   return (
     <div className="video-card">
-      <video src={v.url} controls playsInline preload="metadata" onPlay={alReproducir} />
-      <div className="video-meta">
-        <span className="video-ex">{v.ejercicio}</span>
-        {v.tiempo && <span className="video-time">⏱ {v.tiempo}</span>}
-      </div>
+      {reproduciendo ? (
+        <video src={v.url} controls autoPlay playsInline onPlay={alReproducir} />
+      ) : (
+        <button className="video-portada" onClick={() => setReproduciendo(true)} aria-label={`Reproducir ${v.ejercicio}`}>
+          {v.poster_url
+            ? <img src={v.poster_url} alt="" loading="lazy" />
+            : <video src={`${v.url}#t=1`} muted playsInline preload="metadata" tabIndex={-1} />}
+          <span className="video-play">▶</span>
+          <span className="video-overlay">
+            <span className="video-ex">{v.ejercicio}</span>
+            {v.tiempo && <span className="video-time">⏱ {v.tiempo}</span>}
+          </span>
+        </button>
+      )}
       <div className="video-views">
         <span>👁 {formatoVistas(v.visualizaciones || 0)} visualizaciones</span>
         {onBorrar && <button className="video-borrar" onClick={() => onBorrar(v)}>Borrar</button>}
@@ -130,10 +142,21 @@ function Estacion({ ej, numero, videos, userId, onSubido, onVista, onBorrar }) {
     const { error: errSubida } = await supabase.storage.from(BUCKET).upload(ruta, archivo, { contentType: archivo.type || 'video/mp4' })
     if (errSubida) { setEstado('No se ha podido subir el vídeo. Inténtalo de nuevo.'); return }
     const url = supabase.storage.from(BUCKET).getPublicUrl(ruta).data.publicUrl
+    // Portada: una foto del vídeo para que se vea bonito en el perfil
+    let poster_url = null, poster_ruta = null
+    const miniatura = await crearMiniatura(archivo)
+    if (miniatura) {
+      const rutaPoster = `${userId}/${Date.now()}-portada.jpg`
+      const { error: errPoster } = await supabase.storage.from(BUCKET).upload(rutaPoster, miniatura, { contentType: 'image/jpeg' })
+      if (!errPoster) {
+        poster_ruta = rutaPoster
+        poster_url = supabase.storage.from(BUCKET).getPublicUrl(rutaPoster).data.publicUrl
+      }
+    }
     const { data, error } = await supabase.from('videos')
-      .insert({ user_id: userId, ejercicio: ej.nombre, tiempo: tiempo.trim() || null, url, ruta }).select().single()
+      .insert({ user_id: userId, ejercicio: ej.nombre, tiempo: tiempo.trim() || null, url, ruta, poster_url, poster_ruta }).select().single()
     if (error) {
-      await supabase.storage.from(BUCKET).remove([ruta])
+      await supabase.storage.from(BUCKET).remove([ruta, poster_ruta].filter(Boolean))
       setEstado('No se ha podido guardar el vídeo. Inténtalo de nuevo.')
       return
     }
@@ -191,7 +214,7 @@ export function MisVideos({ userId }) {
     if (!window.confirm('¿Borrar este vídeo?')) return
     const { error } = await supabase.from('videos').delete().eq('id', v.id)
     if (error) return
-    await supabase.storage.from(BUCKET).remove([v.ruta])
+    await supabase.storage.from(BUCKET).remove([v.ruta, v.poster_ruta].filter(Boolean))
     setVideos(prev => prev.filter(x => x.id !== v.id))
   }
 
