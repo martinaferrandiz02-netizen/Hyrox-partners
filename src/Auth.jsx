@@ -15,7 +15,7 @@ export function Acceso() {
     setEstado('')
     if (modo === 'entrar') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setEstado(error.message.includes('Invalid') ? 'Email o contraseña incorrectos.' : 'No se ha podido iniciar sesión. Inténtalo de nuevo.')
+      if (error) setEstado(error.message.includes('Invalid') ? 'Email o contraseña incorrectos.' : `No se ha podido iniciar sesión (${error.message}).`)
     } else {
       if (password.length < 6) {
         setEstado('La contraseña debe tener al menos 6 caracteres.')
@@ -23,7 +23,10 @@ export function Acceso() {
         return
       }
       const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } })
-      if (error) setEstado(error.message.includes('registered') ? 'Ya existe una cuenta con este email.' : 'No se ha podido crear la cuenta. Inténtalo de nuevo.')
+      if (error) {
+        console.error('signUp', error)
+        setEstado(error.message.includes('registered') ? 'Ya existe una cuenta con este email. Pulsa "Entra".' : `No se ha podido crear la cuenta (${error.message}).`)
+      }
       else if (!data.session) setEstado('Te hemos enviado un email para confirmar tu cuenta. Ábrelo y vuelve aquí.')
     }
     setEnviando(false)
