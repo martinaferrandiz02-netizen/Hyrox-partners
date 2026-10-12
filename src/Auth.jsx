@@ -55,12 +55,12 @@ export function Acceso() {
 
 const TIPOS_CERTIFICADO = ['application/pdf', 'image/png', 'image/jpeg']
 
-const PERFIL_VACIO = { nombre: '', ciudad: '', sexo: 'Mujer', categoria: 'Open', club: '', compitio: false, mejor_tiempo: '', nombre_completo: '' }
+const PERFIL_VACIO = { nombre: '', ciudad: '', sexo: 'Mujer', categoria: 'Open', club: '', compitio: false, mejor_tiempo: '', nombre_completo: '', division: 'Doubles' }
 
 // Formulario de perfil: alta inicial y edición
 export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
   const [f, setF] = useState(perfil
-    ? { ...PERFIL_VACIO, ...perfil, club: perfil.club || '', mejor_tiempo: perfil.mejor_tiempo || '', nombre_completo: perfil.nombre_completo || '' }
+    ? { ...PERFIL_VACIO, ...perfil, club: perfil.club || '', mejor_tiempo: perfil.mejor_tiempo || '', nombre_completo: perfil.nombre_completo || '', division: perfil.division || 'Doubles' }
     : PERFIL_VACIO)
   const [estado, setEstado] = useState('')
   const [certificado, setCertificado] = useState(null)
@@ -75,7 +75,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
 
   // Si no se tocan certificado, nombre completo ni tiempo, el estado se mantiene
   const sinCambios = !certificado &&
-    f.nombre_completo.trim() === (perfil?.nombre_completo || '') && f.mejor_tiempo.trim() === (perfil?.mejor_tiempo || '')
+    f.nombre_completo.trim() === (perfil?.nombre_completo || '') && f.mejor_tiempo.trim() === (perfil?.mejor_tiempo || '') && f.division === (perfil?.division || 'Doubles')
   const estadoActual = sinCambios ? (perfil?.certificado_estado || 'sin_certificado') : null
 
   const elegirCertificado = async (e) => {
@@ -139,6 +139,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       club: await clubCanonico(f.club),
       compitio: f.compitio,
       nombre_completo: f.compitio ? (f.nombre_completo.trim() || null) : null,
+      division: f.compitio ? f.division : null,
       mejor_tiempo: f.compitio && tiempo ? (aSegundos(tiempo) !== null ? formatoTiempo(aSegundos(tiempo)) : tiempo) : null,
       certificado_url,
       certificado_ruta,
@@ -185,6 +186,10 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
         </div>
         {f.compitio && (
           <>
+            <div className="form-grupo">
+              <div className="filtro-titulo">División del certificado</div>
+              <div className="chips">{['Individual', 'Doubles', 'Doubles mixto'].map(o => <button type="button" key={o} className={f.division === o ? 'chip active' : 'chip'} onClick={() => set('division', o)}>{o}</button>)}</div>
+            </div>
             <label>Nombre completo <span>(como aparece en el certificado)</span>
               <input value={f.nombre_completo} onChange={e => set('nombre_completo', e.target.value)} placeholder="Ej. Laura García López" maxLength={80} />
             </label>

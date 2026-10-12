@@ -31,7 +31,7 @@ const aCandidato = (p) => ({
   id: p.id, userId: p.id, nombre: p.nombre, iniciales: iniciales(p.nombre),
   color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
   ciudad: nombreCiudad(p.ciudad), distancia: null, sexo: p.sexo, categoria: p.categoria,
-  compitio: p.compitio, rating: null, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
+  compitio: p.compitio, rating: p.puntos, division: p.division, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
   carreras: [], marcas: [], fortalezas: [],
 })
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
@@ -40,6 +40,37 @@ const solicitudesRecibidas = [
   { id:4, iniciales:'PM', color:'orange', nombre:'Pablo Martín', ciudad:'Madrid · 4.5 km', rating:1810, club:'Hybrid MAD', mensaje:'Hola! Vi tu perfil y creo que somos buena pareja. Tengo competición en junio.' },
   { id:5, iniciales:'LG', color:'teal', nombre:'Laura García', ciudad:'Madrid · 1.8 km', rating:1830, club:'CrossFit Retiro', mensaje:'Me complemento bien contigo en los ejercicios. ¿Hablamos?' },
 ]
+
+// Rankings a partir de los puntos verificados de todos los usuarios
+function calcularRanking(perfil, otros) {
+  const todos = [{ ...perfil, rating: perfil.puntos, ciudadCanon: perfil.ciudad }, ...otros.map(o => ({ ...o, ciudadCanon: null }))]
+    .filter(p => p.rating || p.puntos)
+  const pts = (p) => p.rating ?? p.puntos
+  const misPuntos = perfil.puntos || null
+  const posicion = (lista) => misPuntos ? lista.filter(p => pts(p) > misPuntos).length + 1 : null
+  const global = todos
+  const enCiudad = todos.filter(p => (p.ciudadCanon ? nombreCiudad(p.ciudadCanon) : p.ciudad) === nombreCiudad(perfil.ciudad))
+  const enCategoria = todos.filter(p => p.categoria === perfil.categoria)
+  const posGlobal = posicion(global)
+  // Puntos de club: media de sus 4 mejores miembros verificados
+  const porClub = {}
+  for (const p of todos) {
+    const club = p.id === perfil.id ? perfil.club : (p.club && p.club !== 'Sin club' ? p.club : null)
+    if (club) (porClub[club] ||= []).push(pts(p))
+  }
+  const clubs = Object.entries(porClub).map(([nombre, lista]) => {
+    const top = lista.sort((a, b) => b - a).slice(0, 4)
+    return { nombre, miembros: lista.length, pts: Math.round(top.reduce((a, b) => a + b, 0) / top.length) }
+  }).sort((a, b) => b.pts - a.pts).map((c, i) => ({ ...c, pos: i + 1 }))
+  return {
+    misPuntos,
+    posGlobal,
+    posCiudad: posicion(enCiudad),
+    posCategoria: posicion(enCategoria),
+    topPct: posGlobal ? Math.max(1, Math.round(100 * posGlobal / global.length)) : null,
+    clubs,
+  }
+}
 
 export default function App() {
   const [sesion, setSesion] = useState(undefined)
@@ -109,6 +140,7 @@ function Pairx({ perfil, setPerfil }) {
     }
   }
   const yo = { id: perfil.id, iniciales: iniciales(perfil.nombre), color: 'yellow', nombre: perfil.nombre }
+  const ranking = calcularRanking(perfil, candidatosReales)
 
   const contactarPlaza = (plaza) => {
     const persona = plaza.autor
@@ -146,7 +178,7 @@ function Pairx({ perfil, setPerfil }) {
     <div className="app">
       <div className="phone">
         <div className="notch"></div>
-        {pantalla === 'inicio' && <Inicio pareja={pareja} yo={yo} />}
+        {pantalla === 'inicio' && <Inicio pareja={pareja} yo={yo} ranking={ranking} />}
         {pantalla === 'entrenos' && <Entrenos />}
         {pantalla === 'parejas' && (
           <Parejas
@@ -182,7 +214,7 @@ function Pairx({ perfil, setPerfil }) {
             pareja={pareja}
           />
         )}
-        {pantalla === 'rankings' && <Rankings yo={yo} />}
+        {pantalla === 'rankings' && <Rankings yo={yo} perfil={perfil} ranking={ranking} />}
         {pantalla === 'perfil' && <Perfil perfil={perfil} setPerfil={setPerfil} />}
         <nav className="tab-bar">
           <button className={pantalla==='inicio'?'active':''} onClick={()=>setPantalla('inicio')}><span>⌂</span><span>Inicio</span></button>
@@ -196,7 +228,7 @@ function Pairx({ perfil, setPerfil }) {
   )
 }
 
-export function Inicio({ pareja, yo }) {
+export function Inicio({ pareja, yo, ranking }) {
   return (
     <div className="screen">
       <div className="hero-header">
@@ -205,8 +237,9 @@ export function Inicio({ pareja, yo }) {
           <div className="name">{yo.nombre}</div>
         </div>
         <div>
-          <div className="rating-badge">1.840 pts</div>
-          <div className="rating-sub">Acreditado · Top 12%</div>
+          {ranking.misPuntos
+            ? <><div className="rating-badge">{ranking.misPuntos} pts</div><div className="rating-sub">✓ Verificado · Top {ranking.topPct}%</div></>
+            : <><div className="badge norating">Sin puntos</div><div className="rating-sub">Verifica tu tiempo en Perfil</div></>}
         </div>
       </div>
       <div className="next-race">
@@ -226,7 +259,7 @@ export function Inicio({ pareja, yo }) {
             <div className="partner-name">Tú — {yo.nombre}</div>
             <div className="partner-sub">Sesión hace 1 día</div>
           </div>
-          <div className="partner-rating">1.840</div>
+          <div className="partner-rating">{ranking.misPuntos || '–'}</div>
         </div>
         <div className="divider-text">+ pareja</div>
         <div className="partner-row">
@@ -235,7 +268,7 @@ export function Inicio({ pareja, yo }) {
             <div className="partner-name">{pareja ? pareja.nombre : 'Marta G.'}</div>
             <div className="partner-sub">Sesión hace 3 días</div>
           </div>
-          <div className="partner-rating">{pareja ? pareja.rating : '1.790'}</div>
+          <div className="partner-rating">{pareja ? (pareja.rating || '–') : '1.790'}</div>
         </div>
       </div>
       <div className="section-label">Esta semana</div>
@@ -310,55 +343,54 @@ export function PlanIA() {
   )
 }
 
-export function Rankings({ yo }) {
-  const clubRanking = [
-    { pos:1, nombre:'Elite Hybrid BCN', pts:1920, miembros:12, bandera:'🥇' },
-    { pos:2, nombre:'CrossFit Retiro MAD', pts:1875, miembros:18, bandera:'🥈' },
-    { pos:3, nombre:'Hybrid MAD', pts:1842, miembros:9, bandera:'🥉' },
-    { pos:4, nombre:'Athletic Club BIL', pts:1810, miembros:15, bandera:'' },
-    { pos:5, nombre:'Valencia Hybrid', pts:1798, miembros:11, bandera:'' },
-  ]
+function Posicion({ pos, lbl }) {
+  return <div className="rank-item"><div className="rank-pos">{pos ? '#'+pos : '–'}</div><div className="rank-lbl">{lbl}</div></div>
+}
+
+export function Rankings({ yo, perfil, ranking }) {
+  const miClub = ranking.clubs.find(c => c.nombre === perfil.club)
   return (
     <div className="screen">
       <div className="screen-title">Rankings</div>
+      <div className="rating-sub" style={{textAlign:'left',marginBottom:6}}>Puntos = 1.000 × tiempo de referencia de tu división ÷ tu tiempo. Solo cuentan tiempos verificados.</div>
       <div className="section-label">Tu posición personal</div>
       <div className="card">
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
           <div className="partner-name">{yo.nombre}</div>
-          <div className="rating-badge">1.840 pts</div>
+          {ranking.misPuntos ? <div className="rating-badge">{ranking.misPuntos} pts</div> : <div className="badge norating">Sin puntos</div>}
         </div>
-        <div className="rank-levels">
-          <div className="rank-item"><div className="rank-pos">#4</div><div className="rank-lbl">Madrid</div></div>
-          <div className="rank-divider"></div>
-          <div className="rank-item"><div className="rank-pos">#47</div><div className="rank-lbl">España</div></div>
-          <div className="rank-divider"></div>
-          <div className="rank-item"><div className="rank-pos">#312</div><div className="rank-lbl">Global</div></div>
-        </div>
-      </div>
-      <div className="section-label">Tu club</div>
-      <div className="card" style={{marginBottom:12}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-          <div>
-            <div className="partner-name">Hybrid MAD</div>
-            <div className="partner-sub">9 miembros acreditados</div>
+        {ranking.misPuntos ? (
+          <div className="rank-levels">
+            <Posicion pos={ranking.posCiudad} lbl={nombreCiudad(perfil.ciudad)} />
+            <div className="rank-divider"></div>
+            <Posicion pos={ranking.posCategoria} lbl={perfil.categoria} />
+            <div className="rank-divider"></div>
+            <Posicion pos={ranking.posGlobal} lbl="Global" />
           </div>
-          <div className="rating-badge">1.842 pts</div>
-        </div>
-        <div className="rank-levels">
-          <div className="rank-item"><div className="rank-pos">#2</div><div className="rank-lbl">Madrid</div></div>
-          <div className="rank-divider"></div>
-          <div className="rank-item"><div className="rank-pos">#8</div><div className="rank-lbl">España</div></div>
-          <div className="rank-divider"></div>
-          <div className="rank-item"><div className="rank-pos">#64</div><div className="rank-lbl">Global</div></div>
-        </div>
+        ) : <div className="video-empty">Sube tu certificado en Perfil y, cuando esté verificado, entrarás en el ranking.</div>}
       </div>
-      <div className="section-label">🏆 Ranking de clubs — España</div>
-      {clubRanking.map(c => (
-        <div key={c.pos} className={`ranking-row ${c.nombre === 'Hybrid MAD' ? 'my-club' : ''}`}>
-          <div className="rank-num">{c.bandera || '#'+c.pos}</div>
+      {perfil.club && (
+        <>
+          <div className="section-label">Tu club</div>
+          <div className="card" style={{marginBottom:12}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div className="partner-name">{perfil.club}</div>
+                <div className="partner-sub">{miClub ? `${miClub.miembros} ${miClub.miembros === 1 ? 'miembro verificado' : 'miembros verificados'} · #${miClub.pos}` : 'Aún sin miembros verificados'}</div>
+              </div>
+              {miClub && <div className="rating-badge">{miClub.pts} pts</div>}
+            </div>
+          </div>
+        </>
+      )}
+      <div className="section-label">🏆 Ranking de clubs</div>
+      {ranking.clubs.length === 0 && <div className="video-empty">Todavía no hay clubs con miembros verificados.</div>}
+      {ranking.clubs.slice(0, 20).map(c => (
+        <div key={c.nombre} className={`ranking-row ${c.nombre === perfil.club ? 'my-club' : ''}`}>
+          <div className="rank-num">{['🥇','🥈','🥉'][c.pos-1] || '#'+c.pos}</div>
           <div className="partner-info">
             <div className="partner-name" style={{fontSize:11}}>{c.nombre}</div>
-            <div className="partner-sub">{c.miembros} miembros acreditados</div>
+            <div className="partner-sub">{c.miembros} {c.miembros === 1 ? 'miembro verificado' : 'miembros verificados'}</div>
           </div>
           <div className="partner-rating">{c.pts}</div>
         </div>
@@ -382,7 +414,7 @@ export function Perfil({ perfil, setPerfil }) {
         </div>
         <div style={{textAlign:'right'}}>
           {perfil.compitio && perfil.mejor_tiempo
-            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">{ETIQUETA_ESTADO[perfil.certificado_estado] || 'Sin verificar'}</div></>
+            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">{ETIQUETA_ESTADO[perfil.certificado_estado] || 'Sin verificar'}{perfil.puntos ? ` · ${perfil.puntos} pts` : ''}</div></>
             : <div className="badge norating">{perfil.compitio ? 'Ha competido' : 'Aún sin carreras'}</div>}
         </div>
       </div>
