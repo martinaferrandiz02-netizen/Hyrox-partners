@@ -26,10 +26,39 @@ async function textoDePdf(archivo) {
   return texto
 }
 
+// Pinta la imagen sobre un fondo sólido. Muchos certificados son PNG con letras
+// blancas sobre fondo transparente: sobre negro y con colores invertidos quedan
+// letras negras sobre blanco, que es lo que mejor lee el OCR.
+async function versionesDeImagen(archivo) {
+  const bmp = await createImageBitmap(archivo)
+  const escala = Math.max(1, Math.min(3, 2000 / bmp.width))
+  const crear = (fondo, invertir) => {
+    const c = document.createElement('canvas')
+    c.width = Math.round(bmp.width * escala)
+    c.height = Math.round(bmp.height * escala)
+    const ctx = c.getContext('2d')
+    ctx.fillStyle = fondo
+    ctx.fillRect(0, 0, c.width, c.height)
+    ctx.drawImage(bmp, 0, 0, c.width, c.height)
+    if (invertir) {
+      ctx.globalCompositeOperation = 'difference'
+      ctx.fillStyle = '#fff'
+      ctx.fillRect(0, 0, c.width, c.height)
+    }
+    return c
+  }
+  return [crear('#fff', false), crear('#000', true)]
+}
+
 async function textoDeImagen(imagen) {
   const { default: Tesseract } = await import('tesseract.js')
-  const { data } = await Tesseract.recognize(imagen, 'eng+spa')
-  return data.text
+  const lienzos = imagen instanceof HTMLCanvasElement ? [imagen] : await versionesDeImagen(imagen)
+  let texto = ''
+  for (const lienzo of lienzos) {
+    const { data } = await Tesseract.recognize(lienzo, 'eng+spa')
+    texto += data.text + '\n'
+  }
+  return texto
 }
 
 export async function leerCertificado(archivo) {
@@ -66,9 +95,10 @@ export function formatoTiempo(seg) {
 }
 
 // Todos los tiempos que aparecen en el certificado (total y parciales)
+// Acepta "01:31:56" y también "01: 31: 56" (con espacios, como en algunos certificados)
 export function tiemposEnTexto(texto) {
-  const encontrados = texto.match(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g) || []
-  return [...new Set(encontrados.map(aSegundos).filter(s => s !== null && s > 0))]
+  const encontrados = texto.match(/\b\d{1,2}\s*:\s*\d{2}(?:\s*:\s*\d{2})?\b/g) || []
+  return [...new Set(encontrados.map(t => aSegundos(t.replace(/\s+/g, ''))).filter(s => s !== null && s > 0))]
 }
 
 // Comprueba nombre y tiempo. Devuelve { ok, motivo, tiempoTotal }

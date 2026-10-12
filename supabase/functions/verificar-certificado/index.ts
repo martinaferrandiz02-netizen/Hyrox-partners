@@ -36,8 +36,8 @@ export function formatoTiempo(seg: number) {
 }
 
 export function comprobar(texto: string, nombreCompleto: string, tiempoDeclarado: string) {
-  const encontrados = texto.match(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g) || []
-  const tiempos = [...new Set(encontrados.map(aSegundos).filter((s): s is number => s !== null && s > 0))]
+  const encontrados = texto.match(/\b\d{1,2}\s*:\s*\d{2}(?:\s*:\s*\d{2})?\b/g) || []
+  const tiempos = [...new Set(encontrados.map(t => aSegundos(t.replace(/\s+/g, ''))).filter((s): s is number => s !== null && s > 0))]
   const total = tiempos.length ? Math.max(...tiempos) : null
   if (!contieneNombre(texto, nombreCompleto)) return { ok: false, motivo: 'El nombre completo no aparece en el certificado.' }
   if (!total) return { ok: false, motivo: 'No se ha encontrado ningún tiempo en el certificado.' }
