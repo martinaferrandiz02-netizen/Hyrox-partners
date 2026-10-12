@@ -17,7 +17,7 @@ const aCandidato = (p) => ({
   id: p.id, userId: p.id, nombre: p.nombre, iniciales: iniciales(p.nombre),
   color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
   ciudad: nombreCiudad(p.ciudad), distancia: null, sexo: p.sexo, categoria: p.categoria,
-  compitio: p.compitio, rating: p.puntos, division: p.division, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
+  compitio: p.compitio, rating: p.puntos, division: p.division, parejaId: p.pareja_id, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
   carreras: [], marcas: [], fortalezas: [],
 })
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
@@ -86,7 +86,6 @@ function Pairx({ perfil, setPerfil }) {
   const [filtros, setFiltros] = useState(FILTROS_INICIALES)
   const [perfilAbierto, setPerfilAbierto] = useState(null)
   const [chatActivo, setChatActivo] = useState(null)
-  const [pareja, setPareja] = useState(null)
 
   const [candidatosReales, setCandidatosReales] = useState([])
 
@@ -132,17 +131,31 @@ function Pairx({ perfil, setPerfil }) {
     recargar()
   }
 
-  const elegirPareja = (persona) => {
-    setPareja(persona)
+  // Pareja guardada en el perfil (solo alguien con quien tienes solicitud aceptada)
+  const parejaPerfil = perfil.pareja_id ? candidatosReales.find(c => c.userId === perfil.pareja_id) : null
+  const pareja = parejaPerfil ? { ...parejaPerfil, mutua: parejaPerfil.parejaId === perfil.id } : null
+
+  const elegirPareja = async (persona) => {
+    if (!window.confirm(`¿Elegir a ${persona.nombre} como tu pareja de Doubles?`)) return
+    const { data, error } = await supabase.from('profiles').update({ pareja_id: persona.userId }).eq('id', perfil.id).select().single()
+    if (error) { window.alert('No se ha podido guardar la pareja. Inténtalo de nuevo.'); return }
+    setPerfil(data)
+    setChatActivo(null)
     setSubPantalla('buscar')
     setPantalla('inicio')
+  }
+
+  const dejarPareja = async () => {
+    if (!window.confirm('¿Dejar de tener pareja asignada?')) return
+    const { data, error } = await supabase.from('profiles').update({ pareja_id: null }).eq('id', perfil.id).select().single()
+    if (!error) setPerfil(data)
   }
 
   return (
     <div className="app">
       <div className="phone">
         <div className="notch"></div>
-        {pantalla === 'inicio' && <Inicio pareja={pareja} yo={yo} ranking={ranking} />}
+        {pantalla === 'inicio' && <Inicio pareja={pareja} yo={yo} ranking={ranking} dejarPareja={dejarPareja} />}
         {pantalla === 'entrenos' && <Entrenos />}
         {pantalla === 'parejas' && (
           <Parejas
@@ -185,7 +198,7 @@ function Pairx({ perfil, setPerfil }) {
   )
 }
 
-export function Inicio({ pareja, yo, ranking }) {
+export function Inicio({ pareja, yo, ranking, dejarPareja }) {
   return (
     <div className="screen">
       <div className="hero-header">
@@ -215,10 +228,13 @@ export function Inicio({ pareja, yo, ranking }) {
             <div className={`avatar ${pareja.color}`}>{pareja.iniciales}</div>
             <div className="partner-info">
               <div className="partner-name">{pareja.nombre}</div>
-              <div className="partner-sub">📍 {pareja.ciudad}</div>
+              <div className="partner-sub">{pareja.mutua ? '✓ Pareja confirmada por los dos' : `Esperando a que ${pareja.nombre.split(' ')[0]} te elija también`}</div>
             </div>
             <div className="partner-rating">{pareja.rating || '–'}</div>
           </div>
+        ) : null}
+        {pareja ? (
+          <button className="link-btn" style={{display:'block',margin:'8px auto 0',color:'#888'}} onClick={dejarPareja}>Cambiar de pareja</button>
         ) : (
           <div className="video-empty" style={{textAlign:'center'}}>Aún no tienes pareja. Búscala en <strong>Parejas</strong> y elígela desde el chat.</div>
         )}
