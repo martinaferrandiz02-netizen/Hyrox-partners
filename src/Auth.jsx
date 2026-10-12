@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { supabase } from './supabase'
 import { CampoCiudad } from './Ciudad'
+import { CampoClub } from './Club'
+import { clubCanonico } from './clubs'
 import { aSegundos, comprobarCertificado, formatoTiempo, huellaCertificado, leerCertificado, tiemposEnTexto } from './certificado'
 
 // Pantalla de acceso: iniciar sesión o crear cuenta con email y contraseña
@@ -134,7 +136,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       ciudad: f.ciudad.trim(),
       sexo: f.sexo,
       categoria: f.categoria,
-      club: f.club.trim() || null,
+      club: await clubCanonico(f.club),
       compitio: f.compitio,
       nombre_completo: f.compitio ? (f.nombre_completo.trim() || null) : null,
       mejor_tiempo: f.compitio && tiempo ? (aSegundos(tiempo) !== null ? formatoTiempo(aSegundos(tiempo)) : tiempo) : null,
@@ -168,7 +170,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       <form className="perfil-form" onSubmit={guardar}>
         <label>Nombre<input value={f.nombre} onChange={e => set('nombre', e.target.value)} placeholder="Ej. Laura G." maxLength={40} /></label>
         <label>Ciudad<CampoCiudad valor={f.ciudad} onChange={v => set('ciudad', v)} /></label>
-        <label>Club <span>(opcional)</span><input value={f.club} onChange={e => set('club', e.target.value)} placeholder="Ej. CrossFit Retiro" maxLength={40} /></label>
+        <label>Club <span>(opcional)</span><CampoClub valor={f.club} onChange={v => set('club', v)} /></label>
         <div className="form-grupo">
           <div className="filtro-titulo">Sexo</div>
           <div className="chips">{['Mujer', 'Hombre'].map(o => <button type="button" key={o} className={f.sexo === o ? 'chip active' : 'chip'} onClick={() => set('sexo', o)}>{o}</button>)}</div>
