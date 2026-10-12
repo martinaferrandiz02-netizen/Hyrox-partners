@@ -85,3 +85,9 @@ create policy "subir a mi carpeta de videos" on storage.objects
 create policy "borrar de mi carpeta de videos" on storage.objects
   for delete to authenticated
   using (bucket_id = 'videos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ─────────────── ENLACE AL RESULTADO OFICIAL (añadido) ───────────────
+alter table public.profiles add column if not exists resultado_url text;
+alter table public.profiles drop constraint if exists resultado_url_oficial;
+alter table public.profiles add constraint resultado_url_oficial
+  check (resultado_url is null or resultado_url like 'https://results.hyrox.com/%');

@@ -49,17 +49,29 @@ export function Acceso() {
   )
 }
 
-const PERFIL_VACIO = { nombre: '', ciudad: '', sexo: 'Mujer', categoria: 'Open', club: '', compitio: false, mejor_tiempo: '' }
+// Solo se aceptan enlaces a la web pública de resultados
+function esEnlaceOficial(url) {
+  try {
+    const u = new URL(url)
+    return u.protocol === 'https:' && u.hostname === 'results.hyrox.com'
+  } catch {
+    return false
+  }
+}
+
+const PERFIL_VACIO = { nombre: '', ciudad: '', sexo: 'Mujer', categoria: 'Open', club: '', compitio: false, mejor_tiempo: '', resultado_url: '' }
 
 // Formulario de perfil: alta inicial y edición
 export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
-  const [f, setF] = useState(perfil ? { ...PERFIL_VACIO, ...perfil, club: perfil.club || '', mejor_tiempo: perfil.mejor_tiempo || '' } : PERFIL_VACIO)
+  const [f, setF] = useState(perfil ? { ...PERFIL_VACIO, ...perfil, club: perfil.club || '', mejor_tiempo: perfil.mejor_tiempo || '', resultado_url: perfil.resultado_url || '' } : PERFIL_VACIO)
   const [estado, setEstado] = useState('')
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
 
   const guardar = async (e) => {
     e.preventDefault()
     if (!f.nombre.trim() || !f.ciudad.trim()) { setEstado('Completa tu nombre y tu ciudad.'); return }
+    const enlace = f.compitio ? f.resultado_url.trim() : ''
+    if (enlace && !esEnlaceOficial(enlace)) { setEstado('El enlace tiene que ser de results.hyrox.com.'); return }
     setEstado('Guardando…')
     const fila = {
       id: userId,
@@ -70,6 +82,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       club: f.club.trim() || null,
       compitio: f.compitio,
       mejor_tiempo: f.compitio ? (f.mejor_tiempo.trim() || null) : null,
+      resultado_url: enlace || null,
     }
     const { data, error } = await supabase.from('profiles').upsert(fila).select().single()
     if (error) { setEstado('No se ha podido guardar. Inténtalo de nuevo.'); return }
@@ -97,6 +110,12 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
           <div className="chips">{[['Sí', true], ['Todavía no', false]].map(([l, v]) => <button type="button" key={l} className={f.compitio === v ? 'chip active' : 'chip'} onClick={() => set('compitio', v)}>{l}</button>)}</div>
         </div>
         {f.compitio && <label>Mejor tiempo <span>(opcional)</span><input value={f.mejor_tiempo} onChange={e => set('mejor_tiempo', e.target.value)} placeholder="Ej. 1:12:30" maxLength={10} /></label>}
+        {f.compitio && (
+          <label>Enlace a tu resultado oficial <span>(recomendado)</span>
+            <input value={f.resultado_url} onChange={e => set('resultado_url', e.target.value)} placeholder="https://results.hyrox.com/..." inputMode="url" />
+            <span className="ayuda">Búscate en results.hyrox.com, abre tu resultado y copia aquí el enlace. Así otros atletas pueden comprobar tu tiempo.</span>
+          </label>
+        )}
         {estado && <div className="acceso-estado">{estado}</div>}
         <div className="upload-actions">
           {onCancelar && <button type="button" className="btn-secondary" onClick={onCancelar}>Cancelar</button>}

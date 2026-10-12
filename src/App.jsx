@@ -27,7 +27,7 @@ const aCandidato = (p) => ({
   id: p.id, userId: p.id, nombre: p.nombre, iniciales: iniciales(p.nombre),
   color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
   ciudad: p.ciudad, distancia: null, sexo: p.sexo, categoria: p.categoria,
-  compitio: p.compitio, rating: null, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo,
+  compitio: p.compitio, rating: null, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, resultadoUrl: p.resultado_url,
   carreras: [], marcas: [], fortalezas: [],
 })
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
@@ -351,13 +351,16 @@ export function Perfil({ perfil, setPerfil }) {
         </div>
         <div style={{textAlign:'right'}}>
           {perfil.compitio && perfil.mejor_tiempo
-            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">Mejor tiempo</div></>
+            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">{perfil.resultado_url ? 'Con resultado oficial' : 'Tiempo declarado'}</div></>
             : <div className="badge norating">{perfil.compitio ? 'Ha competido' : 'Aún sin carreras'}</div>}
         </div>
       </div>
       <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
         <span>{perfil.sexo}</span><span>{perfil.categoria}</span><span>{perfil.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
       </div>
+      {perfil.resultado_url
+        ? <a className="resultado-link" href={perfil.resultado_url} target="_blank" rel="noopener noreferrer">Ver resultado oficial ↗</a>
+        : perfil.compitio && <div className="video-empty">Añade el enlace a tu resultado oficial en "Editar perfil" para que otros puedan comprobar tu tiempo.</div>}
       <div className="perfil-acciones">
         <button className="btn-secondary" onClick={()=>setEditando(true)}>Editar perfil</button>
         <button className="btn-secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button>
@@ -556,12 +559,13 @@ function PerfilOtro({ persona, volver, solicitar }) {
         <div style={{textAlign:'right'}}>
           {persona.rating
             ? <div className="rating-badge">{persona.rating}</div>
-            : persona.mejorTiempo ? <div className="rating-badge">⏱ {persona.mejorTiempo}</div> : <div className="badge norating">Sin carreras</div>}
+            : persona.mejorTiempo ? <><div className="rating-badge">⏱ {persona.mejorTiempo}</div><div className="rating-sub">{persona.resultadoUrl ? 'Con resultado oficial' : 'Tiempo declarado'}</div></> : <div className="badge norating">Sin carreras</div>}
         </div>
       </div>
       <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
         <span>{persona.sexo}</span><span>{persona.categoria}</span><span>{persona.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
       </div>
+      {persona.resultadoUrl && <a className="resultado-link" href={persona.resultadoUrl} target="_blank" rel="noopener noreferrer">Ver resultado oficial ↗</a>}
       {persona.fortalezas.length > 0 && <div className="section-label">Puntos fuertes</div>}
       {persona.fortalezas.map(f => (
         <div className="bar-row" key={f.ex}>
