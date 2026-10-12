@@ -222,7 +222,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
 
 export function EstadoCertificado({ estado, motivo }) {
   if (estado === 'verificado') return <div className="cert-estado ok">✓ Tiempo verificado con certificado</div>
-  if (estado === 'pendiente') return <div className="cert-estado">⏳ Certificado pendiente de revisión</div>
+  if (estado === 'pendiente') return <div className="cert-estado">⏳ En revisión: el equipo de Pairx revisará tu certificado (las imágenes se revisan a mano)</div>
   if (estado === 'rechazado') return <div className="cert-estado error">✕ Certificado no válido{motivo ? `: ${motivo}` : ''}</div>
   return null
 }

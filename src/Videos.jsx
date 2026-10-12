@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 
+// Las 8 estaciones en orden de carrera, más la carrera a pie
 const EJERCICIOS = [
-  'Ski erg', 'Sled push', 'Sled pull', 'Burpee broad jumps',
-  'Rowing', 'Farmer carry', 'Sandbag lunges', 'Wall balls', 'Running',
+  { nombre: 'Ski erg', detalle: '1000 m' },
+  { nombre: 'Sled push', detalle: '50 m' },
+  { nombre: 'Sled pull', detalle: '50 m' },
+  { nombre: 'Burpee broad jumps', detalle: '80 m' },
+  { nombre: 'Rowing', detalle: '1000 m' },
+  { nombre: 'Farmer carry', detalle: '200 m' },
+  { nombre: 'Sandbag lunges', detalle: '100 m' },
+  { nombre: 'Wall balls', detalle: '100 reps' },
+  { nombre: 'Running', detalle: '1 km' },
 ]
 
 const BUCKET = 'videos'
@@ -79,21 +87,103 @@ export function VideosDe({ userId, nombre }) {
       ) : videos.length === 0 ? (
         <div className="video-empty">{nombre.split(' ')[0]} todavía no ha subido vídeos.</div>
       ) : (
-        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} />)}</div>
+        EJERCICIOS.filter(ej => videos.some(v => v.ejercicio === ej.nombre)).map(ej => (
+          <div className="estacion" key={ej.nombre}>
+            <div className="estacion-cabecera">
+              <span className="estacion-nombre">{ej.nombre}</span>
+              <span className="estacion-detalle">{ej.detalle}</span>
+            </div>
+            <div className="video-grid">{videos.filter(v => v.ejercicio === ej.nombre).map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} />)}</div>
+          </div>
+        ))
       )}
     </div>
   )
 }
 
-// Vídeos propios con subida
-export function MisVideos({ userId }) {
-  const { videos, setVideos, cargando } = useVideos(userId)
-  const [abierto, setAbierto] = useState(false)
+// Una estación en "Mi técnica": su vídeo, o los botones para grabarlo o subirlo de la galería
+function Estacion({ ej, numero, videos, userId, onSubido, onVista, onBorrar }) {
   const [archivo, setArchivo] = useState(null)
-  const [ejercicio, setEjercicio] = useState(EJERCICIOS[0])
   const [tiempo, setTiempo] = useState('')
   const [estado, setEstado] = useState('')
-  const inputRef = useRef(null)
+  const camara = useRef(null)
+  const galeria = useRef(null)
+
+  const reset = () => {
+    setArchivo(null); setTiempo(''); setEstado('')
+    if (camara.current) camara.current.value = ''
+    if (galeria.current) galeria.current.value = ''
+  }
+
+  const elegir = (e) => {
+    const f = e.target.files?.[0]
+    if (!f) return
+    if (f.size > MAX_MB * 1024 * 1024) { setEstado(`El vídeo pesa más de ${MAX_MB} MB. Prueba con un clip más corto.`); return }
+    setEstado('')
+    setArchivo(f)
+  }
+
+  const subir = async () => {
+    if (!archivo) return
+    setEstado('Subiendo…')
+    const ext = (archivo.name.split('.').pop() || 'mp4').toLowerCase()
+    const ruta = `${userId}/${Date.now()}.${ext}`
+    const { error: errSubida } = await supabase.storage.from(BUCKET).upload(ruta, archivo, { contentType: archivo.type || 'video/mp4' })
+    if (errSubida) { setEstado('No se ha podido subir el vídeo. Inténtalo de nuevo.'); return }
+    const url = supabase.storage.from(BUCKET).getPublicUrl(ruta).data.publicUrl
+    const { data, error } = await supabase.from('videos')
+      .insert({ user_id: userId, ejercicio: ej.nombre, tiempo: tiempo.trim() || null, url, ruta }).select().single()
+    if (error) {
+      await supabase.storage.from(BUCKET).remove([ruta])
+      setEstado('No se ha podido guardar el vídeo. Inténtalo de nuevo.')
+      return
+    }
+    onSubido(data)
+    reset()
+  }
+
+  return (
+    <div className="estacion">
+      <div className="estacion-cabecera">
+        <span className="estacion-num">{numero}</span>
+        <span className="estacion-nombre">{ej.nombre}</span>
+        <span className="estacion-detalle">{ej.detalle}</span>
+      </div>
+
+      {videos.length > 0 && (
+        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={onVista} onBorrar={onBorrar} />)}</div>
+      )}
+
+      {archivo ? (
+        <div className="estacion-subida">
+          <div className="video-empty">🎬 {archivo.name}</div>
+          <input value={tiempo} onChange={e => setTiempo(e.target.value)} placeholder="Tu tiempo (opcional, ej. 4:12)" />
+          {estado && <div className="upload-status">{estado}</div>}
+          <div className="upload-actions">
+            <button className="btn-secondary" onClick={reset}>Cancelar</button>
+            <button className="btn-primary" disabled={estado === 'Subiendo…'} onClick={subir}>Publicar</button>
+          </div>
+        </div>
+      ) : (
+        <div className="estacion-botones">
+          <label className="estacion-btn">
+            <input ref={camara} type="file" accept="video/*" capture="environment" onChange={elegir} />
+            🎥 Grabar
+          </label>
+          <label className="estacion-btn">
+            <input ref={galeria} type="file" accept="video/*" onChange={elegir} />
+            🖼 Subir de galería
+          </label>
+          {estado && <div className="upload-status">{estado}</div>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Vídeos propios: una tarjeta por cada estación
+export function MisVideos({ userId }) {
+  const { videos, setVideos, cargando } = useVideos(userId)
 
   const actualizarVistas = (id, total) =>
     setVideos(prev => prev.map(x => x.id === id ? { ...x, visualizaciones: total } : x))
@@ -106,81 +196,21 @@ export function MisVideos({ userId }) {
     setVideos(prev => prev.filter(x => x.id !== v.id))
   }
 
-  const reset = () => {
-    setArchivo(null); setTiempo(''); setEstado(''); setAbierto(false)
-    if (inputRef.current) inputRef.current.value = ''
-  }
-
-  const elegirArchivo = (e) => {
-    const f = e.target.files?.[0]
-    if (!f) return
-    if (f.size > MAX_MB * 1024 * 1024) {
-      setEstado(`El vídeo pesa más de ${MAX_MB} MB. Prueba con un clip más corto.`)
-      return
-    }
-    setEstado('')
-    setArchivo(f)
-  }
-
-  const subir = async () => {
-    if (!archivo) return
-    setEstado('Subiendo…')
-    const ext = archivo.name.split('.').pop() || 'mp4'
-    const ruta = `${userId}/${Date.now()}.${ext}`
-
-    const { error: errSubida } = await supabase.storage.from(BUCKET).upload(ruta, archivo, { contentType: archivo.type })
-    if (errSubida) {
-      setEstado('No se ha podido subir el vídeo. Inténtalo de nuevo más tarde.')
-      return
-    }
-    const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(ruta)
-    const fila = { user_id: userId, ejercicio, tiempo: tiempo.trim() || null, url: pub.publicUrl, ruta }
-    const { data, error } = await supabase.from('videos').insert(fila).select().single()
-    if (error) {
-      await supabase.storage.from(BUCKET).remove([ruta])
-      setEstado('No se ha podido guardar el vídeo. Inténtalo de nuevo.')
-      return
-    }
-    setVideos(prev => [data, ...prev])
-    reset()
-  }
+  const hechas = EJERCICIOS.filter(ej => videos.some(v => v.ejercicio === ej.nombre)).length
 
   return (
     <div className="videos-block">
       <div className="section-header">
         <div className="section-label">Mi técnica</div>
-        {!abierto && <button className="link-btn" onClick={() => setAbierto(true)}>+ Subir vídeo</button>}
+        <span className="estacion-detalle">{hechas}/{EJERCICIOS.length} ejercicios</span>
       </div>
-
-      {abierto && (
-        <div className="card upload-card">
-          <label className="upload-drop">
-            <input ref={inputRef} type="file" accept="video/*" onChange={elegirArchivo} />
-            {archivo ? <span>🎬 {archivo.name}</span> : <span>Elige un vídeo (máx. {MAX_MB} MB)</span>}
-          </label>
-          <div className="upload-row">
-            <select value={ejercicio} onChange={e => setEjercicio(e.target.value)}>
-              {EJERCICIOS.map(x => <option key={x}>{x}</option>)}
-            </select>
-            <input value={tiempo} onChange={e => setTiempo(e.target.value)} placeholder="Tiempo (ej. 4:12)" />
-          </div>
-          {estado && <div className="upload-status">{estado}</div>}
-          <div className="upload-actions">
-            <button className="btn-secondary" onClick={reset}>Cancelar</button>
-            <button className="btn-primary" disabled={!archivo || estado === 'Subiendo…'} onClick={subir}>Publicar</button>
-          </div>
-        </div>
-      )}
-
-      {cargando ? (
-        <div className="video-empty">Cargando vídeos…</div>
-      ) : videos.length === 0 && !abierto ? (
-        <div className="video-empty">
-          Sube un vídeo de tus ejercicios: tus compañeros verán tu técnica y, si aún no has competido, servirá para demostrar tus tiempos.
-        </div>
-      ) : (
-        <div className="video-grid">{videos.map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} onBorrar={borrar} />)}</div>
-      )}
+      <div className="video-empty">Graba o sube tu técnica en cada ejercicio. Otros atletas la verán en tu perfil y, si aún no has competido, sirve para demostrar tus tiempos.</div>
+      {cargando ? <div className="video-empty">Cargando vídeos…</div> : EJERCICIOS.map((ej, i) => (
+        <Estacion key={ej.nombre} ej={ej} numero={i < 8 ? i + 1 : '🏃'} userId={userId}
+          videos={videos.filter(v => v.ejercicio === ej.nombre)}
+          onSubido={v => setVideos(prev => [v, ...prev])}
+          onVista={actualizarVistas} onBorrar={borrar} />
+      ))}
     </div>
   )
 }
