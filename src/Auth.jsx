@@ -3,7 +3,6 @@ import { supabase } from './supabase'
 import { CampoCiudad } from './Ciudad'
 import { CampoClub } from './Club'
 import { clubCanonico } from './clubs'
-import { aSegundos, comprobarCertificado, formatoTiempo, huellaCertificado, leerCertificado, tiemposEnTexto } from './certificado'
 
 // Pantalla de acceso: iniciar sesión o crear cuenta con email y contraseña
 export function Acceso() {
@@ -53,83 +52,19 @@ export function Acceso() {
   )
 }
 
-const TIPOS_CERTIFICADO = ['application/pdf', 'image/png', 'image/jpeg']
+const PERFIL_VACIO = { nombre: '', ciudad: '', sexo: 'Mujer', categoria: 'Open', club: '', compitio: false }
 
-const PERFIL_VACIO = { nombre: '', ciudad: '', sexo: 'Mujer', categoria: 'Open', club: '', compitio: false, mejor_tiempo: '', nombre_completo: '', division: 'Doubles' }
-
-// Formulario de perfil: alta inicial y edición
+// Formulario de perfil: alta inicial y edición. Las carreras se añaden aparte, desde el perfil.
 export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
-  const [f, setF] = useState(perfil
-    ? { ...PERFIL_VACIO, ...perfil, club: perfil.club || '', mejor_tiempo: perfil.mejor_tiempo || '', nombre_completo: perfil.nombre_completo || '', division: perfil.division || 'Doubles' }
-    : PERFIL_VACIO)
+  const [f, setF] = useState(perfil ? { ...PERFIL_VACIO, ...perfil, club: perfil.club || '' } : PERFIL_VACIO)
   const [estado, setEstado] = useState('')
-  const [certificado, setCertificado] = useState(null)
-  const [textoCert, setTextoCert] = useState(null)
-  const [leyendo, setLeyendo] = useState(false)
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
-
-  // Comprobación en vivo en cuanto hay certificado y nombre completo
-  const comprobacion = textoCert !== null && f.nombre_completo.trim()
-    ? comprobarCertificado(textoCert, f.nombre_completo, f.mejor_tiempo.trim())
-    : null
-
-  // Si no se tocan certificado, nombre completo ni tiempo, el estado se mantiene
-  const sinCambios = !certificado &&
-    f.nombre_completo.trim() === (perfil?.nombre_completo || '') && f.mejor_tiempo.trim() === (perfil?.mejor_tiempo || '') && f.division === (perfil?.division || 'Doubles')
-  const estadoActual = sinCambios ? (perfil?.certificado_estado || 'sin_certificado') : null
-
-  const elegirCertificado = async (e) => {
-    const archivo = e.target.files?.[0]
-    if (!archivo) return
-    if (!TIPOS_CERTIFICADO.includes(archivo.type)) { setEstado('El certificado tiene que ser PDF, PNG o JPG.'); return }
-    if (archivo.size > 10 * 1024 * 1024) { setEstado('El certificado pesa más de 10 MB.'); return }
-    setEstado('')
-    setCertificado(archivo)
-    setTextoCert(null)
-    setLeyendo(true)
-    try {
-      const texto = await leerCertificado(archivo)
-      setTextoCert(texto)
-      // Si aún no ha escrito el tiempo, lo rellenamos con el del certificado
-      const tiempos = tiemposEnTexto(texto)
-      if (tiempos.length && !f.mejor_tiempo.trim()) set('mejor_tiempo', formatoTiempo(Math.max(...tiempos)))
-    } catch (err) {
-      console.error('leerCertificado', err)
-      setEstado('No hemos podido leer el certificado. Prueba con otro archivo.')
-      setCertificado(null)
-    }
-    setLeyendo(false)
-  }
 
   const guardar = async (e) => {
     e.preventDefault()
     if (!f.nombre.trim()) { setEstado('Escribe tu nombre.'); return }
     if (!f.ciudad.trim()) { setEstado('Elige tu ciudad de la lista.'); return }
-    if (leyendo) { setEstado('Espera a que terminemos de leer el certificado.'); return }
-    if (f.compitio && certificado) {
-      if (!f.nombre_completo.trim()) { setEstado('Escribe tu nombre completo tal y como aparece en el certificado.'); return }
-      if (!comprobacion?.ok) { setEstado(comprobacion?.motivo || 'No hemos podido comprobar el certificado.'); return }
-      // Un mismo certificado solo lo pueden usar 2 personas (la pareja de Doubles)
-      const huella = huellaCertificado(textoCert)
-      if (huella) {
-        const { count } = await supabase.from('profiles').select('id', { count: 'exact', head: true })
-          .eq('certificado_huella', huella).neq('id', userId)
-        if ((count ?? 0) >= 2) { setEstado('Este certificado ya lo están usando 2 personas.'); return }
-      }
-    }
     setEstado('Guardando…')
-    let certificado_url = f.compitio ? (perfil?.certificado_url || null) : null
-    let certificado_ruta = f.compitio ? (perfil?.certificado_ruta || null) : null
-    if (f.compitio && certificado) {
-      const ext = certificado.name.split('.').pop().toLowerCase()
-      const ruta = `${userId}/${Date.now()}.${ext}`
-      const { error: errSubida } = await supabase.storage.from('certificados').upload(ruta, certificado, { contentType: certificado.type })
-      if (errSubida) { setEstado(`No se ha podido subir el certificado (${errSubida.message}).`); return }
-      if (perfil?.certificado_ruta) await supabase.storage.from('certificados').remove([perfil.certificado_ruta])
-      certificado_ruta = ruta
-      certificado_url = supabase.storage.from('certificados').getPublicUrl(ruta).data.publicUrl
-    }
-    const tiempo = f.mejor_tiempo.trim()
     const fila = {
       id: userId,
       nombre: f.nombre.trim(),
@@ -138,29 +73,9 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       categoria: f.categoria,
       club: await clubCanonico(f.club),
       compitio: f.compitio,
-      nombre_completo: f.compitio ? (f.nombre_completo.trim() || null) : null,
-      division: f.compitio ? f.division : null,
-      mejor_tiempo: f.compitio && tiempo ? (aSegundos(tiempo) !== null ? formatoTiempo(aSegundos(tiempo)) : tiempo) : null,
-      certificado_url,
-      certificado_ruta,
-      ...(f.compitio && certificado ? { certificado_huella: huellaCertificado(textoCert) } : {}),
-      ...(!f.compitio ? { certificado_huella: null } : {}),
     }
     const { data, error } = await supabase.from('profiles').upsert(fila).select().single()
-    if (error) {
-      if (certificado_ruta && certificado && certificado_ruta !== perfil?.certificado_ruta) await supabase.storage.from('certificados').remove([certificado_ruta])
-      setEstado(error.message.includes('certificado_ya_usado') ? 'Este certificado ya lo están usando 2 personas.' : `No se ha podido guardar (${error.message}).`)
-      return
-    }
-    // El servidor comprueba el certificado y decide el estado (verificado / pendiente / rechazado)
-    if (data.certificado_estado === 'pendiente') {
-      setEstado('Verificando certificado…')
-      const { error: errFn } = await supabase.functions.invoke('verificar-certificado')
-      if (!errFn) {
-        const { data: actualizado } = await supabase.from('profiles').select('*').eq('id', userId).single()
-        if (actualizado) { onGuardado(actualizado); return }
-      }
-    }
+    if (error) { setEstado(`No se ha podido guardar (${error.message}).`); return }
     onGuardado(data)
   }
 
@@ -184,45 +99,13 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
           <div className="filtro-titulo">¿Has competido ya?</div>
           <div className="chips">{[['Sí', true], ['Todavía no', false]].map(([l, v]) => <button type="button" key={l} className={f.compitio === v ? 'chip active' : 'chip'} onClick={() => set('compitio', v)}>{l}</button>)}</div>
         </div>
-        {f.compitio && (
-          <>
-            <div className="form-grupo">
-              <div className="filtro-titulo">División del certificado</div>
-              <div className="chips">{['Individual', 'Doubles', 'Doubles mixto'].map(o => <button type="button" key={o} className={f.division === o ? 'chip active' : 'chip'} onClick={() => set('division', o)}>{o}</button>)}</div>
-            </div>
-            <label>Nombre completo <span>(como aparece en el certificado)</span>
-              <input value={f.nombre_completo} onChange={e => set('nombre_completo', e.target.value)} placeholder="Ej. Laura García López" maxLength={80} />
-            </label>
-            <label>Certificado de resultado <span>(PDF, PNG o JPG)</span>
-              <span className="upload-drop">
-                <input type="file" accept="application/pdf,image/png,image/jpeg" onChange={elegirCertificado} />
-                {certificado ? `📄 ${certificado.name}` : perfil?.certificado_url ? '📄 Certificado subido · pulsa para cambiarlo' : 'Sube el certificado que descargas de la web de resultados'}
-              </span>
-            </label>
-            <label>Tiempo final
-              <input value={f.mejor_tiempo} onChange={e => set('mejor_tiempo', e.target.value)} placeholder="Ej. 1:12:30" maxLength={10} />
-            </label>
-            {leyendo && <div className="cert-estado">⏳ Leyendo el certificado…</div>}
-            {!leyendo && comprobacion && (comprobacion.ok
-              ? <div className="cert-estado ok">✓ Nombre y tiempo coinciden con el certificado</div>
-              : <div className="cert-estado error">✕ {comprobacion.motivo}</div>)}
-            {!leyendo && !certificado && estadoActual && <EstadoCertificado estado={estadoActual} motivo={perfil?.certificado_motivo} />}
-            {!leyendo && !certificado && !perfil?.certificado_url && <div className="ayuda-form">Sin certificado, tu tiempo aparecerá como "sin verificar".</div>}
-          </>
-        )}
+        {f.compitio && <div className="ayuda-form">Después, desde tu perfil, pulsa "+ Añadir carrera" y sube tu certificado para verificar tus tiempos.</div>}
         {estado && <div className="acceso-estado">{estado}</div>}
         <div className="upload-actions">
           {onCancelar && <button type="button" className="btn-secondary" onClick={onCancelar}>Cancelar</button>}
-          <button className="btn-match" type="submit" disabled={leyendo} style={{ flex: onCancelar ? 0 : 1, padding: '8px 16px' }}>Guardar</button>
+          <button className="btn-match" type="submit" style={{ flex: onCancelar ? 0 : 1, padding: '8px 16px' }}>Guardar</button>
         </div>
       </form>
     </div>
   )
-}
-
-export function EstadoCertificado({ estado, motivo }) {
-  if (estado === 'verificado') return <div className="cert-estado ok">✓ Tiempo verificado con certificado</div>
-  if (estado === 'pendiente') return <div className="cert-estado">⏳ Certificado pendiente de revisión</div>
-  if (estado === 'rechazado') return <div className="cert-estado error">✕ Certificado no válido{motivo ? `: ${motivo}` : ''}</div>
-  return null
 }

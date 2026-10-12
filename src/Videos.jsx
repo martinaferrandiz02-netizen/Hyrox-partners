@@ -4,14 +4,14 @@ import { crearMiniatura } from './miniatura'
 
 // Las 8 estaciones en orden de carrera
 const EJERCICIOS = [
-  { nombre: 'Ski erg', detalle: '1000 m' },
-  { nombre: 'Sled push', detalle: '50 m' },
-  { nombre: 'Sled pull', detalle: '50 m' },
-  { nombre: 'Burpee broad jumps', detalle: '80 m' },
-  { nombre: 'Rowing', detalle: '1000 m' },
-  { nombre: 'Farmer carry', detalle: '200 m' },
-  { nombre: 'Sandbag lunges', detalle: '100 m' },
-  { nombre: 'Wall balls', detalle: '100 reps' },
+  { nombre: 'Ski erg' },
+  { nombre: 'Sled push' },
+  { nombre: 'Sled pull' },
+  { nombre: 'Burpee broad jumps' },
+  { nombre: 'Rowing' },
+  { nombre: 'Farmer carry' },
+  { nombre: 'Sandbag lunges' },
+  { nombre: 'Wall balls' },
 ]
 
 const BUCKET = 'videos'
@@ -102,8 +102,7 @@ export function VideosDe({ userId, nombre }) {
           <div className="estacion" key={ej.nombre}>
             <div className="estacion-cabecera">
               <span className="estacion-nombre">{ej.nombre}</span>
-              <span className="estacion-detalle">{ej.detalle}</span>
-            </div>
+                  </div>
             <div className="video-grid">{videos.filter(v => v.ejercicio === ej.nombre).map(v => <VideoCard key={v.id} v={v} onVista={actualizarVistas} />)}</div>
           </div>
         ))
@@ -169,7 +168,6 @@ function Estacion({ ej, numero, videos, userId, onSubido, onVista, onBorrar }) {
       <div className="estacion-cabecera">
         <span className="estacion-num">{numero}</span>
         <span className="estacion-nombre">{ej.nombre}</span>
-        <span className="estacion-detalle">{ej.detalle}</span>
       </div>
 
       {videos.length > 0 && (

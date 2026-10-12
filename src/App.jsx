@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-import { MisVideos, VideosDe } from './Videos'
-import { Acceso, EstadoCertificado, FormPerfil } from './Auth'
+import { Acceso, FormPerfil } from './Auth'
 import { supabase } from './supabase'
 import { nombreCiudad } from './ciudades'
 import { ChatReal } from './ChatReal'
+import { PerfilVista } from './PerfilVista'
+import { AnadirCarrera } from './AnadirCarrera'
 import { fechaCorta, publicarPlaza, retirarPlaza, usePlazas } from './plazas'
 import { enviarSolicitud, horaCorta, responderSolicitud, useSolicitudes, useUltimosMensajes } from './social'
 
-const ETIQUETA_ESTADO = { verificado: '✓ Verificado', pendiente: '⏳ Pendiente de revisión', rechazado: 'Sin verificar', sin_certificado: 'Sin verificar' }
 const COLORES = ['purple','blue','green','orange','teal']
 const iniciales = (nombre) => nombre.split(/\s+/).filter(Boolean).slice(0,2).map(p => p[0].toUpperCase()).join('')
 
@@ -18,7 +18,7 @@ const aCandidato = (p) => ({
   color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
   ciudad: nombreCiudad(p.ciudad), distancia: null, sexo: p.sexo, categoria: p.categoria,
   compitio: p.compitio, rating: p.puntos, division: p.division, parejaId: p.pareja_id, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
-  carreras: [], marcas: [], fortalezas: [],
+  carreras: [], marcas: [], fortalezas: [], raw: p,
 })
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
 
@@ -347,40 +347,12 @@ export function Rankings({ yo, perfil, ranking }) {
 }
 
 export function Perfil({ perfil, setPerfil }) {
-  const [editando, setEditando] = useState(false)
-  if (editando) {
-    return <FormPerfil userId={perfil.id} perfil={perfil} onGuardado={(p)=>{setPerfil(p);setEditando(false)}} onCancelar={()=>setEditando(false)} />
+  const [modo, setModo] = useState(null)
+  if (modo === 'editar') {
+    return <FormPerfil userId={perfil.id} perfil={perfil} onGuardado={(p)=>{setPerfil(p);setModo(null)}} onCancelar={()=>setModo(null)} />
   }
-  return (
-    <div className="screen">
-      <div className="profile-header">
-        <div className="avatar yellow large">{iniciales(perfil.nombre)}</div>
-        <div style={{flex:1}}>
-          <div className="partner-name" style={{fontSize:16}}>{perfil.nombre}</div>
-          <div className="partner-sub">📍 {nombreCiudad(perfil.ciudad)}{perfil.club ? ` · ${perfil.club}` : ''}</div>
-        </div>
-        <div style={{textAlign:'right'}}>
-          {perfil.compitio && perfil.mejor_tiempo
-            ? <><div className="rating-badge">⏱ {perfil.mejor_tiempo}</div><div className="rating-sub">{ETIQUETA_ESTADO[perfil.certificado_estado] || 'Sin verificar'}{perfil.puntos ? ` · ${perfil.puntos} pts` : ''}</div></>
-            : <div className="badge norating">{perfil.compitio ? 'Ha competido' : 'Aún sin carreras'}</div>}
-        </div>
-      </div>
-      <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
-        <span>{perfil.sexo}</span><span>{perfil.categoria}</span><span>{perfil.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
-      </div>
-      {perfil.certificado_estado === 'rechazado' && <EstadoCertificado estado="rechazado" motivo={perfil.certificado_motivo} />}
-      {perfil.certificado_url ? (
-        <div className="resultado-links">
-          <a className="resultado-link" href={perfil.certificado_url} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>
-        </div>
-      ) : perfil.compitio && <div className="video-empty">Sube tu certificado en "Editar perfil" para verificar tu tiempo.</div>}
-      <div className="perfil-acciones">
-        <button className="btn-secondary" onClick={()=>setEditando(true)}>Editar perfil</button>
-        <button className="btn-secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button>
-      </div>
-      <MisVideos userId={perfil.id} />
-    </div>
-  )
+  if (modo === 'carrera') return <AnadirCarrera perfil={perfil} setPerfil={setPerfil} cerrar={()=>setModo(null)} />
+  return <PerfilVista perfil={perfil} esPropio onEditar={()=>setModo('editar')} onAnadirCarrera={()=>setModo('carrera')} onCerrarSesion={()=>supabase.auth.signOut()} />
 }
 
 function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, recargarPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chatActivo, setChatActivo, elegirPareja }) {
@@ -555,62 +527,15 @@ function Grupo({ filtros, cambiarFiltro, campo, titulo, opciones }) {
 }
 
 function PerfilOtro({ persona, relacion, volver, solicitar, chatear }) {
+  const boton = relacion?.estado === 'aceptada'
+    ? <button className="btn-match" onClick={chatear}>Abrir chat →</button>
+    : relacion
+      ? <button className="btn-match" disabled style={{opacity:.5}}>{relacion.enviada ? (relacion.estado === 'rechazada' ? 'Solicitud no aceptada' : 'Solicitud enviada ✓') : 'Te ha enviado una solicitud'}</button>
+      : <button className="btn-match" onClick={solicitar}>Solicitar como pareja →</button>
   return (
-    <div className="screen">
-      <button className="link-btn" style={{margin:'10px 0'}} onClick={volver}>← Volver</button>
-      <div className="profile-header">
-        <div className={`avatar ${persona.color} large`}>{persona.iniciales}</div>
-        <div style={{flex:1}}>
-          <div className="partner-name" style={{fontSize:16}}>{persona.nombre}</div>
-          <div className="partner-sub">📍 {persona.ciudad} · {persona.club}</div>
-        </div>
-        <div style={{textAlign:'right'}}>
-          {persona.rating
-            ? <div className="rating-badge">{persona.rating}</div>
-            : persona.mejorTiempo ? <><div className="rating-badge">⏱ {persona.mejorTiempo}</div><div className="rating-sub">{persona.verificado ? '✓ Verificado' : 'Sin verificar'}</div></> : <div className="badge norating">Sin carreras</div>}
-        </div>
-      </div>
-      <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
-        <span>{persona.sexo}</span><span>{persona.categoria}</span><span>{persona.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
-      </div>
-      {persona.certificadoUrl && (
-        <div className="resultado-links">
-          <a className="resultado-link" href={persona.certificadoUrl} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>
-        </div>
-      )}
-      {persona.fortalezas.length > 0 && <div className="section-label">Puntos fuertes</div>}
-      {persona.fortalezas.map(f => (
-        <div className="bar-row" key={f.ex}>
-          <span className="bar-lbl">{f.ex}</span>
-          <div className="bar-track"><div className="bar-fill" style={{width:f.pct+'%'}}></div></div>
-          <span className="bar-val">{f.pct}%</span>
-        </div>
-      ))}
-      {persona.marcas.length > 0 && <div className="section-label">Mejores tiempos</div>}
-      {persona.marcas.map(m => (
-        <div className="oficial-row" key={m.ex}>
-          <div style={{flex:1}} className="partner-name">{m.ex}</div>
-          <div className="partner-rating">{m.val}</div>
-        </div>
-      ))}
-      <div className="section-label">Carreras</div>
-      {persona.carreras.length === 0 ? (
-        <div className="video-empty">Aún no ha competido: mira sus vídeos para comprobar sus tiempos.</div>
-      ) : persona.carreras.map(c => (
-        <div className="oficial-row" key={c.nombre}>
-          <div style={{flex:1}}>
-            <div className="partner-name">{c.nombre}</div>
-            <div className="partner-sub">{c.tipo}</div>
-          </div>
-          <div className="partner-rating">{c.tiempo}</div>
-        </div>
-      ))}
-      <VideosDe userId={persona.userId} nombre={persona.nombre} />
-      {relacion?.estado === 'aceptada'
-        ? <button className="btn-match" style={{width:'100%',marginTop:10}} onClick={chatear}>Abrir chat →</button>
-        : relacion
-          ? <button className="btn-match" disabled style={{width:'100%',marginTop:10,opacity:.5}}>{relacion.enviada ? (relacion.estado === 'rechazada' ? 'Solicitud no aceptada' : 'Solicitud enviada ✓') : 'Te ha enviado una solicitud · mírala en Solicitudes'}</button>
-          : <button className="btn-match" style={{width:'100%',marginTop:10}} onClick={solicitar}>Solicitar como pareja →</button>}
+    <div style={{display:'flex',flexDirection:'column',flex:1,minHeight:0}}>
+      <button className="link-btn pv-volver" onClick={volver}>← Volver</button>
+      <PerfilVista perfil={persona.raw} color={persona.color} acciones={boton} />
     </div>
   )
 }

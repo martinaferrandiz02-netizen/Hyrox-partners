@@ -103,9 +103,7 @@ export function tiemposEnTexto(texto) {
 
 // Comprueba nombre y tiempo. Devuelve { ok, motivo, tiempoTotal }
 export function comprobarCertificado(texto, nombreCompleto, tiempoDeclarado) {
-  const tiempos = tiemposEnTexto(texto)
-  // El tiempo final es el más largo de los que aparecen (los demás son parciales)
-  const tiempoTotal = tiempos.length ? Math.max(...tiempos) : null
+  const tiempoTotal = tiempoTotalDe(texto)
 
   if (!contieneNombre(texto, nombreCompleto)) {
     return { ok: false, motivo: 'Tu nombre completo no aparece en el certificado. Escríbelo tal y como sale en él.', tiempoTotal }
@@ -129,3 +127,49 @@ export function huellaCertificado(texto) {
   const tiempos = tiemposEnTexto(texto).sort((a, b) => a - b)
   return tiempos.length >= 3 ? tiempos.join('-') : null
 }
+
+// ───────────── Tiempos por estación ─────────────
+// Etiquetas tal y como suelen aparecer en los certificados (en mayúsculas, con o sin distancia delante)
+const ETIQUETAS = [
+  ['Ski erg', /SKI\s*-?\s*ERG/],
+  ['Sled push', /SLED\s*PUSH/],
+  ['Sled pull', /SLED\s*PULL/],
+  ['Burpee broad jumps', /BURPEE/],
+  ['Rowing', /\bROW(?:ING)?\b/],
+  ['Farmer carry', /FARMERS?\s*CARRY/],
+  ['Sandbag lunges', /LUNGES?/],
+  ['Wall balls', /WALL\s*BALLS?/],
+  ['Running', /(?:TOTAL\s*)?RUN(?:NING)?\s*-?\s*TIME|RUN\s*TOTAL/],
+]
+const TIEMPO = /(\d{1,2})\s*:\s*(\d{2})(?:\s*:\s*(\d{2}))?/
+
+// Primer tiempo que aparece justo después de una etiqueta
+function tiempoTras(texto, etiqueta) {
+  const m = etiqueta.exec(texto)
+  if (!m) return null
+  const resto = texto.slice(m.index + m[0].length, m.index + m[0].length + 40)
+  const t = TIEMPO.exec(resto)
+  return t ? aSegundos(t[0].replace(/\s+/g, '')) : null
+}
+
+// {"Ski erg": 335, "Sled push": 119, ..., "Running": 2996}
+export function parcialesEnTexto(texto) {
+  const T = texto.toUpperCase()
+  const parciales = {}
+  for (const [nombre, etiqueta] of ETIQUETAS) {
+    const seg = tiempoTras(T, etiqueta)
+    if (seg) parciales[nombre] = seg
+  }
+  return parciales
+}
+
+// Tiempo total: el que va tras "TOTAL TIME" (o "FINISH"); si no aparece, el más largo
+export function tiempoTotalDe(texto) {
+  const T = texto.toUpperCase()
+  const marcado = tiempoTras(T, /TOTAL\s*TIME(?!\s*-)|FINISH(?:\s*TIME)?|TIEMPO\s*TOTAL/)
+  if (marcado) return marcado
+  const tiempos = tiemposEnTexto(texto)
+  return tiempos.length ? Math.max(...tiempos) : null
+}
+
+export const formatoParcial = (seg) => seg >= 3600 ? formatoTiempo(seg) : `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`
