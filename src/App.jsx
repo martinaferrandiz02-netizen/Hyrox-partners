@@ -4,6 +4,8 @@ import { MisVideos, VideosDe } from './Videos'
 import { Acceso, EstadoCertificado, FormPerfil } from './Auth'
 import { supabase } from './supabase'
 import { nombreCiudad } from './ciudades'
+import { ChatReal } from './ChatReal'
+import { enviarSolicitud, horaCorta, responderSolicitud, useSolicitudes, useUltimosMensajes } from './social'
 
 const candidatosDemo = [
   { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid', distancia:'3.2 km', sexo:'Mujer', categoria:'Open', compitio:true, rating:1820, club:'CrossFit Retiro', mejorTiempo:'1:14:20', carreras:[{nombre:'Madrid 2025',tipo:'Doubles Open',tiempo:'1:14:20'},{nombre:'Valencia 2025',tipo:'Individual Open',tiempo:'1:22:05'}], marcas:[{ex:'Ski erg 1000m',val:'4:05'},{ex:'Rowing 1000m',val:'4:12'},{ex:'Wall balls 100',val:'5:40'},{ex:'Run 1 km',val:'4:35'}], fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
@@ -85,6 +87,27 @@ function Pairx({ perfil, setPerfil }) {
       .then(({ data }) => { if (data) setCandidatosReales(data.map(aCandidato)) })
   }, [perfil.id])
   const candidatos = [...candidatosReales, ...candidatosDemo]
+
+  // Solicitudes y chats reales
+  const { solicitudes, recargar } = useSolicitudes(perfil.id)
+  const ultimos = useUltimosMensajes(perfil.id)
+  const recibidasReales = solicitudes.filter(s => !s.enviada && s.estado === 'pendiente')
+  const conversaciones = solicitudes.filter(s => s.estado === 'aceptada').map(s => aCandidato(s.otro))
+  const estadoCon = (userId) => solicitudes.find(s => s.otro.id === userId)
+
+  const solicitar = async (persona) => {
+    if (!persona.userId) return true
+    const ok = await enviarSolicitud(perfil.id, persona.userId, `¡Hola! Soy ${perfil.nombre}. Me encaja tu perfil, ¿hacemos pareja de Doubles?`)
+    if (ok) recargar()
+    return ok
+  }
+
+  const responder = async (s, estado) => {
+    if (await responderSolicitud(s.id, estado)) {
+      await recargar()
+      if (estado === 'aceptada') { setSubPantalla('chats'); setChatActivo(aCandidato(s.otro)) }
+    }
+  }
   const yo = { id: perfil.id, iniciales: iniciales(perfil.nombre), color: 'yellow', nombre: perfil.nombre }
 
   const contactarPlaza = (plaza) => {
@@ -136,6 +159,12 @@ function Pairx({ perfil, setPerfil }) {
             plazas={plazas}
             candidatos={candidatos}
             yo={yo}
+            recibidasReales={recibidasReales}
+            conversaciones={conversaciones}
+            ultimos={ultimos}
+            estadoCon={estadoCon}
+            solicitar={solicitar}
+            responder={responder}
             setPlazas={setPlazas}
             contactarPlaza={contactarPlaza}
             setPerfilAbierto={setPerfilAbierto}
@@ -375,7 +404,10 @@ export function Perfil({ perfil, setPerfil }) {
   )
 }
 
-function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, setPlazas, contactarPlaza, candidatos, yo, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
+function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, setPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
+  if (chatActivo?.userId) {
+    return <ChatReal yo={yo} otro={chatActivo} volver={()=>setChatActivo(null)} elegirPareja={elegirPareja} abrirPerfil={()=>{setPerfilAbierto(chatActivo);setChatActivo(null)}} />
+  }
   if (chatActivo) {
     const msgs = mensajes[chatActivo.id] || []
     return (
@@ -402,7 +434,10 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
     )
   }
   if (perfilAbierto) {
-    return <PerfilOtro persona={perfilAbierto} volver={()=>setPerfilAbierto(null)} solicitar={()=>{setPerfilAbierto(null);setIndice(i=>i+1)}} />
+    const rel = perfilAbierto.userId ? estadoCon(perfilAbierto.userId) : null
+    return <PerfilOtro persona={perfilAbierto} relacion={rel} volver={()=>setPerfilAbierto(null)}
+      chatear={()=>{setChatActivo(perfilAbierto);setPerfilAbierto(null)}}
+      solicitar={async()=>{ await solicitar(perfilAbierto); if (!perfilAbierto.userId) { setPerfilAbierto(null); setIndice(i=>i+1) } }} />
   }
   const ciudades = [...new Set(candidatos.map(c => c.ciudad))]
   const t = filtros.texto.trim().toLowerCase()
@@ -419,8 +454,8 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
     <div className="screen">
       <div className="parejas-tabs">
         <button className={subPantalla==='buscar'?'active':''} onClick={()=>setSubPantalla('buscar')}>Buscar</button>
-        <button className={subPantalla==='solicitudes'?'active':''} onClick={()=>setSubPantalla('solicitudes')}>Solicitudes {solicitudesRecibidas.length > 0 && <span className="notif">{solicitudesRecibidas.length}</span>}</button>
-        <button className={subPantalla==='chats'?'active':''} onClick={()=>setSubPantalla('chats')}>Chats {chats.length > 0 && <span className="notif">{chats.length}</span>}</button>
+        <button className={subPantalla==='solicitudes'?'active':''} onClick={()=>setSubPantalla('solicitudes')}>Solicitudes {(recibidasReales.length + solicitudesRecibidas.length) > 0 && <span className="notif">{recibidasReales.length + solicitudesRecibidas.length}</span>}</button>
+        <button className={subPantalla==='chats'?'active':''} onClick={()=>setSubPantalla('chats')}>Chats {(conversaciones.length + chats.length) > 0 && <span className="notif">{conversaciones.length + chats.length}</span>}</button>
         <button className={subPantalla==='plazas'?'active':''} onClick={()=>setSubPantalla('plazas')}>Plazas</button>
       </div>
       {subPantalla === 'buscar' && (
@@ -451,7 +486,9 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
               </div>
               <div className="swipe-actions">
                 <button className="btn-pass" onClick={()=>setIndice(i=>Math.min(i+1,lista.length))}>✕ Pasar</button>
-                <button className="btn-match" onClick={()=>setIndice(i=>Math.min(i+1,lista.length))}>Solicitar →</button>
+                {candidato.userId && estadoCon(candidato.userId)
+                  ? <button className="btn-match" disabled style={{opacity:.5}}>{estadoCon(candidato.userId).estado === 'aceptada' ? 'Ya conectados ✓' : 'Solicitud enviada ✓'}</button>
+                  : <button className="btn-match" onClick={async()=>{ if (await solicitar(candidato)) setIndice(i=>Math.min(i+1,lista.length)) }}>Solicitar →</button>}
               </div>
             </div>
           ) : (
@@ -466,6 +503,26 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
       {subPantalla === 'solicitudes' && (
         <div>
           <div className="screen-sub" style={{marginTop:8}}>Personas interesadas en ser tu pareja</div>
+          {recibidasReales.map(s => {
+            const p = aCandidato(s.otro)
+            return (
+              <div className="card" key={'r'+s.id}>
+                <div className="partner-row" style={{marginBottom:8,cursor:'pointer'}} onClick={()=>setPerfilAbierto(p)}>
+                  <div className={`avatar ${p.color}`}>{p.iniciales}</div>
+                  <div className="partner-info">
+                    <div className="partner-name">{p.nombre}</div>
+                    <div className="partner-sub">📍 {p.ciudad}{p.mejorTiempo ? ` · ⏱ ${p.mejorTiempo}${p.verificado ? ' ✓' : ''}` : ''}</div>
+                  </div>
+                  <div style={{fontSize:9,color:'#aaa'}}>{horaCorta(s.created_at)}</div>
+                </div>
+                {s.mensaje && <div className="reto-desc" style={{marginBottom:10}}>"{s.mensaje}"</div>}
+                <div className="match-actions">
+                  <button className="btn-pass" onClick={()=>responder(s,'rechazada')}>Rechazar</button>
+                  <button className="btn-match" onClick={()=>responder(s,'aceptada')}>Aceptar y chatear →</button>
+                </div>
+              </div>
+            )
+          })}
           {solicitudesRecibidas.map(s => (
             <div className="card" key={s.id}>
               <div className="partner-row" style={{marginBottom:8}}>
@@ -488,7 +545,22 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
       {subPantalla === 'chats' && (
         <div>
           <div className="screen-sub" style={{marginTop:8}}>Conversaciones activas</div>
-          {chats.length === 0 ? (
+          {conversaciones.map(c => {
+            const u = ultimos[c.userId]
+            return (
+              <div className="card" key={'c'+c.userId} onClick={()=>setChatActivo(c)} style={{cursor:'pointer'}}>
+                <div className="partner-row">
+                  <div className={`avatar ${c.color}`}>{c.iniciales}</div>
+                  <div className="partner-info">
+                    <div className="partner-name">{c.nombre}</div>
+                    <div className="partner-sub">{u ? `${u.de === yo.id ? 'Tú: ' : ''}${u.texto}` : 'Conectados · escribe el primer mensaje'}</div>
+                  </div>
+                  <div style={{fontSize:9,color:'#aaa'}}>{u ? horaCorta(u.created_at) : ''}</div>
+                </div>
+              </div>
+            )
+          })}
+          {chats.length === 0 && conversaciones.length === 0 ? (
             <div className="empty-state">
               <div style={{fontSize:32}}>💬</div>
               <div style={{color:'#aaa',marginTop:8,fontSize:12}}>Acepta solicitudes para empezar a chatear</div>
@@ -551,7 +623,7 @@ function Grupo({ filtros, cambiarFiltro, campo, titulo, opciones }) {
   )
 }
 
-function PerfilOtro({ persona, volver, solicitar }) {
+function PerfilOtro({ persona, relacion, volver, solicitar, chatear }) {
   return (
     <div className="screen">
       <button className="link-btn" style={{margin:'10px 0'}} onClick={volver}>← Volver</button>
@@ -603,7 +675,11 @@ function PerfilOtro({ persona, volver, solicitar }) {
         </div>
       ))}
       <VideosDe userId={persona.userId} nombre={persona.nombre} />
-      <button className="btn-match" style={{width:'100%',marginTop:10}} onClick={solicitar}>Solicitar como pareja →</button>
+      {relacion?.estado === 'aceptada'
+        ? <button className="btn-match" style={{width:'100%',marginTop:10}} onClick={chatear}>Abrir chat →</button>
+        : relacion
+          ? <button className="btn-match" disabled style={{width:'100%',marginTop:10,opacity:.5}}>{relacion.enviada ? (relacion.estado === 'rechazada' ? 'Solicitud no aceptada' : 'Solicitud enviada ✓') : 'Te ha enviado una solicitud · mírala en Solicitudes'}</button>
+          : <button className="btn-match" style={{width:'100%',marginTop:10}} onClick={solicitar}>Solicitar como pareja →</button>}
     </div>
   )
 }
