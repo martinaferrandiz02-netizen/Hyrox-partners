@@ -91,3 +91,22 @@ alter table public.profiles add column if not exists resultado_url text;
 alter table public.profiles drop constraint if exists resultado_url_oficial;
 alter table public.profiles add constraint resultado_url_oficial
   check (resultado_url is null or resultado_url like 'https://results.hyrox.com/%');
+
+-- ─────────────── CERTIFICADO DE RESULTADO (PDF / PNG / JPG) ───────────────
+alter table public.profiles add column if not exists certificado_url text;
+alter table public.profiles add column if not exists certificado_ruta text;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('certificados', 'certificados', true, 10485760, array['application/pdf','image/png','image/jpeg'])
+on conflict (id) do update set public = true, file_size_limit = 10485760, allowed_mime_types = array['application/pdf','image/png','image/jpeg'];
+
+drop policy if exists "subir mi certificado" on storage.objects;
+drop policy if exists "borrar mi certificado" on storage.objects;
+
+create policy "subir mi certificado" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'certificados' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy "borrar mi certificado" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'certificados' and (storage.foldername(name))[1] = auth.uid()::text);

@@ -373,3 +373,5 @@ body {
 .video-borrar { background: none; border: none; color: #cc7777; font-size: 8px; cursor: pointer; padding: 0; }
 .resultado-link { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700; color: #E8FF3C; text-decoration: none; border: 0.5px solid #E8FF3C; border-radius: 6px; padding: 4px 8px; }
 .perfil-form .ayuda { text-transform: none; letter-spacing: 0; color: #666; font-size: 9px; line-height: 1.4; }
+.resultado-links { display: flex; gap: 6px; flex-wrap: wrap; }
+.perfil-form .upload-drop { text-transform: none; letter-spacing: 0; }

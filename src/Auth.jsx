@@ -59,13 +59,25 @@ function esEnlaceOficial(url) {
   }
 }
 
+const TIPOS_CERTIFICADO = ['application/pdf', 'image/png', 'image/jpeg']
+
 const PERFIL_VACIO = { nombre: '', ciudad: '', sexo: 'Mujer', categoria: 'Open', club: '', compitio: false, mejor_tiempo: '', resultado_url: '' }
 
 // Formulario de perfil: alta inicial y edición
 export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
   const [f, setF] = useState(perfil ? { ...PERFIL_VACIO, ...perfil, club: perfil.club || '', mejor_tiempo: perfil.mejor_tiempo || '', resultado_url: perfil.resultado_url || '' } : PERFIL_VACIO)
   const [estado, setEstado] = useState('')
+  const [certificado, setCertificado] = useState(null)
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }))
+
+  const elegirCertificado = (e) => {
+    const archivo = e.target.files?.[0]
+    if (!archivo) return
+    if (!TIPOS_CERTIFICADO.includes(archivo.type)) { setEstado('El certificado tiene que ser PDF, PNG o JPG.'); return }
+    if (archivo.size > 10 * 1024 * 1024) { setEstado('El certificado pesa más de 10 MB.'); return }
+    setEstado('')
+    setCertificado(archivo)
+  }
 
   const guardar = async (e) => {
     e.preventDefault()
@@ -73,6 +85,17 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
     const enlace = f.compitio ? f.resultado_url.trim() : ''
     if (enlace && !esEnlaceOficial(enlace)) { setEstado('El enlace tiene que ser de results.hyrox.com.'); return }
     setEstado('Guardando…')
+    let certificado_url = f.compitio ? (perfil?.certificado_url || null) : null
+    let certificado_ruta = f.compitio ? (perfil?.certificado_ruta || null) : null
+    if (f.compitio && certificado) {
+      const ext = certificado.name.split('.').pop().toLowerCase()
+      const ruta = `${userId}/${Date.now()}.${ext}`
+      const { error: errSubida } = await supabase.storage.from('certificados').upload(ruta, certificado, { contentType: certificado.type })
+      if (errSubida) { setEstado(`No se ha podido subir el certificado (${errSubida.message}).`); return }
+      if (perfil?.certificado_ruta) await supabase.storage.from('certificados').remove([perfil.certificado_ruta])
+      certificado_ruta = ruta
+      certificado_url = supabase.storage.from('certificados').getPublicUrl(ruta).data.publicUrl
+    }
     const fila = {
       id: userId,
       nombre: f.nombre.trim(),
@@ -83,9 +106,11 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       compitio: f.compitio,
       mejor_tiempo: f.compitio ? (f.mejor_tiempo.trim() || null) : null,
       resultado_url: enlace || null,
+      certificado_url,
+      certificado_ruta,
     }
     const { data, error } = await supabase.from('profiles').upsert(fila).select().single()
-    if (error) { setEstado('No se ha podido guardar. Inténtalo de nuevo.'); return }
+    if (error) { setEstado(`No se ha podido guardar (${error.message}).`); return }
     onGuardado(data)
   }
 
@@ -114,6 +139,14 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
           <label>Enlace a tu resultado oficial <span>(recomendado)</span>
             <input value={f.resultado_url} onChange={e => set('resultado_url', e.target.value)} placeholder="https://results.hyrox.com/..." inputMode="url" />
             <span className="ayuda">Búscate en results.hyrox.com, abre tu resultado y copia aquí el enlace. Así otros atletas pueden comprobar tu tiempo.</span>
+          </label>
+        )}
+        {f.compitio && (
+          <label>Certificado de resultado <span>(PDF, PNG o JPG)</span>
+            <span className="upload-drop">
+              <input type="file" accept="application/pdf,image/png,image/jpeg" onChange={elegirCertificado} />
+              {certificado ? `📄 ${certificado.name}` : perfil?.certificado_url ? '📄 Certificado subido · pulsa para cambiarlo' : 'Sube el certificado que descargas de la web de resultados'}
+            </span>
           </label>
         )}
         {estado && <div className="acceso-estado">{estado}</div>}
