@@ -15,8 +15,19 @@ function EstadoCarrera({ r, esPropio }) {
 }
 
 // Perfil tipo red social: el mismo diseño para el tuyo y para el de los demás
-export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAjustes }) {
-  const { resultados, cargando } = useResultados(perfil.id)
+export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAjustes, onCambio }) {
+  const { resultados, cargando, recargar } = useResultados(perfil.id)
+  const [borrando, setBorrando] = useState(null)
+
+  const borrar = async (r) => {
+    if (!window.confirm('¿Borrar esta carrera?')) return
+    setBorrando(r.id)
+    const ok = await borrarResultado(r)
+    setBorrando(null)
+    if (!ok) { window.alert('No se ha podido borrar la carrera. Inténtalo de nuevo.'); return }
+    await recargar()
+    onCambio?.()
+  }
   const [pestana, setPestana] = useState('marcas')
   const verificadas = resultados.filter(r => r.estado === 'verificado')
   const visibles = esPropio ? resultados : verificadas
@@ -114,7 +125,7 @@ export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEd
                 <EstadoCarrera r={r} esPropio={esPropio} />
                 <span>
                   <a href={r.certificado_url} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>
-                  {esPropio && <button className="video-borrar" style={{ marginLeft: 10 }} onClick={() => window.confirm('¿Borrar esta carrera?') && borrarResultado(r)}>Borrar</button>}
+                  {esPropio && <button className="video-borrar" style={{ marginLeft: 10 }} disabled={borrando === r.id} onClick={() => borrar(r)}>{borrando === r.id ? 'Borrando…' : 'Borrar'}</button>}
                 </span>
               </div>
             </div>

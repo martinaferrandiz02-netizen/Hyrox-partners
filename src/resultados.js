@@ -61,7 +61,8 @@ export async function guardarResultado({ userId, archivo, datos }) {
 }
 
 export async function borrarResultado(r) {
-  const { error } = await supabase.from('resultados').delete().eq('id', r.id)
-  if (!error) await supabase.storage.from('certificados').remove([r.certificado_ruta])
-  return !error
+  const { data, error } = await supabase.from('resultados').delete().eq('id', r.id).select('id')
+  if (error || !data?.length) { console.error('borrarResultado', error); return false }
+  await supabase.storage.from('certificados').remove([r.certificado_ruta])
+  return true
 }

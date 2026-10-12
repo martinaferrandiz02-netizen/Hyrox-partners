@@ -355,7 +355,7 @@ export function Perfil({ perfil, setPerfil }) {
   }
   if (modo === 'carrera') return <AnadirCarrera perfil={perfil} setPerfil={setPerfil} cerrar={()=>setModo(null)} />
   if (modo === 'ajustes') return <Ajustes perfil={perfil} setPerfil={setPerfil} volver={()=>setModo(null)} editarPerfil={()=>setModo('editar')} />
-  return <PerfilVista perfil={perfil} esPropio onEditar={()=>setModo('editar')} onAnadirCarrera={()=>setModo('carrera')} onAjustes={()=>setModo('ajustes')} />
+  return <PerfilVista perfil={perfil} esPropio onEditar={()=>setModo('editar')} onAnadirCarrera={()=>setModo('carrera')} onAjustes={()=>setModo('ajustes')} onCambio={async()=>{ const { data } = await supabase.from('profiles').select('*').eq('id', perfil.id).single(); if (data) setPerfil(data) }} />
 }
 
 function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, recargarPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chatActivo, setChatActivo, elegirPareja }) {
