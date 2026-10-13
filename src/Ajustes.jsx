@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { Avatar } from './Avatar'
+import { desbloquear, misBloqueados } from './bloqueos'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
 
@@ -32,6 +33,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
   const [estado, setEstado] = useState('')
   const [campo1, setCampo1] = useState('')
   const [campo2, setCampo2] = useState('')
+  const [bloqueados, setBloqueados] = useState(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email || ''))
@@ -100,8 +102,14 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
     await supabase.auth.signOut()
   }
 
+  const abrirBloqueados = async () => { abrir('bloqueados'); setBloqueados(await misBloqueados(perfil.id)) }
+  const quitarBloqueo = async (b) => {
+    if (!window.confirm(`¿Desbloquear a ${b.perfil.nombre}?`)) return
+    if (await desbloquear(perfil.id, b.bloqueado)) setBloqueados(prev => prev.filter(x => x.bloqueado !== b.bloqueado))
+  }
+
   if (vista) {
-    const titulos = { email: 'Cambiar email', password: 'Cambiar contraseña', telefono: 'Teléfono', borrar: 'Borrar cuenta' }
+    const titulos = { email: 'Cambiar email', password: 'Cambiar contraseña', telefono: 'Teléfono', borrar: 'Borrar cuenta', bloqueados: 'Usuarios bloqueados' }
     return (
       <div className="screen">
         <button className="link-btn" style={{ margin: '10px 0' }} onClick={() => setVista(null)}>← Ajustes</button>
@@ -121,6 +129,17 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
             <div className="ayuda-form">🔒 Tu teléfono es privado: no lo ve ningún otro usuario.</div>
             <label>Teléfono móvil<input type="tel" value={campo1} onChange={e => setCampo1(e.target.value)} placeholder="+41 79 123 45 67" autoComplete="tel" /></label>
             <button className="btn-match" onClick={guardarTelefono}>Guardar</button>
+          </>}
+          {vista === 'bloqueados' && <>
+            {bloqueados === null && <div className="ayuda-form">Cargando…</div>}
+            {bloqueados?.length === 0 && <div className="ayuda-form">No has bloqueado a nadie.</div>}
+            {bloqueados?.map(b => (
+              <div key={b.bloqueado} className="aj-fila" style={{ cursor: 'default' }}>
+                <Avatar p={{ fotoUrl: b.perfil.foto_url, color: 'dark', iniciales: iniciales(b.perfil.nombre) }} style={{ width: 28, height: 28, fontSize: 10 }} />
+                <span className="aj-titulo">{b.perfil.nombre}</span>
+                <button className="link-btn" onClick={() => quitarBloqueo(b)}>Desbloquear</button>
+              </div>
+            ))}
           </>}
           {vista === 'borrar' && <>
             <div className="ayuda-form">Se borrarán para siempre tu perfil, tus carreras, vídeos, mensajes, solicitudes y plazas. No se puede deshacer.</div>
@@ -157,6 +176,9 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
       <Fila icono="✉️" titulo="Email" valor={email} onClick={() => abrir('email')} />
       <Fila icono="🔑" titulo="Contraseña" valor="••••••" onClick={() => abrir('password')} />
       <Fila icono="📱" titulo="Teléfono" valor={telefono || 'Añadir'} onClick={() => abrir('telefono', telefono)} />
+
+      <div className="aj-grupo">Privacidad y seguridad</div>
+      <Fila icono="⛔" titulo="Usuarios bloqueados" onClick={abrirBloqueados} />
 
       <button className="aj-salir" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
       <Fila icono="🗑" titulo="Borrar cuenta" onClick={() => abrir('borrar')} peligro />

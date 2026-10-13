@@ -1,9 +1,10 @@
 import { Avatar } from './Avatar'
 import { useEffect, useRef, useState } from 'react'
 import { horaCorta, useConversacion } from './social'
+import { MenuUsuario } from './MenuUsuario'
 
 // Chat con otro usuario real, en tiempo real
-export function ChatReal({ yo, otro, volver, elegirPareja, abrirPerfil }) {
+export function ChatReal({ yo, otro, volver, elegirPareja, abrirPerfil, trasBloquear }) {
   const { mensajes, cargando, enviar } = useConversacion(yo.id, otro.userId)
   const [texto, setTexto] = useState('')
   const [error, setError] = useState('')
@@ -29,6 +30,7 @@ export function ChatReal({ yo, otro, volver, elegirPareja, abrirPerfil }) {
           <div className="partner-sub">{otro.mejorTiempo ? `⏱ ${otro.mejorTiempo}${otro.verificado ? ' ✓' : ''}` : otro.ciudad}</div>
         </div>
         <button className="btn-elegir" onClick={() => elegirPareja(otro)}>Elegir pareja ⚡</button>
+        <MenuUsuario yoId={yo.id} persona={otro} contexto="chat" onBloqueado={trasBloquear} />
       </div>
       <div className="chat-messages">
         {cargando && <div className="video-empty">Cargando…</div>}

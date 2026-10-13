@@ -8,6 +8,8 @@ import { ChatReal } from './ChatReal'
 import { PerfilVista } from './PerfilVista'
 import { AnadirCarrera } from './AnadirCarrera'
 import { Ajustes } from './Ajustes'
+import { MenuUsuario } from './MenuUsuario'
+import { useOcultos } from './bloqueos'
 import { fechaCorta, publicarPlaza, retirarPlaza, usePlazas } from './plazas'
 import { enviarSolicitud, horaCorta, responderSolicitud, useSolicitudes, useUltimosMensajes } from './social'
 
@@ -95,13 +97,16 @@ function Pairx({ perfil, setPerfil }) {
     supabase.from('profiles').select('*').neq('id', perfil.id).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setCandidatosReales(data.map(aCandidato)) })
   }, [perfil.id])
-  const candidatos = candidatosReales
+  // Bloqueos: quien he bloqueado o me ha bloqueado desaparece de toda la app
+  const { ocultos, recargar: recargarOcultos } = useOcultos()
+  const visible = (id) => !ocultos.has(id)
+  const candidatos = candidatosReales.filter(c => visible(c.userId))
 
   // Solicitudes y chats reales
   const { solicitudes, recargar } = useSolicitudes(perfil.id)
   const ultimos = useUltimosMensajes(perfil.id)
-  const recibidasReales = solicitudes.filter(s => !s.enviada && s.estado === 'pendiente')
-  const conversaciones = solicitudes.filter(s => s.estado === 'aceptada').map(s => aCandidato(s.otro))
+  const recibidasReales = solicitudes.filter(s => !s.enviada && s.estado === 'pendiente' && visible(s.otro.id))
+  const conversaciones = solicitudes.filter(s => s.estado === 'aceptada' && visible(s.otro.id)).map(s => aCandidato(s.otro))
   const estadoCon = (userId) => solicitudes.find(s => s.otro.id === userId)
 
   const solicitar = async (persona) => {
@@ -121,7 +126,7 @@ function Pairx({ perfil, setPerfil }) {
   const ranking = calcularRanking(perfil, candidatosReales)
 
   const { plazas: plazasReales, recargar: recargarPlazas } = usePlazas()
-  const listaPlazas = plazasReales.map(p => ({ ...p, real: true, autor: aCandidato(p.autor_perfil) }))
+  const listaPlazas = plazasReales.filter(p => visible(p.user_id)).map(p => ({ ...p, real: true, autor: aCandidato(p.autor_perfil) }))
 
   const contactarPlaza = async (plaza) => {
     const autor = plaza.autor
@@ -167,6 +172,7 @@ function Pairx({ perfil, setPerfil }) {
             filtros={filtros}
             setFiltros={setFiltros}
             perfilAbierto={perfilAbierto}
+            trasBloquear={async()=>{ await recargarOcultos(); setChatActivo(null); setPerfilAbierto(null); recargar() }}
             plazas={listaPlazas}
             recargarPlazas={recargarPlazas}
             candidatos={candidatos}
@@ -358,13 +364,13 @@ export function Perfil({ perfil, setPerfil }) {
   return <PerfilVista perfil={perfil} esPropio onEditar={()=>setModo('editar')} onAnadirCarrera={()=>setModo('carrera')} onAjustes={()=>setModo('ajustes')} onCambio={async()=>{ const { data } = await supabase.from('profiles').select('*').eq('id', perfil.id).single(); if (data) setPerfil(data) }} />
 }
 
-function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, recargarPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chatActivo, setChatActivo, elegirPareja }) {
+function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, recargarPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chatActivo, setChatActivo, elegirPareja , trasBloquear}) {
   if (chatActivo?.userId) {
-    return <ChatReal yo={yo} otro={chatActivo} volver={()=>setChatActivo(null)} elegirPareja={elegirPareja} abrirPerfil={()=>{setPerfilAbierto(chatActivo);setChatActivo(null)}} />
+    return <ChatReal yo={yo} otro={chatActivo} trasBloquear={trasBloquear} volver={()=>setChatActivo(null)} elegirPareja={elegirPareja} abrirPerfil={()=>{setPerfilAbierto(chatActivo);setChatActivo(null)}} />
   }
   if (perfilAbierto) {
     const rel = perfilAbierto.userId ? estadoCon(perfilAbierto.userId) : null
-    return <PerfilOtro persona={perfilAbierto} relacion={rel} volver={()=>setPerfilAbierto(null)}
+    return <PerfilOtro persona={perfilAbierto} relacion={rel} yoId={yo.id} trasBloquear={trasBloquear} volver={()=>setPerfilAbierto(null)}
       chatear={()=>{setChatActivo(perfilAbierto);setPerfilAbierto(null)}}
       solicitar={()=>solicitar(perfilAbierto)} />
   }
@@ -529,7 +535,7 @@ function Grupo({ filtros, cambiarFiltro, campo, titulo, opciones }) {
   )
 }
 
-function PerfilOtro({ persona, relacion, volver, solicitar, chatear }) {
+function PerfilOtro({ persona, relacion, yoId, trasBloquear, volver, solicitar, chatear }) {
   const boton = relacion?.estado === 'aceptada'
     ? <button className="btn-match" onClick={chatear}>Abrir chat →</button>
     : relacion
@@ -537,7 +543,10 @@ function PerfilOtro({ persona, relacion, volver, solicitar, chatear }) {
       : <button className="btn-match" onClick={solicitar}>Solicitar como pareja →</button>
   return (
     <div style={{display:'flex',flexDirection:'column',flex:1,minHeight:0}}>
-      <button className="link-btn pv-volver" onClick={volver}>← Volver</button>
+      <div className="pv-barra">
+        <button className="link-btn" onClick={volver}>← Volver</button>
+        <MenuUsuario yoId={yoId} persona={persona} contexto="perfil" onBloqueado={trasBloquear} />
+      </div>
       <PerfilVista perfil={persona.raw} color={persona.color} acciones={boton} />
     </div>
   )
