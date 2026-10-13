@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import { MisVideos, VideosDe } from './Videos'
+import { PerfilDemo } from './PerfilDemo'
 
 const candidatos = [
   { id:1, iniciales:'AL', color:'purple', nombre:'Ana López', ciudad:'Madrid', distancia:'3.2 km', sexo:'Mujer', categoria:'Open', compitio:true, rating:1820, club:'CrossFit Retiro', mejorTiempo:'1:14:20', carreras:[{nombre:'Madrid 2025',tipo:'Doubles Open',tiempo:'1:14:20'},{nombre:'Valencia 2025',tipo:'Individual Open',tiempo:'1:22:05'}], marcas:[{ex:'Ski erg 1000m',val:'4:05'},{ex:'Rowing 1000m',val:'4:12'},{ex:'Wall balls 100',val:'5:40'},{ex:'Run 1 km',val:'4:35'}], fortalezas:[{ex:'Ski erg',pct:88},{ex:'Lunges',pct:92},{ex:'Wall balls',pct:75}] },
@@ -288,60 +288,13 @@ export function Rankings() {
   )
 }
 
+const yoDemo = {
+  id: 0, iniciales: 'CR', color: 'yellow', nombre: 'Carlos R.', ciudad: 'Madrid', club: 'Hybrid MAD', sexo: 'Hombre', categoria: 'Open',
+  carreras: [{ nombre: 'Madrid 2024', tipo: 'Doubles Open', tiempo: '1:18:42' }, { nombre: 'Barcelona 2024', tipo: 'Individual Open', tiempo: '1:24:10' }],
+}
+
 export function Perfil() {
-  const carreras = [
-    {nombre:'Madrid 2024', tipo:'Doubles · con Marta G.', tiempo:'1:18:42', top:'Top 8%'},
-    {nombre:'Barcelona 2024', tipo:'Individual', tiempo:'58:14', top:'Top 15%'},
-    {nombre:'CrossFit Open 2023', tipo:'Prueba acreditada', tiempo:'Acreditado', top:''},
-  ]
-  const marcas = [
-    {ex:'Ski erg', val:'4:12', pct:84},
-    {ex:'Rowing', val:'1:52', pct:91},
-    {ex:'Wall balls', val:'3:48', pct:76},
-    {ex:'Lunges', val:'4:55', pct:68},
-  ]
-  return (
-    <div className="screen">
-      <div className="profile-header">
-        <div className="avatar yellow large">CR</div>
-        <div style={{flex:1}}>
-          <div className="partner-name" style={{fontSize:16}}>Carlos R.</div>
-          <div className="partner-sub">📍 Madrid · Hybrid MAD</div>
-        </div>
-        <div style={{textAlign:'right'}}>
-          <div className="rating-badge">1.840</div>
-          <div className="rating-sub">Top 12% nacional</div>
-        </div>
-      </div>
-      <div className="stat-grid">
-        <div className="stat-card"><div className="stat-val">8</div><div className="stat-lbl">Carreras oficiales</div></div>
-        <div className="stat-card"><div className="stat-val">3</div><div className="stat-lbl">En Doubles</div></div>
-        <div className="stat-card"><div className="stat-val">1:18<span className="stat-unit">h</span></div><div className="stat-lbl">Mejor tiempo</div></div>
-      </div>
-      <div className="section-label">Historial acreditado</div>
-      {carreras.map(c => (
-        <div className="oficial-row" key={c.nombre}>
-          <div style={{flex:1}}>
-            <div className="partner-name">{c.nombre}</div>
-            <div className="partner-sub">{c.tipo}</div>
-          </div>
-          <div style={{textAlign:'right'}}>
-            <div className="partner-rating">{c.tiempo}</div>
-            <div className="partner-sub">{c.top}</div>
-          </div>
-        </div>
-      ))}
-      <div className="section-label">Mejores marcas</div>
-      {marcas.map(m => (
-        <div className="bar-row" key={m.ex}>
-          <span className="bar-lbl">{m.ex}</span>
-          <div className="bar-track"><div className="bar-fill" style={{width:m.pct+'%'}}></div></div>
-          <span className="bar-val">{m.val}</span>
-        </div>
-      ))}
-      <MisVideos />
-    </div>
-  )
+  return <PerfilDemo persona={yoDemo} esPropio />
 }
 
 function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, setPlazas, contactarPlaza, chats, chatActivo, setChatActivo, mensajes, inputMsg, setInputMsg, enviarMensaje, aceptarSolicitud, elegirPareja, solicitudesRecibidas, pareja }) {
@@ -521,52 +474,9 @@ function Grupo({ filtros, cambiarFiltro, campo, titulo, opciones }) {
 
 function PerfilOtro({ persona, volver, solicitar }) {
   return (
-    <div className="screen">
-      <button className="link-btn" style={{margin:'10px 0'}} onClick={volver}>← Volver</button>
-      <div className="profile-header">
-        <div className={`avatar ${persona.color} large`}>{persona.iniciales}</div>
-        <div style={{flex:1}}>
-          <div className="partner-name" style={{fontSize:16}}>{persona.nombre}</div>
-          <div className="partner-sub">📍 {persona.ciudad} · {persona.club}</div>
-        </div>
-        <div style={{textAlign:'right'}}>
-          {persona.compitio
-            ? <div className="rating-badge">{persona.rating}</div>
-            : <div className="badge norating">Sin carreras</div>}
-        </div>
-      </div>
-      <div className="swipe-tags" style={{justifyContent:'flex-start'}}>
-        <span>{persona.sexo}</span><span>{persona.categoria}</span><span>{persona.compitio ? 'Ya ha competido' : 'Aún no ha competido'}</span>
-      </div>
-      <div className="section-label">Puntos fuertes</div>
-      {persona.fortalezas.map(f => (
-        <div className="bar-row" key={f.ex}>
-          <span className="bar-lbl">{f.ex}</span>
-          <div className="bar-track"><div className="bar-fill" style={{width:f.pct+'%'}}></div></div>
-          <span className="bar-val">{f.pct}%</span>
-        </div>
-      ))}
-      <div className="section-label">Mejores tiempos</div>
-      {persona.marcas.map(m => (
-        <div className="oficial-row" key={m.ex}>
-          <div style={{flex:1}} className="partner-name">{m.ex}</div>
-          <div className="partner-rating">{m.val}</div>
-        </div>
-      ))}
-      <div className="section-label">Carreras</div>
-      {persona.carreras.length === 0 ? (
-        <div className="video-empty">Aún no ha competido: mira sus vídeos para comprobar sus tiempos.</div>
-      ) : persona.carreras.map(c => (
-        <div className="oficial-row" key={c.nombre}>
-          <div style={{flex:1}}>
-            <div className="partner-name">{c.nombre}</div>
-            <div className="partner-sub">{c.tipo}</div>
-          </div>
-          <div className="partner-rating">{c.tiempo}</div>
-        </div>
-      ))}
-      <VideosDe autor={persona.nombre} />
-      <button className="btn-match" style={{width:'100%',marginTop:10}} onClick={solicitar}>Solicitar como pareja →</button>
+    <div style={{display:'flex',flexDirection:'column',flex:1,minHeight:0}}>
+      <button className="link-btn pv-volver" onClick={volver}>← Volver</button>
+      <PerfilDemo persona={persona} acciones={<button className="btn-match" onClick={solicitar}>Solicitar como pareja →</button>} />
     </div>
   )
 }
