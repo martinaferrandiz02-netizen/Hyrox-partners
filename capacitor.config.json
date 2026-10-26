@@ -1,0 +1,8 @@
+{
+  "appId": "com.pairx.app",
+  "appName": "Pairx",
+  "webDir": "dist",
+  "backgroundColor": "#0a0a0a",
+  "ios": { "contentInset": "never" },
+  "android": { "backgroundColor": "#0a0a0a" }
+}

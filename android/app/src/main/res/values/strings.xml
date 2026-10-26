@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pairx</string>
+    <string name="title_activity_main">Pairx</string>
+    <string name="package_name">com.pairx.app</string>
+    <string name="custom_url_scheme">com.pairx.app</string>
+</resources>

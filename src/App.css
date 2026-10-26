@@ -500,3 +500,27 @@ body {
 .hoja-texto { min-height: 70px; background: #0f0f0f; border: 0.5px solid #2c2c2c; border-radius: 8px; color: #f0f0f0; font-size: 11px; padding: 8px; resize: vertical; font-family: inherit; }
 .hoja-check { display: flex; gap: 6px; align-items: center; font-size: 10px; color: #bbb; }
 .phone { position: relative; }
+
+/* ───────── Móvil y app nativa: pantalla completa, sin marco de teléfono ───────── */
+@media (max-width: 600px) {
+  html, body { background: #0a0a0a; }
+  body { display: block; min-height: 100dvh; overscroll-behavior: none; }
+  .app { display: block; padding: 0; }
+  /* El diseño está pensado a 320 px: se amplía para que llene la pantalla real */
+  .phone {
+    zoom: var(--escala);
+    width: calc(100vw / var(--escala));
+    height: calc(100dvh / var(--escala));
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+    padding: calc(env(safe-area-inset-top) / var(--escala)) 0 0;
+    overflow: hidden;
+  }
+  .notch { display: none; }
+  .screen { min-height: 0; -webkit-overflow-scrolling: touch; }
+  .tab-bar { border-radius: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom) / var(--escala)); }
+}
+:root { --escala: 1; }
+@media (max-width: 600px) and (min-width: 360px) { :root { --escala: 1.15; } }
+@media (max-width: 600px) and (min-width: 400px) { :root { --escala: 1.25; } }
