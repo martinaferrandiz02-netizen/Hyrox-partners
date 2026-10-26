@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { Avatar } from './Avatar'
+import { URL_PRIVACIDAD, URL_TERMINOS } from './legal'
 import { desbloquear, misBloqueados } from './bloqueos'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
@@ -179,6 +180,8 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
 
       <div className="aj-grupo">Privacidad y seguridad</div>
       <Fila icono="⛔" titulo="Usuarios bloqueados" onClick={abrirBloqueados} />
+      <Fila icono="📄" titulo="Política de privacidad" onClick={() => window.open(URL_PRIVACIDAD, '_blank')} />
+      <Fila icono="📜" titulo="Términos de uso" onClick={() => window.open(URL_TERMINOS, '_blank')} />
 
       <button className="aj-salir" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
       <Fila icono="🗑" titulo="Borrar cuenta" onClick={() => abrir('borrar')} peligro />

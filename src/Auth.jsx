@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 import { CampoCiudad } from './Ciudad'
 import { CampoClub } from './Club'
 import { clubCanonico } from './clubs'
+import { URL_PRIVACIDAD, URL_TERMINOS } from './legal'
 
 // Pantalla de acceso: iniciar sesión o crear cuenta con email y contraseña
 export function Acceso() {
@@ -11,6 +12,7 @@ export function Acceso() {
   const [password, setPassword] = useState('')
   const [estado, setEstado] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [acepta, setAcepta] = useState(false)
 
   const enviar = async (e) => {
     e.preventDefault()
@@ -20,6 +22,11 @@ export function Acceso() {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setEstado(error.message.includes('Invalid') ? 'Email o contraseña incorrectos.' : `No se ha podido iniciar sesión (${error.message}).`)
     } else {
+      if (!acepta) {
+        setEstado('Para crear la cuenta tienes que aceptar los Términos y la Política de privacidad.')
+        setEnviando(false)
+        return
+      }
       if (password.length < 6) {
         setEstado('La contraseña debe tener al menos 6 caracteres.')
         setEnviando(false)
@@ -42,12 +49,19 @@ export function Acceso() {
       <form className="acceso-form" onSubmit={enviar}>
         <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" autoComplete="email" />
         <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" autoComplete={modo === 'entrar' ? 'current-password' : 'new-password'} />
+        {modo === 'registro' && (
+          <label className="acceso-acepto">
+            <input type="checkbox" checked={acepta} onChange={e => setAcepta(e.target.checked)} />
+            <span>Tengo 18 años o más y acepto los <a href={URL_TERMINOS} target="_blank" rel="noreferrer">Términos de uso</a> y la <a href={URL_PRIVACIDAD} target="_blank" rel="noreferrer">Política de privacidad</a>.</span>
+          </label>
+        )}
         {estado && <div className="acceso-estado">{estado}</div>}
         <button className="btn-match" type="submit" disabled={enviando}>{enviando ? '…' : modo === 'entrar' ? 'Entrar' : 'Crear cuenta'}</button>
       </form>
       <button className="link-btn" onClick={() => { setModo(m => m === 'entrar' ? 'registro' : 'entrar'); setEstado('') }}>
         {modo === 'entrar' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entra'}
       </button>
+      <div className="acceso-legal"><a href={URL_TERMINOS} target="_blank" rel="noreferrer">Términos</a> · <a href={URL_PRIVACIDAD} target="_blank" rel="noreferrer">Privacidad</a></div>
     </div>
   )
 }

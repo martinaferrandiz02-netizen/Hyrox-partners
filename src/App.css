@@ -524,3 +524,9 @@ body {
 :root { --escala: 1; }
 @media (max-width: 600px) and (min-width: 360px) { :root { --escala: 1.15; } }
 @media (max-width: 600px) and (min-width: 400px) { :root { --escala: 1.25; } }
+
+/* Aceptación de términos en el registro */
+.acceso-acepto { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; line-height: 1.45; color: #a3a3a3; text-align: left; margin: 2px 2px 4px; cursor: pointer; }
+.acceso-acepto input { width: 18px; height: 18px; margin: 1px 0 0; flex-shrink: 0; accent-color: #e8ff3c; padding: 0; }
+.acceso-acepto a, .acceso-legal a { color: #e8ff3c; text-decoration: none; }
+.acceso-legal { margin-top: 18px; font-size: 12px; color: #737373; text-align: center; }
