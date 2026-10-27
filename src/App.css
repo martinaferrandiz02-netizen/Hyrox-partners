@@ -530,3 +530,11 @@ body {
 .acceso-acepto input { width: 18px; height: 18px; margin: 1px 0 0; flex-shrink: 0; accent-color: #e8ff3c; padding: 0; }
 .acceso-acepto a, .acceso-legal a { color: #e8ff3c; text-decoration: none; }
 .acceso-legal { margin-top: 18px; font-size: 12px; color: #737373; text-align: center; }
+
+/* Móvil / app instalada: la página queda fija; solo se desplaza el contenido de cada pantalla */
+@media (max-width: 600px) {
+  html, body { position: fixed; inset: 0; width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; }
+  #root { width: 100%; max-width: 100%; height: 100%; min-height: 0; border: none; overflow: hidden; }
+  .app { height: 100%; overflow: hidden; }
+  .screen { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+}
