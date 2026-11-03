@@ -1,0 +1,52 @@
+# Pairx · Compilación en la nube con Codemagic (codemagic.io)
+# Lanza el flujo que quieras desde la web de Codemagic: "Android → Google Play" o "iOS → TestFlight".
+workflows:
+  android:
+    name: Android → Google Play
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      android_signing:
+        - pairx_upload            # clave de firma subida en Codemagic → Team settings → Code signing → Android
+      node: 22
+      java: 21
+    scripts:
+      - name: Instalar y construir la web
+        script: npm ci && npm run build && npx cap sync android
+      - name: SDK de Android
+        script: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+      - name: Compilar el paquete para Google Play (.aab)
+        script: cd android && ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
+
+  ios:
+    name: iOS → TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: Pairx       # clave de API de App Store Connect, creada en Codemagic con este nombre
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.pairx.app
+      node: 22
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Instalar y construir la web
+        script: npm ci && npm run build && npx cap sync ios
+      - name: Dependencias de iOS
+        script: cd ios/App && pod install
+      - name: Firma
+        script: xcode-project use-profiles
+      - name: Número de versión
+        script: cd ios/App && agvtool new-version -all $BUILD_NUMBER
+      - name: Compilar
+        script: xcode-project build-ipa --workspace ios/App/App.xcworkspace --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
