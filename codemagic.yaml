@@ -41,7 +41,7 @@ workflows:
       - name: Firma
         script: xcode-project use-profiles
       - name: Número de versión
-        script: cd ios/App && agvtool new-version -all $BUILD_NUMBER
+        script: sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" ios/App/App.xcodeproj/project.pbxproj
       - name: Compilar
         script: xcode-project build-ipa --workspace ios/App/App.xcworkspace --scheme App
     artifacts:
