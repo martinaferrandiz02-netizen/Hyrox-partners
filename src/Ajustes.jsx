@@ -100,8 +100,13 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
   const borrarCuenta = async () => {
     if (campo1.trim().toUpperCase() !== 'BORRAR') { setEstado('Escribe la palabra BORRAR (no tu email) para confirmar.'); return }
     setEstado('Borrando cuenta…')
-    const { error } = await supabase.rpc('borrar_mi_cuenta')
-    if (error) { setEstado('No se ha podido borrar la cuenta. Inténtalo de nuevo.'); return }
+    const { data, error } = await supabase.functions.invoke('borrar-cuenta')
+    if (error || !data?.ok) {
+      let detalle = data?.error || ''
+      try { detalle = (await error?.context?.json())?.error || detalle } catch { /* sin detalle */ }
+      setEstado(`No se ha podido borrar la cuenta${detalle ? ` (${detalle})` : ''}. Inténtalo de nuevo.`)
+      return
+    }
     await supabase.auth.signOut()
   }
 
