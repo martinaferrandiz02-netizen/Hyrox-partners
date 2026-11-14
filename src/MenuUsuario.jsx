@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ban, Ellipsis, Flag } from 'lucide-react'
 import { bloquear, denunciar, MOTIVOS } from './bloqueos'
 
 // Botón ⋯ con "Denunciar" y "Bloquear" para el perfil o el chat de otra persona
@@ -30,13 +31,13 @@ export function MenuUsuario({ yoId, persona, contexto, onBloqueado }) {
 
   return (
     <>
-      <button className="menu-usuario-btn" onClick={() => setAbierto(true)} aria-label="Más opciones">⋯</button>
+      <button className="menu-usuario-btn" onClick={() => setAbierto(true)} aria-label="Más opciones"><Ellipsis size={20} /></button>
 
       {abierto && !denunciando && (
         <div className="hoja-fondo" onClick={() => setAbierto(false)}>
           <div className="hoja" onClick={e => e.stopPropagation()}>
-            <button className="hoja-opcion" onClick={() => { setDenunciando(true); setEstado('') }}>🚩 Denunciar a {nombre}</button>
-            <button className="hoja-opcion peligro" onClick={hacerBloqueo}>⛔ Bloquear a {nombre}</button>
+            <button className="hoja-opcion" onClick={() => { setDenunciando(true); setEstado('') }}><Flag size={18} /> Denunciar a {nombre}</button>
+            <button className="hoja-opcion peligro" onClick={hacerBloqueo}><Ban size={18} /> Bloquear a {nombre}</button>
             <button className="hoja-opcion cancelar" onClick={() => setAbierto(false)}>Cancelar</button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ArrowUpRight, Check, CircleX, Hourglass, MapPin, Plus, Settings } from 'lucide-react'
 import { Avatar } from './Avatar'
 import { formatoParcial } from './certificado'
 import { nombreCiudad } from './ciudades'
@@ -9,9 +10,9 @@ const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0
 const fechaCarrera = (f) => f ? new Date(f + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }) : null
 
 function EstadoCarrera({ r, esPropio }) {
-  if (r.estado === 'verificado') return <span className="pv-estado ok">✓ Verificado</span>
-  if (r.estado === 'pendiente') return <span className="pv-estado">⏳ Pendiente de revisión</span>
-  return <span className="pv-estado error">✕ No válido{esPropio && r.motivo ? ` · ${r.motivo}` : ''}</span>
+  if (r.estado === 'verificado') return <span className="pv-estado ok"><Check size={14} strokeWidth={2.5} /> Verificado</span>
+  if (r.estado === 'pendiente') return <span className="pv-estado"><Hourglass size={14} /> Pendiente de revisión</span>
+  return <span className="pv-estado error"><CircleX size={14} /> No válido{esPropio && r.motivo ? ` · ${r.motivo}` : ''}</span>
 }
 
 // Perfil tipo red social: el mismo diseño para el tuyo y para el de los demás
@@ -33,36 +34,45 @@ export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEd
   const visibles = esPropio ? resultados : verificadas
   const marcas = mejoresMarcas(resultados)
   const verificado = perfil.certificado_estado === 'verificado'
+  const anadir = <button className="link-btn" onClick={onAnadirCarrera}><Plus size={16} /> Añadir carrera</button>
 
   return (
     <div className="screen pv">
+      {esPropio && (
+        <div className="pv-hero-top">
+          <button className="pv-ajustes" onClick={onAjustes} aria-label="Ajustes"><Settings size={20} /></button>
+        </div>
+      )}
+
       {/* Cabecera */}
       <div className="pv-hero">
-        {esPropio && <button className="pv-ajustes" onClick={onAjustes} aria-label="Ajustes">⚙</button>}
         <div className={`pv-avatar ${verificado ? 'verificado' : ''}`}>
           <Avatar p={{ fotoUrl: perfil.foto_url, color, iniciales: iniciales(perfil.nombre) }} />
-          {verificado && <span className="pv-check">✓</span>}
+          {verificado && <span className="pv-check"><Check size={14} strokeWidth={3} /></span>}
         </div>
-        <div className="pv-nombre">{perfil.nombre}</div>
-        <div className="pv-sub">📍 {nombreCiudad(perfil.ciudad)}{perfil.club ? ` · ${perfil.club}` : ''}</div>
-        <div className="pv-chips">
-          <span>{perfil.sexo}</span>
-          <span>{perfil.categoria}</span>
-          {perfil.division && <span>{perfil.division}</span>}
+        <div style={{ minWidth: 0 }}>
+          <div className="pv-nombre">{perfil.nombre}</div>
+          <div className="pv-sub"><MapPin size={14} /> {nombreCiudad(perfil.ciudad)}{perfil.club ? ` · ${perfil.club}` : ''}</div>
         </div>
+      </div>
+      <div className="pv-chips">
+        <span className="tag">{perfil.sexo}</span>
+        <span className="tag">{perfil.categoria}</span>
+        {perfil.division && <span className="tag">{perfil.division}</span>}
+        {verificado && <span className="tag acento"><Check size={12} strokeWidth={3} /> Verificado</span>}
       </div>
 
       {/* Lo importante, a primera vista */}
-      <div className="pv-stats">
-        <div><strong className="amarillo">{perfil.puntos ?? '–'}</strong><span>Puntos</span></div>
-        <div><strong>{verificado && perfil.mejor_tiempo ? perfil.mejor_tiempo : '–'}</strong><span>Mejor tiempo</span></div>
+      <div className="stats">
+        <div><strong className={perfil.puntos ? 'acento' : ''}>{perfil.puntos ?? '—'}</strong><span>Puntos</span></div>
+        <div><strong>{verificado && perfil.mejor_tiempo ? perfil.mejor_tiempo : '—'}</strong><span>Mejor tiempo</span></div>
         <div><strong>{verificadas.length}</strong><span>{verificadas.length === 1 ? 'Carrera' : 'Carreras'}</span></div>
       </div>
 
       {esPropio ? (
         <div className="pv-acciones">
           <button className="btn-secondary" onClick={onEditar}>Editar perfil</button>
-          <button className="btn-match" onClick={onAnadirCarrera}>+ Añadir carrera</button>
+          <button className="btn-match" onClick={onAnadirCarrera}><Plus size={18} /> Carrera</button>
         </div>
       ) : acciones && <div className="pv-acciones">{acciones}</div>}
 
@@ -74,58 +84,53 @@ export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEd
       </div>
 
       {pestana === 'marcas' && (
-        <div>
-          {Object.keys(marcas).length === 0 ? (
-            <div className="pv-vacio">
-              {esPropio
-                ? <>Añade una carrera con su certificado y aquí aparecerán tus mejores tiempos en cada ejercicio.<button className="link-btn" onClick={onAnadirCarrera}>+ Añadir carrera</button></>
-                : 'Todavía no tiene carreras verificadas.'}
-            </div>
-          ) : (
-            <>
-              <div className="pv-marcas">
-                {ESTACIONES.map((e, i) => (
-                  <div key={e} className={marcas[e] ? '' : 'vacia'}>
-                    <span className="pv-marca-num">{i + 1}</span>
-                    <span className="pv-marca-nombre">{e}</span>
-                    <strong>{marcas[e] ? formatoParcial(marcas[e].seg) : '—'}</strong>
-                  </div>
-                ))}
+        Object.keys(marcas).length === 0 ? (
+          <div className="pv-vacio">
+            {esPropio ? <>Añade una carrera con su certificado y aquí aparecerán tus mejores tiempos en cada ejercicio.{anadir}</> : 'Todavía no tiene carreras verificadas.'}
+          </div>
+        ) : (
+          <div className="marcas">
+            {ESTACIONES.map((e, i) => (
+              <div key={e} className={`marca ${marcas[e] ? '' : 'vacia'}`}>
+                <span className="marca-num">{String(i + 1).padStart(2, '0')}</span>
+                <span className="marca-nombre">{e}</span>
+                <span className="marca-tiempo">{marcas[e] ? formatoParcial(marcas[e].seg) : '—'}</span>
               </div>
-              {marcas.Running && (
-                <div className="pv-running"><span>🏃 Carrera (8 km)</span><strong>{formatoParcial(marcas.Running.seg)}</strong></div>
-              )}
-              <div className="pv-nota">Mejores tiempos de {esPropio ? 'tus' : 'sus'} carreras verificadas</div>
-            </>
-          )}
-        </div>
+            ))}
+            {marcas.Running && (
+              <div className="marca running">
+                <span className="marca-nombre">Running · 8 km</span>
+                <span className="marca-tiempo">{formatoParcial(marcas.Running.seg)}</span>
+              </div>
+            )}
+            <div className="pv-nota">Mejores tiempos de {esPropio ? 'tus' : 'sus'} carreras verificadas.</div>
+          </div>
+        )
       )}
 
       {pestana === 'carreras' && (
         <div>
           {cargando && <div className="pv-vacio">Cargando…</div>}
           {!cargando && visibles.length === 0 && (
-            <div className="pv-vacio">
-              {esPropio ? <>Aún no has añadido carreras.<button className="link-btn" onClick={onAnadirCarrera}>+ Añadir carrera</button></> : 'Todavía no tiene carreras verificadas.'}
-            </div>
+            <div className="pv-vacio">{esPropio ? <>Aún no has añadido carreras.{anadir}</> : 'Todavía no tiene carreras verificadas.'}</div>
           )}
           {visibles.map(r => (
-            <div key={r.id} className="pv-carrera">
-              <div className="pv-carrera-top">
-                <div>
-                  <div className="pv-carrera-nombre">{r.carrera}</div>
-                  <div className="pv-carrera-sub">{[fechaCarrera(r.fecha), r.division, r.categoria].filter(Boolean).join(' · ')}</div>
+            <div key={r.id} className="carrera">
+              <div className="carrera-top">
+                <div style={{ minWidth: 0 }}>
+                  <div className="carrera-nombre">{r.carrera}</div>
+                  <div className="carrera-sub">{[fechaCarrera(r.fecha), r.division, r.categoria].filter(Boolean).join(' · ')}</div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="pv-carrera-tiempo">{r.tiempo}</div>
-                  {r.puntos && <div className="pv-carrera-sub">{r.puntos} pts</div>}
+                <div>
+                  <div className="carrera-tiempo">{r.tiempo}</div>
+                  {r.puntos && <div className="carrera-pts">{r.puntos} pts</div>}
                 </div>
               </div>
-              <div className="pv-carrera-pie">
+              <div className="carrera-pie">
                 <EstadoCarrera r={r} esPropio={esPropio} />
-                <span>
-                  <a href={r.certificado_url} target="_blank" rel="noopener noreferrer">Ver certificado ↗</a>
-                  {esPropio && <button className="video-borrar" style={{ marginLeft: 10 }} disabled={borrando === r.id} onClick={() => borrar(r)}>{borrando === r.id ? 'Borrando…' : 'Borrar'}</button>}
+                <span className="carrera-acciones">
+                  <a href={r.certificado_url} target="_blank" rel="noopener noreferrer">Certificado <ArrowUpRight size={14} /></a>
+                  {esPropio && <button className="video-borrar" disabled={borrando === r.id} onClick={() => borrar(r)}>{borrando === r.id ? 'Borrando…' : 'Borrar'}</button>}
                 </span>
               </div>
             </div>
@@ -134,7 +139,6 @@ export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEd
       )}
 
       {pestana === 'tecnica' && (esPropio ? <MisVideos userId={perfil.id} /> : <VideosDe userId={perfil.id} nombre={perfil.nombre} />)}
-
     </div>
   )
 }

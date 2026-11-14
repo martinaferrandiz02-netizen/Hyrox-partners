@@ -1,6 +1,7 @@
 import { Avatar } from './Avatar'
 import { useEffect, useRef, useState } from 'react'
 import { horaCorta, useConversacion } from './social'
+import { ChevronLeft, Send } from 'lucide-react'
 import { MenuUsuario } from './MenuUsuario'
 
 // Chat con otro usuario real, en tiempo real
@@ -21,15 +22,15 @@ export function ChatReal({ yo, otro, volver, elegirPareja, abrirPerfil, trasBloq
   }
 
   return (
-    <div className="screen" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="screen chat">
       <div className="chat-header">
-        <button className="back-btn" onClick={volver}>←</button>
-        <Avatar p={otro} style={{ width: 28, height: 28, fontSize: 10, cursor: 'pointer' }} onClick={abrirPerfil} />
-        <div style={{ flex: 1, cursor: 'pointer' }} onClick={abrirPerfil}>
-          <div className="partner-name" style={{ fontSize: 12 }}>{otro.nombre}</div>
-          <div className="partner-sub">{otro.mejorTiempo ? `⏱ ${otro.mejorTiempo}${otro.verificado ? ' ✓' : ''}` : otro.ciudad}</div>
+        <button className="back-btn" onClick={volver} aria-label="Volver"><ChevronLeft size={22} /></button>
+        <Avatar p={otro} onClick={abrirPerfil} />
+        <div className="fila-cuerpo" style={{ cursor: 'pointer' }} onClick={abrirPerfil}>
+          <div className="fila-titulo">{otro.nombre}</div>
+          <div className="fila-sub">{otro.verificado && otro.mejorTiempo ? `Mejor: ${otro.mejorTiempo}` : otro.ciudad}</div>
         </div>
-        <button className="btn-elegir" onClick={() => elegirPareja(otro)}>Elegir pareja ⚡</button>
+        <button className="btn-elegir" onClick={() => elegirPareja(otro)}>Elegir</button>
         <MenuUsuario yoId={yo.id} persona={otro} contexto="chat" onBloqueado={trasBloquear} />
       </div>
       <div className="chat-messages">
@@ -43,10 +44,10 @@ export function ChatReal({ yo, otro, volver, elegirPareja, abrirPerfil, trasBloq
         ))}
         <div ref={final} />
       </div>
-      {error && <div className="acceso-estado" style={{ padding: '0 8px' }}>{error}</div>}
+      {error && <div className="acceso-estado">{error}</div>}
       <div className="chat-input">
         <input value={texto} onChange={e => setTexto(e.target.value)} onKeyDown={e => e.key === 'Enter' && mandar()} placeholder="Escribe un mensaje..." maxLength={2000} />
-        <button onClick={mandar}>→</button>
+        <button onClick={mandar} aria-label="Enviar"><Send size={20} /></button>
       </div>
     </div>
   )

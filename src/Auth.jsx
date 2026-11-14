@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 import { CampoCiudad } from './Ciudad'
 import { CampoClub } from './Club'
 import { clubCanonico } from './clubs'
+import { Volver } from './Volver'
 import { URL_PRIVACIDAD, URL_TERMINOS } from './legal'
 
 // Pantalla de acceso: iniciar sesión o crear cuenta con email y contraseña
@@ -44,8 +45,10 @@ export function Acceso() {
 
   return (
     <div className="screen acceso">
-      <div className="acceso-logo">PAIRX</div>
-      <div className="acceso-sub">Encuentra tu pareja de Doubles</div>
+      <div className="acceso-marca">
+        <div className="acceso-logo">PAIRX</div>
+        <div className="acceso-sub">Encuentra tu pareja<br />de Doubles</div>
+      </div>
       <form className="acceso-form" onSubmit={enviar}>
         <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" autoComplete="email" />
         <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" autoComplete={modo === 'entrar' ? 'current-password' : 'new-password'} />
@@ -58,7 +61,7 @@ export function Acceso() {
         {estado && <div className="acceso-estado">{estado}</div>}
         <button className="btn-match" type="submit" disabled={enviando}>{enviando ? '…' : modo === 'entrar' ? 'Entrar' : 'Crear cuenta'}</button>
       </form>
-      <button className="link-btn" onClick={() => { setModo(m => m === 'entrar' ? 'registro' : 'entrar'); setEstado('') }}>
+      <button className="link-btn acceso-cambio" onClick={() => { setModo(m => m === 'entrar' ? 'registro' : 'entrar'); setEstado('') }}>
         {modo === 'entrar' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entra'}
       </button>
       <div className="acceso-legal"><a href={URL_TERMINOS} target="_blank" rel="noreferrer">Términos</a> · <a href={URL_PRIVACIDAD} target="_blank" rel="noreferrer">Privacidad</a></div>
@@ -95,6 +98,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
 
   return (
     <div className="screen">
+      {onCancelar ? <Volver onClick={onCancelar} /> : <div style={{ height: 24 }} />}
       <div className="screen-title">{perfil ? 'Editar perfil' : 'Crea tu perfil'}</div>
       <div className="screen-sub">{perfil ? 'Así te verán otros atletas' : 'Para que otros atletas puedan encontrarte'}</div>
       <form className="perfil-form" onSubmit={guardar}>
@@ -117,7 +121,7 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
         {estado && <div className="acceso-estado">{estado}</div>}
         <div className="upload-actions">
           {onCancelar && <button type="button" className="btn-secondary" onClick={onCancelar}>Cancelar</button>}
-          <button className="btn-match" type="submit" style={{ flex: onCancelar ? 0 : 1, padding: '8px 16px' }}>Guardar</button>
+          <button className="btn-match" type="submit" style={{ flex: 1 }}>Guardar</button>
         </div>
       </form>
     </div>

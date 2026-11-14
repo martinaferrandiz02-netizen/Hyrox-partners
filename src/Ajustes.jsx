@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { Avatar } from './Avatar'
 import { URL_PRIVACIDAD, URL_TERMINOS } from './legal'
+import { Ban, ChevronRight, FileText, KeyRound, LogOut, Mail, Pencil, ScrollText, Smartphone, Trash2 } from 'lucide-react'
+import { Volver } from './Volver'
 import { desbloquear, misBloqueados } from './bloqueos'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
@@ -22,7 +24,7 @@ function Fila({ icono, titulo, valor, onClick, peligro }) {
       <span className="aj-icono">{icono}</span>
       <span className="aj-titulo">{titulo}</span>
       {valor && <span className="aj-valor">{valor}</span>}
-      <span className="aj-flecha">›</span>
+      <span className="aj-flecha"><ChevronRight size={18} /></span>
     </button>
   )
 }
@@ -113,7 +115,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
     const titulos = { email: 'Cambiar email', password: 'Cambiar contraseña', telefono: 'Teléfono', borrar: 'Borrar cuenta', bloqueados: 'Usuarios bloqueados' }
     return (
       <div className="screen">
-        <button className="link-btn" style={{ margin: '10px 0' }} onClick={() => setVista(null)}>← Ajustes</button>
+        <Volver onClick={() => setVista(null)} />
         <div className="screen-title">{titulos[vista]}</div>
         <div className="perfil-form">
           {vista === 'email' && <>
@@ -127,7 +129,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
             <button className="btn-match" onClick={guardarPassword}>Guardar</button>
           </>}
           {vista === 'telefono' && <>
-            <div className="ayuda-form">🔒 Tu teléfono es privado: no lo ve ningún otro usuario.</div>
+            <div className="ayuda-form">Tu teléfono es privado: no lo ve ningún otro usuario.</div>
             <label>Teléfono móvil<input type="tel" value={campo1} onChange={e => setCampo1(e.target.value)} placeholder="+41 79 123 45 67" autoComplete="tel" /></label>
             <button className="btn-match" onClick={guardarTelefono}>Guardar</button>
           </>}
@@ -136,7 +138,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
             {bloqueados?.length === 0 && <div className="ayuda-form">No has bloqueado a nadie.</div>}
             {bloqueados?.map(b => (
               <div key={b.bloqueado} className="aj-fila" style={{ cursor: 'default' }}>
-                <Avatar p={{ fotoUrl: b.perfil.foto_url, color: 'dark', iniciales: iniciales(b.perfil.nombre) }} style={{ width: 28, height: 28, fontSize: 10 }} />
+                <Avatar p={{ fotoUrl: b.perfil.foto_url, color: 'dark', iniciales: iniciales(b.perfil.nombre) }} style={{ width: 36, height: 36, fontSize: 14 }} />
                 <span className="aj-titulo">{b.perfil.nombre}</span>
                 <button className="link-btn" onClick={() => quitarBloqueo(b)}>Desbloquear</button>
               </div>
@@ -155,36 +157,36 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
 
   return (
     <div className="screen">
-      <button className="link-btn" style={{ margin: '10px 0' }} onClick={volver}>← Perfil</button>
+      <Volver onClick={volver} />
       <div className="screen-title">Ajustes</div>
 
       <div className="aj-foto">
         <Avatar p={{ fotoUrl: perfil.foto_url, color: 'yellow', iniciales: iniciales(perfil.nombre) }} style={{ width: 72, height: 72, fontSize: 24 }} />
         <div className="aj-foto-botones">
-          <label className="btn-secondary">
+          <label className="btn-secondary btn-sm">
             <input type="file" accept="image/*" onChange={cambiarFoto} style={{ display: 'none' }} />
             {perfil.foto_url ? 'Cambiar foto' : 'Añadir foto'}
           </label>
-          {perfil.foto_url && <button className="link-btn" style={{ color: '#888' }} onClick={quitarFoto}>Quitar</button>}
+          {perfil.foto_url && <button className="link-btn apagado" onClick={quitarFoto}>Quitar</button>}
         </div>
       </div>
-      {estado && <div className="acceso-estado" style={{ textAlign: 'center' }}>{estado}</div>}
+      {estado && <div className="acceso-estado">{estado}</div>}
 
       <div className="aj-grupo">Perfil</div>
-      <Fila icono="✏️" titulo="Datos del perfil" valor="Nombre, ciudad, club…" onClick={editarPerfil} />
+      <Fila icono={<Pencil size={18} />} titulo="Datos del perfil" valor="Nombre, ciudad, club…" onClick={editarPerfil} />
 
       <div className="aj-grupo">Cuenta</div>
-      <Fila icono="✉️" titulo="Email" valor={email} onClick={() => abrir('email')} />
-      <Fila icono="🔑" titulo="Contraseña" valor="••••••" onClick={() => abrir('password')} />
-      <Fila icono="📱" titulo="Teléfono" valor={telefono || 'Añadir'} onClick={() => abrir('telefono', telefono)} />
+      <Fila icono={<Mail size={18} />} titulo="Email" valor={email} onClick={() => abrir('email')} />
+      <Fila icono={<KeyRound size={18} />} titulo="Contraseña" valor="••••••" onClick={() => abrir('password')} />
+      <Fila icono={<Smartphone size={18} />} titulo="Teléfono" valor={telefono || 'Añadir'} onClick={() => abrir('telefono', telefono)} />
 
       <div className="aj-grupo">Privacidad y seguridad</div>
-      <Fila icono="⛔" titulo="Usuarios bloqueados" onClick={abrirBloqueados} />
-      <Fila icono="📄" titulo="Política de privacidad" onClick={() => window.open(URL_PRIVACIDAD, '_blank')} />
-      <Fila icono="📜" titulo="Términos de uso" onClick={() => window.open(URL_TERMINOS, '_blank')} />
+      <Fila icono={<Ban size={18} />} titulo="Usuarios bloqueados" onClick={abrirBloqueados} />
+      <Fila icono={<FileText size={18} />} titulo="Política de privacidad" onClick={() => window.open(URL_PRIVACIDAD, '_blank')} />
+      <Fila icono={<ScrollText size={18} />} titulo="Términos de uso" onClick={() => window.open(URL_TERMINOS, '_blank')} />
 
-      <button className="aj-salir" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
-      <Fila icono="🗑" titulo="Borrar cuenta" onClick={() => abrir('borrar')} peligro />
+      <button className="aj-salir" onClick={() => supabase.auth.signOut()}><LogOut size={18} /> Cerrar sesión</button>
+      <Fila icono={<Trash2 size={18} />} titulo="Borrar cuenta" onClick={() => abrir('borrar')} peligro />
     </div>
   )
 }

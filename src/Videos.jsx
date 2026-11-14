@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
+import { Camera, Eye, Images, Play } from 'lucide-react'
 import { crearMiniatura } from './miniatura'
 
 // Las 8 estaciones en orden de carrera
@@ -70,15 +71,15 @@ function VideoCard({ v, onVista, onBorrar }) {
           {v.poster_url
             ? <img src={v.poster_url} alt="" loading="lazy" />
             : <video src={`${v.url}#t=1`} muted playsInline preload="metadata" tabIndex={-1} />}
-          <span className="video-play">▶</span>
+          <span className="video-play"><Play size={18} fill="currentColor" /></span>
           <span className="video-overlay">
             <span className="video-ex">{v.ejercicio}</span>
-            {v.tiempo && <span className="video-time">⏱ {v.tiempo}</span>}
+            {v.tiempo && <span className="video-time">{v.tiempo}</span>}
           </span>
         </button>
       )}
       <div className="video-views">
-        <span>👁 {formatoVistas(v.visualizaciones || 0)} visualizaciones</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Eye size={14} /> {formatoVistas(v.visualizaciones || 0)}</span>
         {onBorrar && <button className="video-borrar" onClick={() => onBorrar(v)}>Borrar</button>}
       </div>
     </div>
@@ -166,8 +167,20 @@ function Estacion({ ej, numero, videos, userId, onSubido, onVista, onBorrar }) {
   return (
     <div className="estacion">
       <div className="estacion-cabecera">
-        <span className="estacion-num">{numero}</span>
+        <span className="estacion-num">{String(numero).padStart(2, '0')}</span>
         <span className="estacion-nombre">{ej.nombre}</span>
+        {!archivo && (
+          <span className="estacion-botones">
+            <label className="estacion-btn" aria-label="Grabar vídeo">
+              <input ref={camara} type="file" accept="video/*" capture="environment" onChange={elegir} />
+              <Camera size={18} />
+            </label>
+            <label className="estacion-btn" aria-label="Subir de la galería">
+              <input ref={galeria} type="file" accept="video/*" onChange={elegir} />
+              <Images size={18} />
+            </label>
+          </span>
+        )}
       </div>
 
       {videos.length > 0 && (
@@ -176,7 +189,7 @@ function Estacion({ ej, numero, videos, userId, onSubido, onVista, onBorrar }) {
 
       {archivo ? (
         <div className="estacion-subida">
-          <div className="video-empty">🎬 {archivo.name}</div>
+          <div className="video-empty">{archivo.name}</div>
           <input value={tiempo} onChange={e => setTiempo(e.target.value)} placeholder="Tu tiempo (opcional, ej. 4:12)" />
           {estado && <div className="upload-status">{estado}</div>}
           <div className="upload-actions">
@@ -184,19 +197,7 @@ function Estacion({ ej, numero, videos, userId, onSubido, onVista, onBorrar }) {
             <button className="btn-primary" disabled={estado === 'Subiendo…'} onClick={subir}>Publicar</button>
           </div>
         </div>
-      ) : (
-        <div className="estacion-botones">
-          <label className="estacion-btn">
-            <input ref={camara} type="file" accept="video/*" capture="environment" onChange={elegir} />
-            🎥 Grabar
-          </label>
-          <label className="estacion-btn">
-            <input ref={galeria} type="file" accept="video/*" onChange={elegir} />
-            🖼 Subir de galería
-          </label>
-          {estado && <div className="upload-status">{estado}</div>}
-        </div>
-      )}
+      ) : estado && <div className="upload-status">{estado}</div>}
     </div>
   )
 }
@@ -224,7 +225,7 @@ export function MisVideos({ userId }) {
         <div className="section-label">Mi técnica</div>
         <span className="estacion-detalle">{hechas}/{EJERCICIOS.length} ejercicios</span>
       </div>
-      <div className="video-empty">Graba o sube tu técnica en cada ejercicio. Otros atletas la verán en tu perfil y, si aún no has competido, sirve para demostrar tus tiempos.</div>
+      <div className="video-empty">Graba <Camera size={13} style={{ verticalAlign: -2 }} /> o sube de tu galería <Images size={13} style={{ verticalAlign: -2 }} /> tu técnica en cada ejercicio. Otros atletas la verán en tu perfil.</div>
       {cargando ? <div className="video-empty">Cargando vídeos…</div> : EJERCICIOS.map((ej, i) => (
         <Estacion key={ej.nombre} ej={ej} numero={i + 1} userId={userId}
           videos={videos.filter(v => v.ejercicio === ej.nombre)}

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { supabase } from './supabase'
 import { aSegundos, comprobarCertificado, formatoParcial, formatoTiempo, huellaCertificado, leerCertificado, parcialesEnTexto } from './certificado'
+import { Volver } from './Volver'
+import { FileCheck, Upload } from 'lucide-react'
 import { ESTACIONES, guardarResultado } from './resultados'
 
 const TIPOS = ['application/pdf', 'image/png', 'image/jpeg']
@@ -77,7 +79,7 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
 
   return (
     <div className="screen">
-      <button className="link-btn" style={{ margin: '10px 0' }} onClick={cerrar}>← Volver</button>
+      <Volver onClick={cerrar} />
       <div className="screen-title">Añadir carrera</div>
       <div className="screen-sub">Sube el certificado de tu resultado y lo verificamos</div>
       <div className="perfil-form">
@@ -97,19 +99,20 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
         <label>Certificado <span>(PDF, PNG o JPG)</span>
           <span className="upload-drop">
             <input type="file" accept="application/pdf,image/png,image/jpeg" onChange={elegir} />
-            {archivo ? `📄 ${archivo.name}` : 'Sube el certificado que descargas de la web de resultados'}
+            {archivo ? <FileCheck size={26} strokeWidth={1.5} /> : <Upload size={26} strokeWidth={1.5} />}
+            {archivo ? archivo.name : 'Sube el certificado que descargas de la web de resultados'}
           </span>
         </label>
 
-        {leyendo && <div className="cert-estado">⏳ Leyendo el certificado…</div>}
+        {leyendo && <div className="cert-estado">Leyendo el certificado…</div>}
         {!leyendo && manual && (
           <label>Tiempo total <span>(lo revisaremos a mano)</span>
             <input value={tiempoManual} onChange={e => setTiempoManual(e.target.value)} placeholder="Ej. 1:31:56" maxLength={10} />
           </label>
         )}
         {!leyendo && !manual && comprobacion && (comprobacion.ok
-          ? <div className="cert-estado ok">✓ Tu nombre aparece en el certificado</div>
-          : <div className="cert-estado error">✕ {comprobacion.motivo}</div>)}
+          ? <div className="cert-estado ok">Tu nombre aparece en el certificado</div>
+          : <div className="cert-estado error">{comprobacion.motivo}</div>)}
 
         {!leyendo && texto && total && (
           <div className="lectura">
@@ -126,7 +129,7 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
         {estado && <div className="acceso-estado">{estado}</div>}
         <div className="upload-actions">
           <button className="btn-secondary" onClick={cerrar}>Cancelar</button>
-          <button className="btn-match" style={{ padding: '8px 16px' }} disabled={leyendo || guardando || (!manual && !comprobacion?.ok)} onClick={guardar}>Guardar carrera</button>
+          <button className="btn-match" style={{ flex: 1 }} disabled={leyendo || guardando || (!manual && !comprobacion?.ok)} onClick={guardar}>Guardar carrera</button>
         </div>
       </div>
     </div>
