@@ -86,7 +86,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
     if (campo1 !== campo2) { setEstado('Las contraseñas no coinciden.'); return }
     const { error } = await supabase.auth.updateUser({ password: campo1 })
     if (error) { setEstado(`No se ha podido cambiar (${error.message}).`); return }
-    setEstado('✓ Contraseña cambiada.'); setCampo1(''); setCampo2('')
+    setEstado('Contraseña cambiada.'); setCampo1(''); setCampo2('')
   }
 
   const guardarTelefono = async () => {
@@ -98,7 +98,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
   }
 
   const borrarCuenta = async () => {
-    if (campo1.trim().toUpperCase() !== 'BORRAR') { setEstado('Escribe BORRAR para confirmar.'); return }
+    if (campo1.trim().toUpperCase() !== 'BORRAR') { setEstado('Escribe la palabra BORRAR (no tu email) para confirmar.'); return }
     setEstado('Borrando cuenta…')
     const { error } = await supabase.rpc('borrar_mi_cuenta')
     if (error) { setEstado('No se ha podido borrar la cuenta. Inténtalo de nuevo.'); return }
@@ -146,7 +146,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
           </>}
           {vista === 'borrar' && <>
             <div className="ayuda-form">Se borrarán para siempre tu perfil, tus carreras, vídeos, mensajes, solicitudes y plazas. No se puede deshacer.</div>
-            <label>Escribe BORRAR para confirmar<input value={campo1} onChange={e => setCampo1(e.target.value)} /></label>
+            <label>Escribe BORRAR para confirmar<input value={campo1} onChange={e => setCampo1(e.target.value)} placeholder="BORRAR" name="confirmar-borrado" autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false} inputMode="text" /></label>
             <button className="btn-peligro" onClick={borrarCuenta}>Borrar mi cuenta</button>
           </>}
           {estado && <div className="acceso-estado">{estado}</div>}
