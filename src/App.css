@@ -485,3 +485,25 @@ input[type=date] { color-scheme: dark; }
 .pv-seguir button { background: none; border: none; padding: 0; cursor: pointer; color: var(--text); font-size: 13px; font-weight: 600; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 3px; }
 .pv-seguir span { color: var(--sub-2); }
 button.fila:disabled { cursor: default; opacity: 1; }
+/* Tipo de entreno: dos opciones grandes */
+.tipo-entreno { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tipo-entreno button { height: 56px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface); color: var(--sub); cursor: pointer; font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: .08em; text-transform: uppercase; }
+.tipo-entreno button.active { border-color: var(--accent); color: var(--text); }
+.tipo-entreno button.active svg { color: var(--accent); }
+/* Metros con la "m" puesta */
+.metros-input { flex: 1; display: inline-flex; align-items: center; height: 42px; padding: 0 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.metros-input:focus-within { border-color: #5a5a5a; }
+.metros-input input:not([type=checkbox]) { flex: 1; min-width: 0; height: 100%; padding: 0; background: none; border: none; text-align: right; font-family: var(--display); font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; }
+.metros-input i { font-style: normal; margin-left: 6px; font-family: var(--display); font-weight: 700; font-size: 16px; color: var(--sub); }
+/* Total automático */
+.total-auto { display: flex; align-items: baseline; gap: 10px; padding: 14px 0 0; }
+.total-auto span:first-child { font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--sub); }
+.total-auto-km { flex: 1; font-size: 13px; color: var(--sub); }
+.total-auto strong { margin-left: auto; font-family: var(--display); font-weight: 800; font-size: 32px; color: var(--accent); font-variant-numeric: tabular-nums; }
+/* Detalle de un running */
+.tramos-detalle { display: flex; flex-direction: column; }
+.tramos-detalle > div { display: grid; grid-template-columns: 28px 1fr auto 76px; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--sub); }
+.tramos-detalle strong { font-family: var(--display); font-size: 17px; color: var(--text); font-variant-numeric: tabular-nums; }
+.tramos-detalle em { font-style: normal; text-align: right; font-size: 12px; }
+.tramos-detalle .tramos-total { border-bottom: none; color: var(--text); font-weight: 600; }
+.tramos-detalle .tramos-total strong { color: var(--accent); }

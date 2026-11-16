@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { ChevronDown, Globe, Lock, Plus, Users, Watch } from 'lucide-react'
+import { ChevronDown, Dumbbell, Footprints, Globe, Lock, Plus, Users, Watch } from 'lucide-react'
 import { formatoParcial } from './certificado'
-import { borrarEntreno, cambiarVisibilidad, casillasASegundos, guardarEntreno, mejoresDeEntrenos, nombreVisibilidad, TIPOS_ENTRENO, useEntrenos, VISIBILIDADES } from './entrenos'
+import { borrarEntreno, cambiarVisibilidad, casillasASegundos, formatoKm, formatoMetros, guardarEntreno, mejoresDeEntrenos, nombreVisibilidad, TRAMOS_RUNNING, useEntrenos, VISIBILIDADES } from './entrenos'
 import { ESTACIONES } from './resultados'
 import { Volver } from './Volver'
 import { TiempoInput } from './TiempoInput'
@@ -10,13 +10,17 @@ const ICONO_VIS = { publico: Globe, amigos: Users, privado: Lock }
 const ORDEN = [...ESTACIONES, 'Running']
 const fechaEntreno = (f) => new Date(f + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 const hoyISO = () => new Date().toISOString().slice(0, 10)
+const ritmo = (seg, metros) => (seg && metros ? `${formatoParcial(Math.round(seg / (metros / 1000)))} /km` : null)
 
 // Una fila de entreno, desplegable. La usan la pantalla Entrenos y el perfil.
 export function EntrenoFila({ e, propio, onCambio }) {
   const [abierto, setAbierto] = useState(false)
   const [ocupado, setOcupado] = useState(false)
   const Vis = ICONO_VIS[e.visibilidad]
-  const parciales = ORDEN.filter(k => e.parciales?.[k])
+  const p = e.parciales || {}
+  const esRunning = e.tipo === 'Running'
+  const tramos = esRunning ? (p.tramos || []) : []
+  const parciales = esRunning ? [] : ORDEN.filter(k => typeof p[k] === 'number')
 
   const visibilidad = async (v) => {
     if (v === e.visibilidad) return
@@ -37,7 +41,7 @@ export function EntrenoFila({ e, propio, onCambio }) {
         <div className="fila-cuerpo">
           <div className="fila-titulo">{e.titulo}</div>
           <div className="fila-sub">
-            {fechaEntreno(e.fecha)} · {e.tipo}
+            {fechaEntreno(e.fecha)} · {esRunning && p.distancia ? formatoKm(p.distancia) : e.tipo}
             {propio && <> · <Vis size={13} /> {nombreVisibilidad(e.visibilidad)}</>}
           </div>
         </div>
@@ -46,9 +50,17 @@ export function EntrenoFila({ e, propio, onCambio }) {
       </button>
       {abierto && (
         <div className="entreno-detalle">
-          {parciales.length > 0
-            ? <div className="lectura-parciales">{parciales.map(k => <div key={k}><span>{k}</span><strong>{formatoParcial(e.parciales[k])}</strong></div>)}</div>
-            : <div className="fila-sub">Sin tiempos por ejercicio.</div>}
+          {esRunning && tramos.length > 0 && (
+            <div className="tramos-detalle">
+              {tramos.map((t, i) => (
+                <div key={i}><span>{String(i + 1).padStart(2, '0')}</span><span>{formatoMetros(t.m)}</span><strong>{formatoParcial(t.s)}</strong><em>{ritmo(t.s, t.m)}</em></div>
+              ))}
+              <div className="tramos-total"><span>Total</span><span>{formatoKm(p.distancia)}</span><strong>{formatoParcial(e.total)}</strong><em>{ritmo(e.total, p.distancia)}</em></div>
+            </div>
+          )}
+          {!esRunning && (parciales.length > 0
+            ? <div className="lectura-parciales">{parciales.map(k => <div key={k}><span>{k}</span><strong>{formatoParcial(p[k])}</strong></div>)}</div>
+            : <div className="fila-sub">Sin tiempos por ejercicio.</div>)}
           {e.notas && <div className="cita">{e.notas}</div>}
           {propio && (
             <div className="entreno-acciones">
@@ -67,27 +79,54 @@ export function EntrenoFila({ e, propio, onCambio }) {
   )
 }
 
+const TRAMOS_VACIOS = Array.from({ length: TRAMOS_RUNNING }, () => ({ m: '', t: {} }))
+
 function NuevoEntreno({ yoId, cerrar, guardado }) {
-  const [f, setF] = useState({ titulo: '', fecha: hoyISO(), tipo: 'Simulación', total: {}, notas: '', visibilidad: 'publico' })
+  const [f, setF] = useState({ titulo: '', fecha: hoyISO(), tipo: 'Estaciones', notas: '', visibilidad: 'publico' })
   const [tiempos, setTiempos] = useState({})
+  const [tramos, setTramos] = useState(TRAMOS_VACIOS)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const set = (k, v) => setF(x => ({ ...x, [k]: v }))
+  const setTramo = (i, campo, v) => setTramos(ts => ts.map((t, j) => (j === i ? { ...t, [campo]: v } : t)))
+
+  // Totales automáticos (se ignoran las filas vacías o incompletas)
+  const segEstaciones = ESTACIONES.map(k => casillasASegundos(tiempos[k])).filter(s => s > 0)
+  const totalEstaciones = segEstaciones.reduce((a, b) => a + b, 0)
+  const tramosOk = tramos.map(t => ({ m: Number(t.m) || 0, s: casillasASegundos(t.t) })).filter(t => t.m > 0 && t.s > 0)
+  const totalMetros = tramosOk.reduce((a, t) => a + t.m, 0)
+  const totalRunning = tramosOk.reduce((a, t) => a + t.s, 0)
 
   const guardar = async (ev) => {
     ev.preventDefault()
     if (f.titulo.trim().length < 2) { setError('Ponle un nombre al entreno.'); return }
-    const total = casillasASegundos(f.total)
-    if (Number.isNaN(total)) { setError('Revisa el tiempo total: los minutos y segundos van de 0 a 59.'); return }
-    const parciales = {}
-    for (const k of ORDEN) {
-      const s = casillasASegundos(tiempos[k])
-      if (Number.isNaN(s)) { setError(`Revisa el tiempo de ${k}: los segundos van de 0 a 59.`); return }
-      if (s) parciales[k] = s
+    let datos
+    if (f.tipo === 'Estaciones') {
+      const parciales = {}
+      for (const k of ESTACIONES) {
+        const s = casillasASegundos(tiempos[k])
+        if (Number.isNaN(s)) { setError(`Revisa el tiempo de ${k}: los segundos van de 0 a 59.`); return }
+        if (s) parciales[k] = s
+      }
+      if (!Object.keys(parciales).length) { setError('Añade el tiempo de al menos un ejercicio.'); return }
+      datos = { parciales, total: totalEstaciones }
+    } else {
+      const lista = []
+      for (let i = 0; i < tramos.length; i++) {
+        const t = tramos[i]
+        const m = Number(t.m) || 0
+        const s = casillasASegundos(t.t)
+        if (!m && !s) continue
+        if (Number.isNaN(s)) { setError(`Revisa el tiempo de la fila ${i + 1}: los segundos van de 0 a 59.`); return }
+        if (!m) { setError(`En la fila ${i + 1} faltan los metros.`); return }
+        if (!s) { setError(`En la fila ${i + 1} falta el tiempo.`); return }
+        lista.push({ m, s })
+      }
+      if (!lista.length) { setError('Añade al menos una fila con metros y tiempo.'); return }
+      datos = { parciales: { tramos: lista, distancia: totalMetros }, total: totalRunning }
     }
-    if (!total && Object.keys(parciales).length === 0) { setError('Añade al menos el tiempo total o el de un ejercicio.'); return }
     setGuardando(true)
-    const err = await guardarEntreno(yoId, { titulo: f.titulo.trim(), fecha: f.fecha, tipo: f.tipo, total, parciales, notas: f.notas.trim() || null, visibilidad: f.visibilidad })
+    const err = await guardarEntreno(yoId, { titulo: f.titulo.trim(), fecha: f.fecha, tipo: f.tipo, ...datos, notas: f.notas.trim() || null, visibilidad: f.visibilidad })
     setGuardando(false)
     if (err) { setError('No se ha podido guardar. Inténtalo de nuevo.'); return }
     guardado()
@@ -97,31 +136,51 @@ function NuevoEntreno({ yoId, cerrar, guardado }) {
     <form className="screen" onSubmit={guardar}>
       <Volver onClick={cerrar} />
       <div className="screen-title">Nuevo entreno</div>
-      <div className="screen-sub">Apunta tus tiempos y elige quién puede verlos.</div>
+      <div className="screen-sub">Rellena solo lo que hayas hecho. El total se calcula solo.</div>
       <div className="perfil-form">
-        <label>Nombre<input value={f.titulo} onChange={e => set('titulo', e.target.value)} placeholder="Ej. Simulación en el box" maxLength={80} /></label>
+        <label>Nombre<input value={f.titulo} onChange={e => set('titulo', e.target.value)} placeholder={f.tipo === 'Running' ? 'Ej. Series de 1 km' : 'Ej. Sled y wall balls'} maxLength={80} /></label>
         <label>Fecha<input type="date" value={f.fecha} max={hoyISO()} onChange={e => set('fecha', e.target.value)} /></label>
-        <div className="form-grupo">
-          <div className="filtro-titulo">Tipo</div>
-          <div className="chips">{TIPOS_ENTRENO.map(t => <button type="button" key={t} className={f.tipo === t ? 'chip active' : 'chip'} onClick={() => set('tipo', t)}>{t}</button>)}</div>
-        </div>
-        <div className="form-grupo">
-          <div className="filtro-titulo">Tiempo total <span className="opcional">(opcional)</span></div>
-          <TiempoInput horas etiqueta="Tiempo total" valor={f.total} onChange={v => set('total', v)} />
+
+        <div className="tipo-entreno">
+          <button type="button" className={f.tipo === 'Estaciones' ? 'active' : ''} onClick={() => { set('tipo', 'Estaciones'); setError('') }}><Dumbbell size={20} /> Estaciones</button>
+          <button type="button" className={f.tipo === 'Running' ? 'active' : ''} onClick={() => { set('tipo', 'Running'); setError('') }}><Footprints size={20} /> Running</button>
         </div>
 
-        <div className="form-grupo">
-          <div className="filtro-titulo">Tiempos por ejercicio <span className="opcional">(opcional)</span></div>
-          <div className="tiempos">
-            {ORDEN.map((k, i) => (
-              <div className="tiempo-fila" key={k}>
-                <span className="marca-num">{k === 'Running' ? '' : String(i + 1).padStart(2, '0')}</span>
-                <span className="marca-nombre">{k === 'Running' ? 'Running total' : k}</span>
-                <TiempoInput horas={k === 'Running'} etiqueta={k} valor={tiempos[k]} onChange={v => setTiempos(t => ({ ...t, [k]: v }))} />
-              </div>
-            ))}
+        {f.tipo === 'Estaciones' ? (
+          <div className="form-grupo">
+            <div className="tiempos">
+              {ESTACIONES.map((k, i) => (
+                <div className="tiempo-fila" key={k}>
+                  <span className="marca-num">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="marca-nombre">{k}</span>
+                  <TiempoInput etiqueta={k} valor={tiempos[k]} onChange={v => setTiempos(t => ({ ...t, [k]: v }))} />
+                </div>
+              ))}
+            </div>
+            <div className="total-auto"><span>Total</span><strong>{totalEstaciones ? formatoParcial(totalEstaciones) : '—'}</strong></div>
           </div>
-        </div>
+        ) : (
+          <div className="form-grupo">
+            <div className="tiempos">
+              {tramos.map((t, i) => (
+                <div className="tiempo-fila" key={i}>
+                  <span className="marca-num">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="metros-input">
+                    <input inputMode="numeric" pattern="[0-9]*" autoComplete="off" aria-label={`Fila ${i + 1} metros`}
+                      value={t.m} placeholder="0" onChange={e => setTramo(i, 'm', e.target.value.replace(/\D/g, '').slice(0, 5))} />
+                    <i>m</i>
+                  </span>
+                  <TiempoInput etiqueta={`Fila ${i + 1}`} valor={t.t} onChange={v => setTramo(i, 't', v)} />
+                </div>
+              ))}
+            </div>
+            <div className="total-auto">
+              <span>Total</span>
+              <span className="total-auto-km">{totalMetros ? formatoKm(totalMetros) : ''}{totalMetros && totalRunning ? ` · ${ritmo(totalRunning, totalMetros)}` : ''}</span>
+              <strong>{totalRunning ? formatoParcial(totalRunning) : '—'}</strong>
+            </div>
+          </div>
+        )}
 
         <label>Notas <span>(opcional)</span><textarea value={f.notas} onChange={e => set('notas', e.target.value)} placeholder="Sensaciones, pesos, ritmo…" maxLength={500} /></label>
 
@@ -155,8 +214,7 @@ export function Entrenos({ yoId }) {
 
   const mes = new Date().toISOString().slice(0, 7)
   const esteMes = entrenos.filter(e => e.fecha.startsWith(mes)).length
-  const simulaciones = entrenos.filter(e => e.tipo === 'Simulación' && e.total).map(e => e.total)
-  const mejorSim = simulaciones.length ? Math.min(...simulaciones) : null
+  const kmMes = entrenos.filter(e => e.tipo === 'Running' && e.fecha.startsWith(mes)).reduce((a, e) => a + (e.parciales?.distancia || 0), 0)
   const mejores = mejoresDeEntrenos(entrenos)
 
   return (
@@ -169,14 +227,14 @@ export function Entrenos({ yoId }) {
         <div className="stats">
           <div><strong>{entrenos.length}</strong><span>Entrenos</span></div>
           <div><strong>{esteMes}</strong><span>Este mes</span></div>
-          <div><strong className={mejorSim ? 'acento' : ''}>{mejorSim ? formatoParcial(mejorSim) : '—'}</strong><span>Mejor simulación</span></div>
+          <div><strong className={kmMes ? 'acento' : ''}>{kmMes ? formatoKm(kmMes) : '—'}</strong><span>Km este mes</span></div>
         </div>
       )}
 
       <div className="section-label">Tus entrenos</div>
       {cargando && <div className="pv-vacio">Cargando…</div>}
       {!cargando && entrenos.length === 0 && (
-        <div className="pareja-vacia">Aún no has registrado entrenos. Apunta tus tiempos de cada ejercicio: si todavía no has competido, es lo que verán otros atletas en tu perfil.</div>
+        <div className="pareja-vacia">Aún no has registrado entrenos. Apunta tus tiempos: si todavía no has competido, es lo que verán otros atletas en tu perfil.</div>
       )}
       <div className="lista">{entrenos.map(e => <EntrenoFila key={e.id} e={e} propio onCambio={recargar} />)}</div>
 
@@ -186,7 +244,7 @@ export function Entrenos({ yoId }) {
           <div className="marcas">
             {ORDEN.filter(k => mejores[k]).map(k => (
               <div key={k} className="marca">
-                <span className="marca-nombre">{k === 'Running' ? 'Running total' : k}</span>
+                <span className="marca-nombre">{k === 'Running' ? 'Running · 8 km' : k}</span>
                 <span className="marca-tiempo">{formatoParcial(mejores[k].seg)}</span>
               </div>
             ))}

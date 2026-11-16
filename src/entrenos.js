@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { aSegundos } from './certificado'
 import { supabase } from './supabase'
 
-export const TIPOS_ENTRENO = ['Simulación', 'Estaciones', 'Running', 'Otro']
+export const TIPOS_ENTRENO = ['Estaciones', 'Running']
+export const TRAMOS_RUNNING = 8
 export const VISIBILIDADES = [
   ['publico', 'Público', 'Lo ve cualquier atleta'],
   ['amigos', 'Amigos', 'Solo quien os seguís mutuamente'],
@@ -60,16 +61,21 @@ export async function borrarEntreno(id) {
   return !error && data?.length > 0
 }
 
-// Mejor tiempo de cada estación entre los entrenos visibles
+// Mejor tiempo de cada estación entre los entrenos visibles.
+// Un running de 8 km exactos cuenta como marca de "Running" (lo mismo que se corre en carrera).
 export function mejoresDeEntrenos(entrenos) {
   const marcas = {}
+  const anotar = (k, seg, titulo) => { if (seg > 0 && (!marcas[k] || seg < marcas[k].seg)) marcas[k] = { seg, titulo } }
   for (const e of entrenos) {
-    for (const [estacion, seg] of Object.entries(e.parciales || {})) {
-      if (seg > 0 && (!marcas[estacion] || seg < marcas[estacion].seg)) marcas[estacion] = { seg, titulo: e.titulo }
-    }
+    const p = e.parciales || {}
+    if (e.tipo === 'Running') { if (p.distancia === 8000 && e.total) anotar('Running', e.total, e.titulo); continue }
+    for (const [estacion, seg] of Object.entries(p)) if (typeof seg === 'number') anotar(estacion, seg, e.titulo)
   }
   return marcas
 }
+
+export const formatoMetros = (m) => `${Number(m).toLocaleString('es-ES')} m`
+export const formatoKm = (m) => `${(m / 1000).toLocaleString('es-ES', { maximumFractionDigits: 2 })} km`
 
 // Seguir: si yo le sigo y si él me sigue (amigos = los dos). Los contadores no se muestran.
 export function useSeguir(yoId, otroId) {
@@ -92,6 +98,17 @@ export function useSeguir(yoId, otroId) {
     return !error
   }
   return { ...estado, alternar }
+}
+
+// Cuántos seguidores tengo y a cuántos sigo (solo se muestra en tu propio perfil)
+export function useContadores(userId, activo) {
+  const [n, setN] = useState({ seguidores: null, siguiendo: null })
+  useEffect(() => {
+    if (!activo || !userId) return
+    const contar = (campo) => supabase.from('seguimientos').select('seguido', { count: 'exact', head: true }).eq(campo, userId)
+    Promise.all([contar('seguido'), contar('seguidor')]).then(([a, b]) => setN({ seguidores: a.count ?? 0, siguiendo: b.count ?? 0 }))
+  }, [userId, activo])
+  return n
 }
 
 // Lista de seguidores o de seguidos de un atleta (sin bloqueados)

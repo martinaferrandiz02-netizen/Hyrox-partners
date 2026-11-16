@@ -6,7 +6,7 @@ import { nombreCiudad } from './ciudades'
 import { borrarResultado, ESTACIONES, mejoresMarcas, useResultados } from './resultados'
 import { MisVideos, VideosDe } from './Videos'
 import { EntrenoFila } from './Entrenos'
-import { listaSeguimientos, mejoresDeEntrenos, useEntrenos, useSeguir } from './entrenos'
+import { listaSeguimientos, mejoresDeEntrenos, useContadores, useEntrenos, useSeguir } from './entrenos'
 import { Volver } from './Volver'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
@@ -58,6 +58,7 @@ function ListaSeguimientos({ perfil, tipo, volver, onAbrirPerfil, yoId }) {
 
 export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAjustes, onCambio, onAbrirPerfil }) {
   const [lista, setLista] = useState(null)
+  const contadores = useContadores(perfil.id, esPropio)
   const { resultados, cargando, recargar } = useResultados(perfil.id)
   const { entrenos, recargar: recargarEntrenos } = useEntrenos(perfil.id)
   const seguir = useSeguir(yoId || perfil.id, perfil.id)
@@ -108,9 +109,9 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
           <div className="pv-nombre">{perfil.nombre}</div>
           <div className="pv-sub"><MapPin size={14} /> {nombreCiudad(perfil.ciudad)}{perfil.club ? ` · ${perfil.club}` : ''}</div>
           <div className="pv-seguir">
-            <button onClick={() => setLista('seguidores')}>Seguidores</button>
+            <button onClick={() => setLista('seguidores')}>{esPropio && contadores.seguidores !== null && <strong>{contadores.seguidores} </strong>}Seguidores</button>
             <span>·</span>
-            <button onClick={() => setLista('siguiendo')}>Siguiendo</button>
+            <button onClick={() => setLista('siguiendo')}>{esPropio && contadores.siguiendo !== null && <strong>{contadores.siguiendo} </strong>}Siguiendo</button>
           </div>
         </div>
       </div>
