@@ -274,17 +274,15 @@ export function Rankings({ perfil, ranking }) {
           {ranking.grupos.map(g => <button key={g} className={grupo === g ? 'chip active' : 'chip'} onClick={() => setGrupo(g)}>{nombreGrupo(g)}</button>)}
         </div>
       )}
-      {perfil.club && grupo && (
+      {perfil.club && grupo && miClubPos && (
         <div className="lista" style={{ marginBottom: 14 }}>
           <div className="fila mia">
-            <div className="fila-pos">{miClubPos ? miClubPos.pos : '–'}</div>
+            <div className="fila-pos">{miClubPos.pos}</div>
             <div className="fila-cuerpo">
               <div className="fila-titulo">{perfil.club}</div>
-              <div className="fila-sub">{miClub
-                ? (miClubPos ? atletas(miClub.miembros) : `${atletas(miClub.miembros)} · faltan ${MIN_CLUB - miClub.miembros} para entrar`)
-                : `Sin atletas verificados en ${nombreGrupo(grupo)}`}</div>
+              <div className="fila-sub">{atletas(miClub.miembros)}</div>
             </div>
-            <div className="fila-valor">{miClubPos ? verTiempo(miClubPos.seg) : '—'}</div>
+            <div className="fila-valor">{verTiempo(miClubPos.seg)}</div>
           </div>
         </div>
       )}
@@ -302,6 +300,16 @@ export function Rankings({ perfil, ranking }) {
               </div>
             ))}
           </div>}
+      {todos.some(c => c.miembros < MIN_CLUB) && (
+        <>
+          <div className="section-label">Otros <span className="opcional">(hasta que se llegue al mínimo de atletas para participar)</span></div>
+          <div className="chips">
+            {todos.filter(c => c.miembros < MIN_CLUB).sort((x, y) => x.nombre.localeCompare(y.nombre)).map(c => (
+              <span key={c.nombre} className={`chip ${c.nombre === perfil.club ? 'active' : ''}`}>{c.nombre}</span>
+            ))}
+          </div>
+        </>
+      )}
       <p className="ranking-nota">Solo cuentan tiempos verificados con certificado. Tu posición se calcula entre atletas de tu misma división, categoría y sexo. Un club entra en el ranking cuando tiene al menos {MIN_CLUB} atletas verificados en esa división, y su tiempo es la media de sus {TOP_CLUB} mejores.</p>
     </div>
   )
