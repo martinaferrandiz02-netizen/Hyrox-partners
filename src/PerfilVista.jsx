@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { ArrowUpRight, Check, CircleX, Hourglass, MapPin, Plus, Settings, UserCheck, UserPlus } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowUpRight, Check, ChevronRight, CircleX, Hourglass, MapPin, Plus, Settings, UserCheck, UserPlus, Users } from 'lucide-react'
 import { Avatar } from './Avatar'
 import { formatoParcial } from './certificado'
 import { nombreCiudad } from './ciudades'
 import { borrarResultado, ESTACIONES, mejoresMarcas, useResultados } from './resultados'
 import { MisVideos, VideosDe } from './Videos'
 import { EntrenoFila } from './Entrenos'
-import { mejoresDeEntrenos, useEntrenos, useSeguir } from './entrenos'
+import { listaSeguimientos, mejoresDeEntrenos, useEntrenos, useSeguir } from './entrenos'
+import { Volver } from './Volver'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
 const fechaCarrera = (f) => f ? new Date(f + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }) : null
@@ -18,7 +19,45 @@ function EstadoCarrera({ r, esPropio }) {
 }
 
 // Perfil tipo red social: el mismo diseño para el tuyo y para el de los demás
-export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAjustes, onCambio }) {
+// Lista de seguidores / seguidos: cada persona lleva a su perfil
+function ListaSeguimientos({ perfil, tipo, volver, onAbrirPerfil, yoId }) {
+  const [personas, setPersonas] = useState(null)
+  useEffect(() => { listaSeguimientos(perfil.id, tipo).then(setPersonas) }, [perfil.id, tipo])
+  const nombre = perfil.nombre.split(' ')[0]
+  return (
+    <div className="screen">
+      <Volver onClick={volver} />
+      <div className="screen-title">{tipo === 'seguidores' ? 'Seguidores' : 'Siguiendo'}</div>
+      <div className="screen-sub">{tipo === 'seguidores' ? `Atletas que siguen a ${perfil.id === yoId ? 'ti' : nombre}` : `Atletas a los que sigue ${perfil.id === yoId ? 'tú' : nombre}`}</div>
+      {personas === null && <div className="pv-vacio">Cargando…</div>}
+      {personas?.length === 0 && (
+        <div className="empty-state"><Users size={36} strokeWidth={1.5} /><div>{tipo === 'seguidores' ? 'Todavía no tiene seguidores.' : 'Todavía no sigue a nadie.'}</div></div>
+      )}
+      {personas?.length > 0 && (
+        <div className="lista">
+          {personas.map(p => {
+            const verif = p.certificado_estado === 'verificado' && p.mejor_tiempo
+            const propio = p.id === yoId
+            return (
+              <button key={p.id} className="fila" disabled={propio} onClick={() => onAbrirPerfil?.(p)}>
+                <Avatar p={{ fotoUrl: p.foto_url, iniciales: iniciales(p.nombre), color: 'dark' }} />
+                <div className="fila-cuerpo">
+                  <div className="fila-titulo">{p.nombre}{propio ? ' (tú)' : ''}</div>
+                  <div className="fila-sub"><MapPin size={13} /> {[nombreCiudad(p.ciudad), p.club].filter(Boolean).join(' · ')}</div>
+                </div>
+                {verif && <div className="fila-valor">{p.mejor_tiempo}</div>}
+                {!propio && <ChevronRight size={18} className="fila-chevron" />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAjustes, onCambio, onAbrirPerfil }) {
+  const [lista, setLista] = useState(null)
   const { resultados, cargando, recargar } = useResultados(perfil.id)
   const { entrenos, recargar: recargarEntrenos } = useEntrenos(perfil.id)
   const seguir = useSeguir(yoId || perfil.id, perfil.id)
@@ -49,6 +88,8 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
   const verificado = perfil.certificado_estado === 'verificado'
   const anadir = <button className="link-btn" onClick={onAnadirCarrera}><Plus size={16} /> Añadir carrera</button>
 
+  if (lista) return <ListaSeguimientos perfil={perfil} tipo={lista} yoId={yoId || (esPropio ? perfil.id : null)} volver={() => setLista(null)} onAbrirPerfil={onAbrirPerfil} />
+
   return (
     <div className="screen pv">
       {esPropio && (
@@ -66,7 +107,11 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
         <div style={{ minWidth: 0 }}>
           <div className="pv-nombre">{perfil.nombre}</div>
           <div className="pv-sub"><MapPin size={14} /> {nombreCiudad(perfil.ciudad)}{perfil.club ? ` · ${perfil.club}` : ''}</div>
-          <div className="pv-seguir"><strong>{seguir.seguidores}</strong> {seguir.seguidores === 1 ? 'seguidor' : 'seguidores'} · <strong>{seguir.siguiendo}</strong> siguiendo</div>
+          <div className="pv-seguir">
+            <button onClick={() => setLista('seguidores')}>Seguidores</button>
+            <span>·</span>
+            <button onClick={() => setLista('siguiendo')}>Siguiendo</button>
+          </div>
         </div>
       </div>
       <div className="pv-chips">

@@ -71,20 +71,14 @@ export function mejoresDeEntrenos(entrenos) {
   return marcas
 }
 
-// Seguir: contadores, si yo le sigo y si él me sigue (amigos = los dos)
+// Seguir: si yo le sigo y si él me sigue (amigos = los dos). Los contadores no se muestran.
 export function useSeguir(yoId, otroId) {
-  const [estado, setEstado] = useState({ seguidores: 0, siguiendo: 0, leSigo: false, meSigue: false })
+  const [estado, setEstado] = useState({ leSigo: false, meSigue: false })
   const recargar = useCallback(async () => {
-    if (!otroId) return
-    const contar = (campo) => supabase.from('seguimientos').select('seguido', { count: 'exact', head: true }).eq(campo, otroId)
+    if (!otroId || !yoId || yoId === otroId) return
     const relacion = (de, a) => supabase.from('seguimientos').select('seguidor').eq('seguidor', de).eq('seguido', a).maybeSingle()
-    const otro = yoId && yoId !== otroId
-    const [a, b, c, d] = await Promise.all([
-      contar('seguido'), contar('seguidor'),
-      otro ? relacion(yoId, otroId) : null,
-      otro ? relacion(otroId, yoId) : null,
-    ])
-    setEstado({ seguidores: a.count || 0, siguiendo: b.count || 0, leSigo: Boolean(c?.data), meSigue: Boolean(d?.data) })
+    const [c, d] = await Promise.all([relacion(yoId, otroId), relacion(otroId, yoId)])
+    setEstado({ leSigo: Boolean(c.data), meSigue: Boolean(d.data) })
   }, [yoId, otroId])
   useEffect(() => {
     const t = setTimeout(recargar, 0)
@@ -98,4 +92,15 @@ export function useSeguir(yoId, otroId) {
     return !error
   }
   return { ...estado, alternar }
+}
+
+// Lista de seguidores o de seguidos de un atleta (sin bloqueados)
+export async function listaSeguimientos(userId, tipo) {
+  const [campo, otro] = tipo === 'seguidores' ? ['seguido', 'seguidor'] : ['seguidor', 'seguido']
+  const [{ data }, { data: ocultos }] = await Promise.all([
+    supabase.from('seguimientos').select(`${otro}, perfil:profiles!seguimientos_${otro}_fkey(*)`).eq(campo, userId).order('created_at', { ascending: false }),
+    supabase.rpc('ocultos_para_mi'),
+  ])
+  const fuera = new Set((ocultos || []).map(o => (typeof o === 'string' ? o : Object.values(o)[0])))
+  return (data || []).map(f => f.perfil).filter(p => p && !fuera.has(p.id))
 }

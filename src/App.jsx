@@ -168,7 +168,7 @@ function Pairx({ perfil, setPerfil }) {
           />
         )}
         {pantalla === 'rankings' && <Rankings perfil={perfil} ranking={ranking} />}
-        {pantalla === 'perfil' && <Perfil perfil={perfil} setPerfil={setPerfil} />}
+        {pantalla === 'perfil' && <Perfil perfil={perfil} setPerfil={setPerfil} abrirPerfil={(p) => { setPantalla('parejas'); setSubPantalla('buscar'); setChatActivo(null); setPerfilAbierto(aCandidato(p)) }} />}
         <nav className="tab-bar">
           {TABS.map(([id, nombre, Icono]) => (
             <button key={id} className={pantalla === id ? 'active' : ''} onClick={() => irA(id)}>
@@ -305,14 +305,14 @@ export function Rankings({ perfil, ranking }) {
   )
 }
 
-export function Perfil({ perfil, setPerfil }) {
+export function Perfil({ perfil, setPerfil, abrirPerfil }) {
   const [modo, setModo] = useState(null)
   if (modo === 'editar') {
     return <FormPerfil userId={perfil.id} perfil={perfil} onGuardado={(p)=>{setPerfil(p);setModo(null)}} onCancelar={()=>setModo(null)} />
   }
   if (modo === 'carrera') return <AnadirCarrera perfil={perfil} setPerfil={setPerfil} cerrar={()=>setModo(null)} />
   if (modo === 'ajustes') return <Ajustes perfil={perfil} setPerfil={setPerfil} volver={()=>setModo(null)} editarPerfil={()=>setModo('editar')} />
-  return <PerfilVista perfil={perfil} esPropio onEditar={()=>setModo('editar')} onAnadirCarrera={()=>setModo('carrera')} onAjustes={()=>setModo('ajustes')} onCambio={async()=>{ const { data } = await supabase.from('profiles').select('*').eq('id', perfil.id).single(); if (data) setPerfil(data) }} />
+  return <PerfilVista perfil={perfil} esPropio yoId={perfil.id} onAbrirPerfil={abrirPerfil} onEditar={()=>setModo('editar')} onAnadirCarrera={()=>setModo('carrera')} onAjustes={()=>setModo('ajustes')} onCambio={async()=>{ const { data } = await supabase.from('profiles').select('*').eq('id', perfil.id).single(); if (data) setPerfil(data) }} />
 }
 
 function Vacio({ icono: Icono, titulo, children }) {
@@ -331,7 +331,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
   }
   if (perfilAbierto) {
     const rel = perfilAbierto.userId ? estadoCon(perfilAbierto.userId) : null
-    return <PerfilOtro persona={perfilAbierto} relacion={rel} yoId={yo.id} trasBloquear={trasBloquear} volver={()=>setPerfilAbierto(null)}
+    return <PerfilOtro key={perfilAbierto.userId} persona={perfilAbierto} relacion={rel} yoId={yo.id} trasBloquear={trasBloquear} volver={()=>setPerfilAbierto(null)} abrirOtro={(p)=>setPerfilAbierto(aCandidato(p))}
       chatear={()=>{setChatActivo(perfilAbierto);setPerfilAbierto(null)}}
       solicitar={()=>solicitar(perfilAbierto)} />
   }
@@ -498,7 +498,7 @@ function Grupo({ filtros, cambiarFiltro, campo, titulo, opciones }) {
   )
 }
 
-function PerfilOtro({ persona, relacion, yoId, trasBloquear, volver, solicitar, chatear }) {
+function PerfilOtro({ persona, relacion, yoId, trasBloquear, volver, solicitar, chatear, abrirOtro }) {
   const boton = relacion?.estado === 'aceptada'
     ? <button className="btn-match" onClick={chatear}><MessageCircle size={18} /> Abrir chat</button>
     : relacion
@@ -510,7 +510,7 @@ function PerfilOtro({ persona, relacion, yoId, trasBloquear, volver, solicitar, 
         <button className="icon-btn" onClick={volver} aria-label="Volver"><ChevronLeft size={22} /></button>
         <MenuUsuario yoId={yoId} persona={persona} contexto="perfil" onBloqueado={trasBloquear} />
       </div>
-      <PerfilVista perfil={persona.raw} color={persona.color} yoId={yoId} acciones={boton} />
+      <PerfilVista perfil={persona.raw} color={persona.color} yoId={yoId} acciones={boton} onAbrirPerfil={abrirOtro} />
     </div>
   )
 }
