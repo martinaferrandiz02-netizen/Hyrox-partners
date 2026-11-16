@@ -24,13 +24,15 @@ workflows:
     name: iOS → TestFlight
     instance_type: mac_mini_m2
     max_build_duration: 60
-    # Se lanza sola al crear en GitHub una etiqueta que empiece por "ios-" (ej. ios-2)
+    # Se lanza sola cada vez que se actualiza la rama "ios" (versión nueva para TestFlight)
     triggering:
       events:
-        - tag
-      tag_patterns:
-        - pattern: 'ios-*'
+        - push
+      branch_patterns:
+        - pattern: 'ios'
           include: true
+          source: true
+      cancel_previous_builds: true
     integrations:
       app_store_connect: Pairx       # clave de API de App Store Connect, creada en Codemagic con este nombre
     environment:
