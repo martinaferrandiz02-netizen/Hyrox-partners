@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { ChevronDown, Globe, Lock, Plus, Users, Watch } from 'lucide-react'
 import { formatoParcial } from './certificado'
-import { borrarEntreno, cambiarVisibilidad, guardarEntreno, leerTiempo, mejoresDeEntrenos, nombreVisibilidad, TIPOS_ENTRENO, useEntrenos, VISIBILIDADES } from './entrenos'
+import { borrarEntreno, cambiarVisibilidad, casillasASegundos, guardarEntreno, mejoresDeEntrenos, nombreVisibilidad, TIPOS_ENTRENO, useEntrenos, VISIBILIDADES } from './entrenos'
 import { ESTACIONES } from './resultados'
 import { Volver } from './Volver'
+import { TiempoInput } from './TiempoInput'
 
 const ICONO_VIS = { publico: Globe, amigos: Users, privado: Lock }
 const ORDEN = [...ESTACIONES, 'Running']
@@ -67,7 +68,7 @@ export function EntrenoFila({ e, propio, onCambio }) {
 }
 
 function NuevoEntreno({ yoId, cerrar, guardado }) {
-  const [f, setF] = useState({ titulo: '', fecha: hoyISO(), tipo: 'Simulación', total: '', notas: '', visibilidad: 'publico' })
+  const [f, setF] = useState({ titulo: '', fecha: hoyISO(), tipo: 'Simulación', total: {}, notas: '', visibilidad: 'publico' })
   const [tiempos, setTiempos] = useState({})
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
@@ -76,12 +77,12 @@ function NuevoEntreno({ yoId, cerrar, guardado }) {
   const guardar = async (ev) => {
     ev.preventDefault()
     if (f.titulo.trim().length < 2) { setError('Ponle un nombre al entreno.'); return }
-    const total = leerTiempo(f.total)
-    if (Number.isNaN(total)) { setError('El tiempo total tiene que ser tipo 1:25:30 o 45:10.'); return }
+    const total = casillasASegundos(f.total)
+    if (Number.isNaN(total)) { setError('Revisa el tiempo total: los minutos y segundos van de 0 a 59.'); return }
     const parciales = {}
     for (const k of ORDEN) {
-      const s = leerTiempo(tiempos[k])
-      if (Number.isNaN(s)) { setError(`Revisa el tiempo de ${k}: escríbelo tipo 5:35.`); return }
+      const s = casillasASegundos(tiempos[k])
+      if (Number.isNaN(s)) { setError(`Revisa el tiempo de ${k}: los segundos van de 0 a 59.`); return }
       if (s) parciales[k] = s
     }
     if (!total && Object.keys(parciales).length === 0) { setError('Añade al menos el tiempo total o el de un ejercicio.'); return }
@@ -104,17 +105,20 @@ function NuevoEntreno({ yoId, cerrar, guardado }) {
           <div className="filtro-titulo">Tipo</div>
           <div className="chips">{TIPOS_ENTRENO.map(t => <button type="button" key={t} className={f.tipo === t ? 'chip active' : 'chip'} onClick={() => set('tipo', t)}>{t}</button>)}</div>
         </div>
-        <label>Tiempo total <span>(opcional)</span><input value={f.total} onChange={e => set('total', e.target.value)} placeholder="1:25:30" autoComplete="off" /></label>
+        <div className="form-grupo">
+          <div className="filtro-titulo">Tiempo total <span className="opcional">(opcional)</span></div>
+          <TiempoInput horas etiqueta="Tiempo total" valor={f.total} onChange={v => set('total', v)} />
+        </div>
 
         <div className="form-grupo">
           <div className="filtro-titulo">Tiempos por ejercicio <span className="opcional">(opcional)</span></div>
           <div className="tiempos">
             {ORDEN.map((k, i) => (
-              <label className="tiempo-fila" key={k}>
+              <div className="tiempo-fila" key={k}>
                 <span className="marca-num">{k === 'Running' ? '' : String(i + 1).padStart(2, '0')}</span>
                 <span className="marca-nombre">{k === 'Running' ? 'Running total' : k}</span>
-                <input value={tiempos[k] || ''} onChange={e => setTiempos(t => ({ ...t, [k]: e.target.value }))} placeholder="0:00" autoComplete="off" />
-              </label>
+                <TiempoInput horas={k === 'Running'} etiqueta={k} valor={tiempos[k]} onChange={v => setTiempos(t => ({ ...t, [k]: v }))} />
+              </div>
             ))}
           </div>
         </div>

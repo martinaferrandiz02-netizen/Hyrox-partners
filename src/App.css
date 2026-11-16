@@ -472,3 +472,12 @@ input[type=date] { color-scheme: dark; }
 .pv-acciones .btn-seguir { flex: 0 0 auto; padding: 0 16px; }
 .pv-acciones > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .kpi-valor.tiempo { font-size: 76px; }
+/* Casillas de tiempo h : min : seg */
+.tiempo-fila { display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.tiempo-fila .marca-nombre { font-family: var(--sans); font-weight: 400; font-size: 15px; letter-spacing: 0; text-transform: none; color: var(--text); }
+.tiempo-input { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.tiempo-input i { font-style: normal; font-family: var(--display); font-weight: 700; font-size: 20px; color: var(--sub-2); }
+.tiempo-input input:not([type=checkbox]) { width: 52px; height: 42px; padding: 0 4px; text-align: center; font-family: var(--display); font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; }
+.tiempo-input input::placeholder { font-family: var(--sans); font-weight: 400; font-size: 12px; color: var(--sub-2); }
+.tiempo-input.con-horas input:first-child { width: 40px; }
+.form-grupo > .tiempo-input { align-self: flex-start; }

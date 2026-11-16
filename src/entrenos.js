@@ -11,6 +11,16 @@ export const VISIBILIDADES = [
 ]
 export const nombreVisibilidad = (v) => VISIBILIDADES.find(x => x[0] === v)?.[1] || ''
 
+// {h, m, s} de las casillas → segundos (null si está vacío, NaN si no es válido)
+export function casillasASegundos(v) {
+  const { h = '', m = '', s = '' } = v || {}
+  if (!h && !m && !s) return null
+  const [H, M, S] = [h, m, s].map(x => Number(x || 0))
+  if (S > 59 || (h !== '' && M > 59)) return NaN
+  const total = H * 3600 + M * 60 + S
+  return total > 0 ? total : NaN
+}
+
 // "5:35", "5.35", "1:25:30" → segundos (null si no es un tiempo válido)
 export function leerTiempo(texto) {
   const t = (texto || '').trim().replace(/[.,']/g, ':').replace(/\s+/g, '')
