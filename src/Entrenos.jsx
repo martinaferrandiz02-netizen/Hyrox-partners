@@ -96,6 +96,7 @@ function NuevoEntreno({ yoId, cerrar, guardado }) {
   const tramosOk = tramos.map(t => ({ m: Number(t.m) || 0, s: casillasASegundos(t.t) })).filter(t => t.m > 0 && t.s > 0)
   const totalMetros = tramosOk.reduce((a, t) => a + t.m, 0)
   const totalRunning = tramosOk.reduce((a, t) => a + t.s, 0)
+  const incompletas = tramos.map(t => [Number(t.m) > 0, casillasASegundos(t.t) > 0]).filter(([m, s]) => m !== s).length
 
   const guardar = async (ev) => {
     ev.preventDefault()
@@ -179,6 +180,7 @@ function NuevoEntreno({ yoId, cerrar, guardado }) {
               <span className="total-auto-km">{totalMetros ? formatoKm(totalMetros) : ''}{totalMetros && totalRunning ? ` · ${ritmo(totalRunning, totalMetros)}` : ''}</span>
               <strong>{totalRunning ? formatoParcial(totalRunning) : '—'}</strong>
             </div>
+            {incompletas > 0 && <div className="total-aviso">Para que una fila cuente en el total, rellena los metros y el tiempo.</div>}
           </div>
         )}
 
