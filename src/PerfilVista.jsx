@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { ArrowUpRight, Check, CircleX, Hourglass, MapPin, Plus, Settings } from 'lucide-react'
+import { ArrowUpRight, Check, CircleX, Hourglass, MapPin, Plus, Settings, UserCheck, UserPlus } from 'lucide-react'
 import { Avatar } from './Avatar'
 import { formatoParcial } from './certificado'
 import { nombreCiudad } from './ciudades'
 import { borrarResultado, ESTACIONES, mejoresMarcas, useResultados } from './resultados'
 import { MisVideos, VideosDe } from './Videos'
+import { EntrenoFila } from './Entrenos'
+import { mejoresDeEntrenos, useEntrenos, useSeguir } from './entrenos'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
 const fechaCarrera = (f) => f ? new Date(f + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }) : null
@@ -16,8 +18,11 @@ function EstadoCarrera({ r, esPropio }) {
 }
 
 // Perfil tipo red social: el mismo diseño para el tuyo y para el de los demás
-export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAjustes, onCambio }) {
+export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAjustes, onCambio }) {
   const { resultados, cargando, recargar } = useResultados(perfil.id)
+  const { entrenos, recargar: recargarEntrenos } = useEntrenos(perfil.id)
+  const seguir = useSeguir(yoId || perfil.id, perfil.id)
+  const [siguiendoOcupado, setSiguiendoOcupado] = useState(false)
   const [borrando, setBorrando] = useState(null)
 
   const borrar = async (r) => {
@@ -33,6 +38,14 @@ export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEd
   const verificadas = resultados.filter(r => r.estado === 'verificado')
   const visibles = esPropio ? resultados : verificadas
   const marcas = mejoresMarcas(resultados)
+  const marcasEntreno = mejoresDeEntrenos(entrenos)
+  const hayEntreno = ESTACIONES.some(e => !marcas[e] && marcasEntreno[e]) || (!marcas.Running && marcasEntreno.Running)
+  const botonSeguir = !esPropio && yoId && (
+    <button className={`btn-match btn-seguir ${seguir.leSigo ? 'siguiendo' : ''}`} disabled={siguiendoOcupado}
+      onClick={async () => { setSiguiendoOcupado(true); await seguir.alternar(); setSiguiendoOcupado(false) }}>
+      {seguir.leSigo ? <><UserCheck size={18} /> {seguir.meSigue ? 'Amigos' : 'Siguiendo'}</> : <><UserPlus size={18} /> {seguir.meSigue ? 'Seguir también' : 'Seguir'}</>}
+    </button>
+  )
   const verificado = perfil.certificado_estado === 'verificado'
   const anadir = <button className="link-btn" onClick={onAnadirCarrera}><Plus size={16} /> Añadir carrera</button>
 
@@ -53,6 +66,7 @@ export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEd
         <div style={{ minWidth: 0 }}>
           <div className="pv-nombre">{perfil.nombre}</div>
           <div className="pv-sub"><MapPin size={14} /> {nombreCiudad(perfil.ciudad)}{perfil.club ? ` · ${perfil.club}` : ''}</div>
+          <div className="pv-seguir"><strong>{seguir.seguidores}</strong> {seguir.seguidores === 1 ? 'seguidor' : 'seguidores'} · <strong>{seguir.siguiendo}</strong> siguiendo</div>
         </div>
       </div>
       <div className="pv-chips">
@@ -74,38 +88,52 @@ export function PerfilVista({ perfil, esPropio, color = 'yellow', acciones, onEd
           <button className="btn-secondary" onClick={onEditar}>Editar perfil</button>
           <button className="btn-match" onClick={onAnadirCarrera}><Plus size={18} /> Carrera</button>
         </div>
-      ) : acciones && <div className="pv-acciones">{acciones}</div>}
+      ) : (acciones || botonSeguir) && <div className="pv-acciones">{botonSeguir}{acciones}</div>}
 
       {/* Pestañas */}
       <div className="pv-tabs">
-        {[['marcas', 'Marcas'], ['carreras', 'Carreras'], ['tecnica', 'Técnica']].map(([k, l]) => (
+        {[['marcas', 'Marcas'], ['entrenos', 'Entrenos'], ['carreras', 'Carreras'], ['tecnica', 'Técnica']].map(([k, l]) => (
           <button key={k} className={pestana === k ? 'active' : ''} onClick={() => setPestana(k)}>{l}</button>
         ))}
       </div>
 
       {pestana === 'marcas' && (
-        Object.keys(marcas).length === 0 ? (
+        Object.keys(marcas).length === 0 && Object.keys(marcasEntreno).length === 0 ? (
           <div className="pv-vacio">
-            {esPropio ? <>Añade una carrera con su certificado y aquí aparecerán tus mejores tiempos en cada ejercicio.{anadir}</> : 'Todavía no tiene carreras verificadas.'}
+            {esPropio ? <>Añade una carrera con su certificado, o registra entrenos, y aquí aparecerán tus mejores tiempos en cada ejercicio.{anadir}</> : 'Todavía no tiene carreras verificadas ni entrenos visibles.'}
           </div>
         ) : (
           <div className="marcas">
-            {ESTACIONES.map((e, i) => (
-              <div key={e} className={`marca ${marcas[e] ? '' : 'vacia'}`}>
-                <span className="marca-num">{String(i + 1).padStart(2, '0')}</span>
-                <span className="marca-nombre">{e}</span>
-                <span className="marca-tiempo">{marcas[e] ? formatoParcial(marcas[e].seg) : '—'}</span>
-              </div>
-            ))}
-            {marcas.Running && (
-              <div className="marca running">
+            {ESTACIONES.map((e, i) => {
+              const m = marcas[e] || marcasEntreno[e]
+              const deEntreno = !marcas[e] && marcasEntreno[e]
+              return (
+                <div key={e} className={`marca ${m ? '' : 'vacia'} ${deEntreno ? 'entreno-marca' : ''}`}>
+                  <span className="marca-num">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="marca-nombre">{e}</span>
+                  {deEntreno && <span className="marca-origen">Entreno</span>}
+                  <span className="marca-tiempo">{m ? formatoParcial(m.seg) : '—'}</span>
+                </div>
+              )
+            })}
+            {(marcas.Running || marcasEntreno.Running) && (
+              <div className={`marca running ${marcas.Running ? '' : 'entreno-marca'}`}>
                 <span className="marca-nombre">Running · 8 km</span>
-                <span className="marca-tiempo">{formatoParcial(marcas.Running.seg)}</span>
+                {!marcas.Running && <span className="marca-origen">Entreno</span>}
+                <span className="marca-tiempo">{formatoParcial((marcas.Running || marcasEntreno.Running).seg)}</span>
               </div>
             )}
-            <div className="pv-nota">Mejores tiempos de {esPropio ? 'tus' : 'sus'} carreras verificadas.</div>
+            <div className="pv-nota">{hayEntreno
+              ? <>En blanco, tiempos de carreras verificadas. Con la etiqueta <span className="marca-origen">Entreno</span>, tiempos de entrenamiento apuntados por {esPropio ? 'ti' : 'el atleta'}, sin verificar.</>
+              : <>Mejores tiempos de {esPropio ? 'tus' : 'sus'} carreras verificadas.</>}</div>
           </div>
         )
+      )}
+
+      {pestana === 'entrenos' && (
+        entrenos.length === 0
+          ? <div className="pv-vacio">{esPropio ? 'Aún no has registrado entrenos. Hazlo desde la pestaña Entrenos de abajo.' : 'No tiene entrenos que puedas ver.'}</div>
+          : <div className="lista">{entrenos.map(e => <EntrenoFila key={e.id} e={e} propio={esPropio} onCambio={recargarEntrenos} />)}</div>
       )}
 
       {pestana === 'carreras' && (

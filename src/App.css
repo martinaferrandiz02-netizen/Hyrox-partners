@@ -434,3 +434,40 @@ input[type=date] { color-scheme: dark; }
 .perfil-form label { position: relative; }
 .perfil-form label input, .perfil-form label select, .perfil-form label textarea { font-family: var(--sans); font-weight: 400; font-size: 15px; letter-spacing: 0; text-transform: none; color: var(--text); }
 .perfil-form label > span:not([class]) { position: absolute; top: 0; right: 0; font-size: 13px; }
+
+/* ───────── Entrenos ───────── */
+.screen-sub + .btn-match { margin-top: 4px; }
+.entreno .fila { cursor: pointer; }
+.fila-chevron.girado { transform: rotate(180deg); }
+.entreno-detalle { padding: 4px 0 16px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; }
+.entreno-detalle .cita { margin: 0; }
+.entreno-acciones { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 5px; }
+.chip:disabled { opacity: .5; }
+.opcional { text-transform: none; letter-spacing: 0; font-family: var(--sans); font-weight: 400; color: var(--sub-2); }
+.tiempos { border-top: 1px solid var(--line); }
+.perfil-form label.tiempo-fila { flex-direction: row; align-items: center; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--line); color: var(--text); }
+.perfil-form label.tiempo-fila .marca-nombre { font-size: 16px; color: var(--text); }
+.perfil-form label.tiempo-fila input { width: 96px; height: 40px; text-align: right; font-family: var(--display); font-weight: 700; font-size: 20px; padding: 0 12px; }
+.vis-opciones { display: flex; flex-direction: column; gap: 8px; }
+.vis-opcion { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--text); text-align: left; cursor: pointer; }
+.vis-opcion .fila-cuerpo { display: flex; flex-direction: column; }
+.vis-opcion .fila-titulo { font-family: var(--sans); text-transform: none; letter-spacing: 0; }
+.vis-opcion svg { color: var(--sub); flex-shrink: 0; }
+.vis-opcion.active { border-color: var(--accent); }
+.vis-opcion.active svg { color: var(--accent); }
+.vis-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-2); flex-shrink: 0; }
+.vis-opcion.active .vis-radio { border: 6px solid var(--accent); }
+.pronto-mini { display: flex; align-items: flex-start; gap: 10px; margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.5; color: var(--sub-2); }
+.pronto-mini strong { color: var(--sub); }
+.pronto-mini svg { flex-shrink: 0; margin-top: 1px; }
+
+/* Perfil: seguir y marcas de entreno */
+.pv-seguir { font-size: 13px; color: var(--sub); margin-top: 6px; }
+.pv-seguir strong { color: var(--text); font-weight: 600; }
+.btn-seguir.siguiendo { background: transparent; color: var(--text); border: 1px solid var(--line-2); }
+.marca.entreno-marca .marca-tiempo { color: var(--sub); }
+.marca-origen { font-family: var(--display); font-weight: 700; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--sub-2); border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 6px; }
+.pv-tabs button { font-size: 14px; letter-spacing: .08em; }
+.pv-acciones .btn-seguir { flex: 0 0 auto; padding: 0 16px; }
+.pv-acciones > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; }

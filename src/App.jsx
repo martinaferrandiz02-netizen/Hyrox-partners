@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Activity, ArrowUpRight, BadgeCheck, Check, ChevronLeft, ChevronRight, House, Inbox, MapPin, MessageCircle, Plus, Search, SlidersHorizontal, Ticket, Trophy, User, Users, Watch, X } from 'lucide-react'
+import { Activity, ArrowUpRight, BadgeCheck, Check, ChevronLeft, ChevronRight, House, Inbox, MapPin, MessageCircle, Plus, Search, SlidersHorizontal, Ticket, Trophy, User, Users, X } from 'lucide-react'
+import { Entrenos } from './Entrenos'
 import './App.css'
 import { Acceso, FormPerfil } from './Auth'
 import { supabase } from './supabase'
@@ -167,7 +168,7 @@ function Pairx({ perfil, setPerfil }) {
       <div className="phone">
         <div className="notch"></div>
         {pantalla === 'inicio' && <Inicio pareja={pareja} yo={yo} perfil={perfil} ranking={ranking} dejarPareja={dejarPareja} buscarPareja={()=>irA('parejas')} />}
-        {pantalla === 'entrenos' && <Entrenos />}
+        {pantalla === 'entrenos' && <Entrenos yoId={perfil.id} />}
         {pantalla === 'parejas' && (
           <Parejas
             subPantalla={subPantalla}
@@ -265,23 +266,6 @@ export function Inicio({ pareja, yo, perfil, ranking, dejarPareja, buscarPareja 
       {pareja
         ? <button className="link-btn apagado" style={{ marginTop: 18 }} onClick={dejarPareja}>Cambiar de pareja</button>
         : <button className="btn-match btn-block" style={{ marginTop: 18 }} onClick={buscarPareja}><Search size={18} /> Buscar pareja</button>}
-    </div>
-  )
-}
-
-export function Entrenos() {
-  return (
-    <div className="screen">
-      <div className="screen-title">Entrenos</div>
-      <div className="pronto">
-        <span className="tag acento">Próximamente</span>
-        <p>Conecta tu reloj y entrena con tu pareja desde Pairx.</p>
-        <div className="pronto-lista">
-          <div><Watch size={20} /> Sincroniza Garmin y Apple Watch</div>
-          <div><Activity size={20} /> Guarda tus sesiones</div>
-          <div><Trophy size={20} /> Lanza retos a tu pareja</div>
-        </div>
-      </div>
     </div>
   )
 }
@@ -455,6 +439,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
                         <div className="fila-sub"><MapPin size={13} /> {p.ciudad}{p.verificado && p.mejorTiempo ? ` · ${p.mejorTiempo}` : ''}</div>
                       </div>
                       <div className="fila-meta">{horaCorta(s.created_at)}</div>
+                      <ChevronRight size={18} className="fila-chevron" />
                     </div>
                     {s.mensaje && <div className="cita">{s.mensaje}</div>}
                     <div className="match-actions">
@@ -540,7 +525,7 @@ function PerfilOtro({ persona, relacion, yoId, trasBloquear, volver, solicitar, 
   const boton = relacion?.estado === 'aceptada'
     ? <button className="btn-match" onClick={chatear}><MessageCircle size={18} /> Abrir chat</button>
     : relacion
-      ? <button className="btn-match" disabled>{relacion.enviada ? (relacion.estado === 'rechazada' ? 'Solicitud no aceptada' : 'Solicitud enviada') : 'Te ha enviado una solicitud'}</button>
+      ? <button className="btn-match" disabled>{relacion.enviada ? (relacion.estado === 'rechazada' ? 'Solicitud no aceptada' : 'Solicitud enviada') : 'Solicitud recibida'}</button>
       : <button className="btn-match" onClick={solicitar}>Solicitar como pareja</button>
   return (
     <div style={{display:'flex',flexDirection:'column',flex:1,minHeight:0}}>
@@ -548,7 +533,7 @@ function PerfilOtro({ persona, relacion, yoId, trasBloquear, volver, solicitar, 
         <button className="icon-btn" onClick={volver} aria-label="Volver"><ChevronLeft size={22} /></button>
         <MenuUsuario yoId={yoId} persona={persona} contexto="perfil" onBloqueado={trasBloquear} />
       </div>
-      <PerfilVista perfil={persona.raw} color={persona.color} acciones={boton} />
+      <PerfilVista perfil={persona.raw} color={persona.color} yoId={yoId} acciones={boton} />
     </div>
   )
 }
