@@ -12,6 +12,7 @@ import { AnadirCarrera } from './AnadirCarrera'
 import { Ajustes } from './Ajustes'
 import { MenuUsuario } from './MenuUsuario'
 import { useOcultos } from './bloqueos'
+import { calcularRanking, MIN_CLUB, nombreGrupo, TOP_CLUB, tiempoSeg, verTiempo } from './ranking'
 import { fechaCorta, publicarPlaza, retirarPlaza, usePlazas } from './plazas'
 import { enviarSolicitud, horaCorta, responderSolicitud, useSolicitudes, useUltimosMensajes } from './social'
 
@@ -23,41 +24,10 @@ const aCandidato = (p) => ({
   id: p.id, userId: p.id, nombre: p.nombre, iniciales: iniciales(p.nombre),
   color: COLORES[[...p.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORES.length],
   ciudad: nombreCiudad(p.ciudad), distancia: null, sexo: p.sexo, categoria: p.categoria,
-  compitio: p.compitio, rating: p.puntos, division: p.division, parejaId: p.pareja_id, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
+  compitio: p.compitio, division: p.division, parejaId: p.pareja_id, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
   carreras: [], marcas: [], fortalezas: [], raw: p, fotoUrl: p.foto_url,
 })
 const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
-
-// Rankings a partir de los puntos verificados de todos los usuarios
-function calcularRanking(perfil, otros) {
-  const todos = [{ ...perfil, rating: perfil.puntos, ciudadCanon: perfil.ciudad }, ...otros.map(o => ({ ...o, ciudadCanon: null }))]
-    .filter(p => p.rating || p.puntos)
-  const pts = (p) => p.rating ?? p.puntos
-  const misPuntos = perfil.puntos || null
-  const posicion = (lista) => misPuntos ? lista.filter(p => pts(p) > misPuntos).length + 1 : null
-  const global = todos
-  const enCiudad = todos.filter(p => (p.ciudadCanon ? nombreCiudad(p.ciudadCanon) : p.ciudad) === nombreCiudad(perfil.ciudad))
-  const enCategoria = todos.filter(p => p.categoria === perfil.categoria)
-  const posGlobal = posicion(global)
-  // Puntos de club: media de sus 4 mejores miembros verificados
-  const porClub = {}
-  for (const p of todos) {
-    const club = p.id === perfil.id ? perfil.club : (p.club && p.club !== 'Sin club' ? p.club : null)
-    if (club) (porClub[club] ||= []).push(pts(p))
-  }
-  const clubs = Object.entries(porClub).map(([nombre, lista]) => {
-    const top = lista.sort((a, b) => b - a).slice(0, 4)
-    return { nombre, miembros: lista.length, pts: Math.round(top.reduce((a, b) => a + b, 0) / top.length) }
-  }).sort((a, b) => b.pts - a.pts).map((c, i) => ({ ...c, pos: i + 1 }))
-  return {
-    misPuntos,
-    posGlobal,
-    posCiudad: posicion(enCiudad),
-    posCategoria: posicion(enCategoria),
-    topPct: posGlobal ? Math.max(1, Math.round(100 * posGlobal / global.length)) : null,
-    clubs,
-  }
-}
 
 export default function App() {
   const [sesion, setSesion] = useState(undefined)
@@ -217,7 +187,7 @@ const saludoHora = () => { const h = new Date().getHours(); return h < 14 ? 'Bue
 const pos = (n) => n ? `#${n}` : '—'
 
 export function Inicio({ pareja, yo, perfil, ranking, dejarPareja, buscarPareja }) {
-  const verificado = perfil.certificado_estado === 'verificado'
+  const tParejaSeg = pareja?.verificado ? tiempoSeg(pareja.mejorTiempo) : null
   return (
     <div className="screen">
       <div className="saludo">
@@ -225,18 +195,18 @@ export function Inicio({ pareja, yo, perfil, ranking, dejarPareja, buscarPareja 
         <div className="display">{yo.nombre.split(' ')[0]}</div>
       </div>
 
-      <div className="section-label">Tus puntos</div>
+      <div className="section-label">Tu mejor tiempo</div>
       <div className="kpi">
-        <div className="kpi-valor">{ranking.misPuntos ?? '—'}<small>PTS</small></div>
+        <div className="kpi-valor tiempo">{verTiempo(ranking.miSeg)}</div>
         <div className="kpi-etiqueta">
-          {ranking.misPuntos
-            ? <span className="verificado"><BadgeCheck size={16} /> Tiempo verificado</span>
-            : <span className="fila-sub">Añade una carrera en tu perfil para conseguir puntos</span>}
+          {ranking.miSeg
+            ? <span className="verificado"><BadgeCheck size={16} /> Verificado · {nombreGrupo(ranking.miGrupo)}</span>
+            : <span className="fila-sub">Añade una carrera en tu perfil para tener tu tiempo verificado</span>}
         </div>
       </div>
       <div className="stats">
-        <div><strong>{verificado && perfil.mejor_tiempo ? perfil.mejor_tiempo : '—'}</strong><span>Mejor tiempo</span></div>
-        <div><strong>{pos(ranking.posGlobal)}</strong><span>Global</span></div>
+        <div><strong>{pos(ranking.posGrupo)}</strong><span>Tu división</span></div>
+        <div><strong>{pos(ranking.posCiudad)}</strong><span>{nombreCiudad(perfil.ciudad)}</span></div>
         <div><strong className={ranking.topPct ? 'acento' : ''}>{ranking.topPct ? `${ranking.topPct}%` : '—'}</strong><span>Top</span></div>
       </div>
 
@@ -248,7 +218,7 @@ export function Inicio({ pareja, yo, perfil, ranking, dejarPareja, buscarPareja 
             <div className="fila-titulo">{yo.nombre}</div>
             <div className="fila-sub">Tú</div>
           </div>
-          <div className="fila-valor">{ranking.misPuntos || '—'}</div>
+          <div className="fila-valor">{verTiempo(ranking.miSeg)}</div>
         </div>
         {pareja ? (
           <div className="fila">
@@ -257,7 +227,7 @@ export function Inicio({ pareja, yo, perfil, ranking, dejarPareja, buscarPareja 
               <div className="fila-titulo">{pareja.nombre}</div>
               <div className="fila-sub">{pareja.mutua ? <><Check size={14} /> Pareja confirmada</> : `Esperando a que ${pareja.nombre.split(' ')[0]} te elija`}</div>
             </div>
-            <div className="fila-valor">{pareja.rating || '—'}</div>
+            <div className="fila-valor">{verTiempo(tParejaSeg)}</div>
           </div>
         ) : (
           <div className="pareja-vacia">Aún no tienes pareja. Búscala en <strong>Parejas</strong> y elígela desde el chat.</div>
@@ -276,54 +246,63 @@ export function PlanIA() {
 }
 
 export function Rankings({ perfil, ranking }) {
-  const miClub = ranking.clubs.find(c => c.nombre === perfil.club)
-  const miembros = (n) => `${n} ${n === 1 ? 'miembro verificado' : 'miembros verificados'}`
+  const [grupo, setGrupo] = useState(ranking.miGrupo || ranking.grupos[0] || null)
+  const { enRanking, todos } = grupo ? ranking.clubsDe(grupo) : { enRanking: [], todos: [] }
+  const miClub = perfil.club ? todos.find(c => c.nombre === perfil.club) : null
+  const miClubPos = miClub ? enRanking.find(c => c.nombre === perfil.club) : null
+  const atletas = (n) => `${n} ${n === 1 ? 'atleta verificado' : 'atletas verificados'}`
   return (
     <div className="screen">
       <div className="screen-title">Ranking</div>
 
-      <div className="section-label">Tus puntos</div>
-      <div className="kpi"><div className="kpi-valor">{ranking.misPuntos ?? '—'}<small>PTS</small></div></div>
-      {ranking.misPuntos ? (
+      <div className="section-label">Tu mejor tiempo</div>
+      <div className="kpi">
+        <div className="kpi-valor tiempo">{verTiempo(ranking.miSeg)}</div>
+        {ranking.miSeg && <div className="kpi-etiqueta"><span className="fila-sub">{nombreGrupo(ranking.miGrupo)}</span></div>}
+      </div>
+      {ranking.miSeg ? (
         <div className="stats">
           <div><strong>{pos(ranking.posCiudad)}</strong><span>{nombreCiudad(perfil.ciudad)}</span></div>
-          <div><strong>{pos(ranking.posCategoria)}</strong><span>{perfil.categoria}</span></div>
-          <div><strong className="acento">{pos(ranking.posGlobal)}</strong><span>Global</span></div>
+          <div><strong>{pos(ranking.posClub)}</strong><span>{perfil.club || 'Tu club'}</span></div>
+          <div><strong className="acento">{pos(ranking.posGrupo)}</strong><span>de {ranking.totalGrupo}</span></div>
         </div>
       ) : <div className="pareja-vacia">Sube tu certificado en Perfil y, cuando esté verificado, entrarás en el ranking.</div>}
 
-      {perfil.club && (
-        <>
-          <div className="section-label">Tu club</div>
-          <div className="lista">
-            <div className="fila mia">
-              <div className="fila-pos">{miClub ? miClub.pos : '–'}</div>
-              <div className="fila-cuerpo">
-                <div className="fila-titulo">{perfil.club}</div>
-                <div className="fila-sub">{miClub ? miembros(miClub.miembros) : 'Aún sin miembros verificados'}</div>
-              </div>
-              <div className="fila-valor">{miClub ? miClub.pts : '—'}</div>
-            </div>
-          </div>
-        </>
+      <div className="section-label">Ranking de clubs</div>
+      {ranking.grupos.length > 0 && (
+        <div className="chips" style={{ marginBottom: 14 }}>
+          {ranking.grupos.map(g => <button key={g} className={grupo === g ? 'chip active' : 'chip'} onClick={() => setGrupo(g)}>{nombreGrupo(g)}</button>)}
+        </div>
       )}
-
-      <div className="section-label">Clubs</div>
-      {ranking.clubs.length === 0
-        ? <div className="pareja-vacia">Todavía no hay clubs con miembros verificados.</div>
+      {perfil.club && grupo && (
+        <div className="lista" style={{ marginBottom: 14 }}>
+          <div className="fila mia">
+            <div className="fila-pos">{miClubPos ? miClubPos.pos : '–'}</div>
+            <div className="fila-cuerpo">
+              <div className="fila-titulo">{perfil.club}</div>
+              <div className="fila-sub">{miClub
+                ? (miClubPos ? atletas(miClub.miembros) : `${atletas(miClub.miembros)} · faltan ${MIN_CLUB - miClub.miembros} para entrar`)
+                : `Sin atletas verificados en ${nombreGrupo(grupo)}`}</div>
+            </div>
+            <div className="fila-valor">{miClubPos ? verTiempo(miClubPos.seg) : '—'}</div>
+          </div>
+        </div>
+      )}
+      {enRanking.length === 0
+        ? <div className="pareja-vacia">Todavía ningún club tiene {MIN_CLUB} atletas con tiempo verificado{grupo ? ` en ${nombreGrupo(grupo)}` : ''}.</div>
         : <div className="lista">
-            {ranking.clubs.slice(0, 20).map(c => (
+            {enRanking.slice(0, 30).map(c => (
               <div key={c.nombre} className={`fila ${c.nombre === perfil.club ? 'mia' : ''}`}>
                 <div className="fila-pos">{c.pos}</div>
                 <div className="fila-cuerpo">
                   <div className="fila-titulo">{c.nombre}</div>
-                  <div className="fila-sub">{miembros(c.miembros)}</div>
+                  <div className="fila-sub">{atletas(c.miembros)}</div>
                 </div>
-                <div className="fila-valor">{c.pts}</div>
+                <div className="fila-valor">{verTiempo(c.seg)}</div>
               </div>
             ))}
           </div>}
-      <p className="ranking-nota">Puntos = 1.000 × tiempo de referencia de tu división ÷ tu tiempo. Solo cuentan tiempos verificados. Los clubs suman la media de sus 4 mejores miembros.</p>
+      <p className="ranking-nota">Solo cuentan tiempos verificados con certificado. Tu posición se calcula entre atletas de tu misma división, categoría y sexo. Un club entra en el ranking cuando tiene al menos {MIN_CLUB} atletas verificados en esa división, y su tiempo es la media de sus {TOP_CLUB} mejores.</p>
     </div>
   )
 }
@@ -395,8 +374,8 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
                   </div>
                 </div>
                 <div className="stats">
-                  <div><strong className={candidato.rating ? 'acento' : ''}>{candidato.rating || '—'}</strong><span>Puntos</span></div>
-                  <div><strong>{candidato.verificado && candidato.mejorTiempo ? candidato.mejorTiempo : '—'}</strong><span>Mejor tiempo</span></div>
+                  <div><strong className={candidato.verificado && candidato.mejorTiempo ? 'acento' : ''}>{candidato.verificado && candidato.mejorTiempo ? candidato.mejorTiempo : '—'}</strong><span>Mejor tiempo</span></div>
+                  <div><strong>{candidato.division || '—'}</strong><span>División</span></div>
                   <div><strong>{candidato.categoria}</strong><span>Categoría</span></div>
                 </div>
                 <div className="atleta-tags">

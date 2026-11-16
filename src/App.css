@@ -471,3 +471,4 @@ input[type=date] { color-scheme: dark; }
 .pv-tabs button { font-size: 14px; letter-spacing: .08em; }
 .pv-acciones .btn-seguir { flex: 0 0 auto; padding: 0 16px; }
 .pv-acciones > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.kpi-valor.tiempo { font-size: 76px; }

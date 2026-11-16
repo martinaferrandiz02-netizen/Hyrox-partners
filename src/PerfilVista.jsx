@@ -78,8 +78,8 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
 
       {/* Lo importante, a primera vista */}
       <div className="stats">
-        <div><strong className={perfil.puntos ? 'acento' : ''}>{perfil.puntos ?? '—'}</strong><span>Puntos</span></div>
-        <div><strong>{verificado && perfil.mejor_tiempo ? perfil.mejor_tiempo : '—'}</strong><span>Mejor tiempo</span></div>
+        <div><strong className={verificado && perfil.mejor_tiempo ? 'acento' : ''}>{verificado && perfil.mejor_tiempo ? perfil.mejor_tiempo : '—'}</strong><span>Mejor tiempo</span></div>
+        <div><strong>{verificado && perfil.division ? perfil.division : '—'}</strong><span>División</span></div>
         <div><strong>{verificadas.length}</strong><span>{verificadas.length === 1 ? 'Carrera' : 'Carreras'}</span></div>
       </div>
 
@@ -151,7 +151,6 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
                 </div>
                 <div>
                   <div className="carrera-tiempo">{r.tiempo}</div>
-                  {r.puntos && <div className="carrera-pts">{r.puntos} pts</div>}
                 </div>
               </div>
               <div className="carrera-pie">
