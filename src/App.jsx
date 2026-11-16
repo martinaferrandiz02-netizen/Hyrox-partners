@@ -12,7 +12,7 @@ import { AnadirCarrera } from './AnadirCarrera'
 import { Ajustes } from './Ajustes'
 import { MenuUsuario } from './MenuUsuario'
 import { useOcultos } from './bloqueos'
-import { calcularRanking, MIN_CLUB, nombreGrupo, TOP_CLUB, tiempoSeg, verTiempo } from './ranking'
+import { calcularRanking, nombreGrupo, tiempoSeg, verTiempo } from './ranking'
 import { fechaCorta, publicarPlaza, retirarPlaza, usePlazas } from './plazas'
 import { enviarSolicitud, horaCorta, responderSolicitud, useSolicitudes, useUltimosMensajes } from './social'
 
@@ -287,7 +287,7 @@ export function Rankings({ perfil, ranking }) {
         </div>
       )}
       {enRanking.length === 0
-        ? <div className="pareja-vacia">Todavía ningún club tiene {MIN_CLUB} atletas con tiempo verificado{grupo ? ` en ${nombreGrupo(grupo)}` : ''}.</div>
+        ? <div className="pareja-vacia">Todavía ningún club cumple los requisitos para aparecer en el ranking{grupo ? ` de ${nombreGrupo(grupo)}` : ''}.</div>
         : <div className="lista">
             {enRanking.slice(0, 30).map(c => (
               <div key={c.nombre} className={`fila ${c.nombre === perfil.club ? 'mia' : ''}`}>
@@ -300,17 +300,7 @@ export function Rankings({ perfil, ranking }) {
               </div>
             ))}
           </div>}
-      {todos.some(c => c.miembros < MIN_CLUB) && (
-        <>
-          <div className="section-label">Otros <span className="opcional">(hasta que se llegue al mínimo de atletas para participar)</span></div>
-          <div className="chips">
-            {todos.filter(c => c.miembros < MIN_CLUB).sort((x, y) => x.nombre.localeCompare(y.nombre)).map(c => (
-              <span key={c.nombre} className={`chip ${c.nombre === perfil.club ? 'active' : ''}`}>{c.nombre}</span>
-            ))}
-          </div>
-        </>
-      )}
-      <p className="ranking-nota">Solo cuentan tiempos verificados con certificado. Tu posición se calcula entre atletas de tu misma división, categoría y sexo. Un club entra en el ranking cuando tiene al menos {MIN_CLUB} atletas verificados en esa división, y su tiempo es la media de sus {TOP_CLUB} mejores.</p>
+      <p className="ranking-nota">Solo se tienen en cuenta tiempos verificados con certificado oficial. Tu posición se calcula frente a atletas de tu misma división, categoría y sexo. En el ranking de clubs aparecen únicamente los clubs que alcanzan el número mínimo de atletas verificados en cada división; el tiempo de cada club es la media de sus mejores marcas.</p>
     </div>
   )
 }
