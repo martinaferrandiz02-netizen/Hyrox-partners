@@ -6,7 +6,7 @@ import { nombreCiudad } from './ciudades'
 import { borrarResultado, ESTACIONES, mejoresMarcas, useResultados } from './resultados'
 import { MisVideos, VideosDe } from './Videos'
 import { EntrenoFila } from './Entrenos'
-import { listaSeguimientos, mejoresDeEntrenos, useContadores, useEntrenos, useSeguir } from './entrenos'
+import { listaSeguimientos, mejoresDeEntrenos, useContadores, useEntrenos, useSeguir } from './datosEntrenos'
 import { Volver } from './Volver'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')

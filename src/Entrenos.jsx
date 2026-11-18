@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, Dumbbell, Footprints, Globe, Lock, Plus, Users, Watch } from 'lucide-react'
 import { formatoParcial } from './certificado'
-import { borrarEntreno, cambiarVisibilidad, casillasASegundos, formatoKm, formatoMetros, guardarEntreno, mejoresDeEntrenos, nombreVisibilidad, TRAMOS_RUNNING, useEntrenos, VISIBILIDADES } from './entrenos'
+import { borrarEntreno, cambiarVisibilidad, casillasASegundos, formatoKm, formatoMetros, guardarEntreno, mejoresDeEntrenos, nombreVisibilidad, TRAMOS_RUNNING, useEntrenos, VISIBILIDADES } from './datosEntrenos'
 import { ESTACIONES } from './resultados'
 import { Volver } from './Volver'
 import { TiempoInput } from './TiempoInput'
