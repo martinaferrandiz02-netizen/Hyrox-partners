@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Activity, ArrowUpRight, BadgeCheck, Check, ChevronLeft, ChevronRight, House, Inbox, MapPin, MessageCircle, Plus, Search, SlidersHorizontal, Ticket, Trophy, User, Users, X } from 'lucide-react'
 import { Entrenos } from './Entrenos'
+import { NuevaProxima } from './Carreras'
 import './App.css'
 import { Acceso, FormPerfil, NuevaContrasena } from './Auth'
 import { supabase } from './supabase'
@@ -32,6 +33,8 @@ const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categori
 export default function App() {
   const [sesion, setSesion] = useState(undefined)
   const [perfil, setPerfil] = useState(undefined)
+  // Recién registrado: 'carrera' (ya ha competido) o 'proxima' (aún no)
+  const [bienvenida, setBienvenida] = useState(null)
   // Viene del enlace "he olvidado mi contraseña"
   const [recuperando, setRecuperando] = useState(() => /[?&]recuperar=1|type=recovery/.test(window.location.search + window.location.hash))
 
@@ -55,7 +58,11 @@ export default function App() {
   if (sesion === undefined || (sesion && (perfil === undefined || (perfil && perfil.id !== userId)))) contenido = <div className="screen cargando">Cargando…</div>
   else if (sesion && recuperando) contenido = <NuevaContrasena listo={() => { setRecuperando(false); window.history.replaceState(null, '', '/') }} />
   else if (!sesion) contenido = <Acceso />
-  else if (!perfil) contenido = <FormPerfil userId={userId} onGuardado={setPerfil} />
+  else if (!perfil) contenido = <FormPerfil userId={userId} onGuardado={(p) => { setPerfil(p); setBienvenida(p.compitio ? 'carrera' : 'proxima') }} />
+  else if (bienvenida === 'carrera') contenido = <AnadirCarrera perfil={perfil} setPerfil={setPerfil} cerrar={() => setBienvenida(null)} textoCerrar="Ahora no"
+    titulo="Añade tu carrera más reciente" subtitulo="Sube el certificado y nosotros leemos tus tiempos. Así tu perfil tendrá tu marca verificada desde el primer día." />
+  else if (bienvenida === 'proxima') contenido = <NuevaProxima yoId={perfil.id} cerrar={() => setBienvenida(null)} guardado={() => setBienvenida(null)} textoCerrar="Ahora no"
+    titulo="¿Cuál es tu próxima carrera?" subtitulo="Apúntala y otros atletas que van a la misma podrán encontrarte para hacer pareja." />
   else return <Pairx perfil={perfil} setPerfil={setPerfil} />
 
   return <div className="app"><div className="phone"><div className="notch"></div>{contenido}</div></div>
@@ -313,12 +320,14 @@ export function Rankings({ perfil, ranking }) {
 
 export function Perfil({ perfil, setPerfil, abrirPerfil }) {
   const [modo, setModo] = useState(null)
+  const [sugerida, setSugerida] = useState(null)
   if (modo === 'editar') {
     return <FormPerfil userId={perfil.id} perfil={perfil} onGuardado={(p)=>{setPerfil(p);setModo(null)}} onCancelar={()=>setModo(null)} />
   }
-  if (modo === 'carrera') return <AnadirCarrera perfil={perfil} setPerfil={setPerfil} cerrar={()=>setModo(null)} />
+  if (modo === 'carrera') return <AnadirCarrera perfil={perfil} setPerfil={setPerfil} sugerida={sugerida} cerrar={()=>{setModo(null);setSugerida(null)}} />
+  if (modo === 'proxima') return <NuevaProxima yoId={perfil.id} cerrar={()=>setModo(null)} guardado={()=>setModo(null)} />
   if (modo === 'ajustes') return <Ajustes perfil={perfil} setPerfil={setPerfil} volver={()=>setModo(null)} editarPerfil={()=>setModo('editar')} />
-  return <PerfilVista perfil={perfil} esPropio yoId={perfil.id} onAbrirPerfil={abrirPerfil} onEditar={()=>setModo('editar')} onAnadirCarrera={()=>setModo('carrera')} onAjustes={()=>setModo('ajustes')} onCambio={async()=>{ const { data } = await supabase.from('profiles').select('*').eq('id', perfil.id).single(); if (data) setPerfil(data) }} />
+  return <PerfilVista perfil={perfil} esPropio yoId={perfil.id} onAbrirPerfil={abrirPerfil} onEditar={()=>setModo('editar')} onAnadirCarrera={(p)=>{setSugerida(p?.carrera ? p : null);setModo('carrera')}} onAnadirProxima={()=>setModo('proxima')} onAjustes={()=>setModo('ajustes')} onCambio={async()=>{ const { data } = await supabase.from('profiles').select('*').eq('id', perfil.id).single(); if (data) setPerfil(data) }} />
 }
 
 function Vacio({ icono: Icono, titulo, children }) {

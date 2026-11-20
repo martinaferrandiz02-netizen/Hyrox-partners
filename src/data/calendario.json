@@ -1,0 +1,1026 @@
+[
+{
+"id": "san-galo-2026-01-16",
+"nombre": "San Galo 2026",
+"ciudad": "San Galo",
+"pais": "Suiza",
+"inicio": "2026-01-16",
+"fin": "2026-01-18"
+},
+{
+"id": "manchester-2026-01-21",
+"nombre": "Manchester 2026",
+"ciudad": "Manchester",
+"pais": "Reino Unido",
+"inicio": "2026-01-21",
+"fin": "2026-01-25"
+},
+{
+"id": "ámsterdam-2026-01-22",
+"nombre": "Ámsterdam 2026",
+"ciudad": "Ámsterdam",
+"pais": "Países Bajos",
+"inicio": "2026-01-22",
+"fin": "2026-01-25"
+},
+{
+"id": "phoenix-2026-01-29",
+"nombre": "Phoenix 2026",
+"ciudad": "Phoenix",
+"pais": "Estados Unidos",
+"inicio": "2026-01-29",
+"fin": "2026-02-01"
+},
+{
+"id": "auckland-2026-01-29",
+"nombre": "Auckland 2026",
+"ciudad": "Auckland",
+"pais": "Nueva Zelanda",
+"inicio": "2026-01-29",
+"fin": "2026-02-01"
+},
+{
+"id": "turín-2026-01-30",
+"nombre": "Turín 2026",
+"ciudad": "Turín",
+"pais": "Italia",
+"inicio": "2026-01-30",
+"fin": "2026-02-01"
+},
+{
+"id": "osaka-2026-01-30",
+"nombre": "Osaka 2026",
+"ciudad": "Osaka",
+"pais": "Japón",
+"inicio": "2026-01-30",
+"fin": "2026-02-01"
+},
+{
+"id": "viena-2026-02-06",
+"nombre": "Viena 2026",
+"ciudad": "Viena",
+"pais": "Austria",
+"inicio": "2026-02-06",
+"fin": "2026-02-08"
+},
+{
+"id": "bilbao-2026-02-07",
+"nombre": "Bilbao 2026",
+"ciudad": "Bilbao",
+"pais": "España",
+"inicio": "2026-02-07",
+"fin": "2026-02-08"
+},
+{
+"id": "niza-2026-02-12",
+"nombre": "Niza 2026",
+"ciudad": "Niza",
+"pais": "Francia",
+"inicio": "2026-02-12",
+"fin": "2026-02-15"
+},
+{
+"id": "las-vegas-2026-02-20",
+"nombre": "Las Vegas 2026",
+"ciudad": "Las Vegas",
+"pais": "Estados Unidos",
+"inicio": "2026-02-20",
+"fin": "2026-02-22"
+},
+{
+"id": "katowice-2026-02-21",
+"nombre": "Katowice 2026",
+"ciudad": "Katowice",
+"pais": "Polonia",
+"inicio": "2026-02-21",
+"fin": "2026-02-22"
+},
+{
+"id": "copenhague-2026-03-13",
+"nombre": "Copenhague 2026",
+"ciudad": "Copenhague",
+"pais": "Dinamarca",
+"inicio": "2026-03-13",
+"fin": "2026-03-15"
+},
+{
+"id": "toulouse-2026-03-19",
+"nombre": "Toulouse 2026",
+"ciudad": "Toulouse",
+"pais": "Francia",
+"inicio": "2026-03-19",
+"fin": "2026-03-22"
+},
+{
+"id": "bangkok-2026-03-20",
+"nombre": "Bangkok 2026",
+"ciudad": "Bangkok",
+"pais": "Tailandia",
+"inicio": "2026-03-20",
+"fin": "2026-03-22"
+},
+{
+"id": "malinas-2026-03-26",
+"nombre": "Malinas 2026",
+"ciudad": "Malinas",
+"pais": "Bélgica",
+"inicio": "2026-03-26",
+"fin": "2026-03-29"
+},
+{
+"id": "houston-2026-03-27",
+"nombre": "Houston 2026",
+"ciudad": "Houston",
+"pais": "Estados Unidos",
+"inicio": "2026-03-27",
+"fin": "2026-03-29"
+},
+{
+"id": "bolonia-2026-04-04",
+"nombre": "Bolonia 2026",
+"ciudad": "Bolonia",
+"pais": "Italia",
+"inicio": "2026-04-04",
+"fin": "2026-04-05"
+},
+{
+"id": "brisbane-2026-04-09",
+"nombre": "Brisbane 2026",
+"ciudad": "Brisbane",
+"pais": "Australia",
+"inicio": "2026-04-09",
+"fin": "2026-04-12"
+},
+{
+"id": "bengaluru-2026-04-11",
+"nombre": "Bengaluru 2026",
+"ciudad": "Bengaluru",
+"pais": "India",
+"inicio": "2026-04-11",
+"fin": "2026-04-11"
+},
+{
+"id": "colonia-2026-04-16",
+"nombre": "Colonia 2026",
+"ciudad": "Colonia",
+"pais": "Alemania",
+"inicio": "2026-04-16",
+"fin": "2026-04-19"
+},
+{
+"id": "varsovia-2026-04-16",
+"nombre": "Varsovia 2026",
+"ciudad": "Varsovia",
+"pais": "Polonia",
+"inicio": "2026-04-16",
+"fin": "2026-04-19"
+},
+{
+"id": "róterdam-2026-04-16",
+"nombre": "Róterdam 2026",
+"ciudad": "Róterdam",
+"pais": "Países Bajos",
+"inicio": "2026-04-16",
+"fin": "2026-04-19"
+},
+{
+"id": "málaga-2026-04-16",
+"nombre": "Málaga 2026",
+"ciudad": "Málaga",
+"pais": "España",
+"inicio": "2026-04-16",
+"fin": "2026-04-19"
+},
+{
+"id": "hong-kong-2026-05-08",
+"nombre": "Hong Kong 2026",
+"ciudad": "Hong Kong",
+"pais": "Hong Kong",
+"inicio": "2026-05-08",
+"fin": "2026-05-10"
+},
+{
+"id": "helsinki-2026-05-09",
+"nombre": "Helsinki 2026",
+"ciudad": "Helsinki",
+"pais": "Finlandia",
+"inicio": "2026-05-09",
+"fin": "2026-05-10"
+},
+{
+"id": "barcelona-2026-05-14",
+"nombre": "Barcelona 2026",
+"ciudad": "Barcelona",
+"pais": "España",
+"inicio": "2026-05-14",
+"fin": "2026-05-17"
+},
+{
+"id": "heerenveen-2026-05-14",
+"nombre": "Heerenveen 2026",
+"ciudad": "Heerenveen",
+"pais": "Países Bajos",
+"inicio": "2026-05-14",
+"fin": "2026-05-17"
+},
+{
+"id": "incheon-2026-05-15",
+"nombre": "Incheon 2026",
+"ciudad": "Incheon",
+"pais": "Corea del Sur",
+"inicio": "2026-05-15",
+"fin": "2026-05-17"
+},
+{
+"id": "ottawa-2026-05-16",
+"nombre": "Ottawa 2026",
+"ciudad": "Ottawa",
+"pais": "Canadá",
+"inicio": "2026-05-16",
+"fin": "2026-05-17"
+},
+{
+"id": "lyon-2026-05-21",
+"nombre": "Lyon 2026",
+"ciudad": "Lyon",
+"pais": "Francia",
+"inicio": "2026-05-21",
+"fin": "2026-05-24"
+},
+{
+"id": "rímini-2026-05-29",
+"nombre": "Rímini 2026",
+"ciudad": "Rímini",
+"pais": "Italia",
+"inicio": "2026-05-29",
+"fin": "2026-05-31"
+},
+{
+"id": "riga-2026-05-30",
+"nombre": "Riga 2026",
+"ciudad": "Riga",
+"pais": "Letonia",
+"inicio": "2026-05-30",
+"fin": "2026-05-31"
+},
+{
+"id": "estocolmo-2026-06-18",
+"nombre": "Estocolmo · Mundial 2026",
+"ciudad": "Estocolmo",
+"pais": "Suecia",
+"inicio": "2026-06-18",
+"fin": "2026-06-21"
+},
+{
+"id": "burdeos-2026-09-30",
+"nombre": "Burdeos 2026",
+"ciudad": "Burdeos",
+"pais": "Francia",
+"inicio": "2026-09-30",
+"fin": "2026-10-04"
+},
+{
+"id": "toronto-2026-10-01",
+"nombre": "Toronto 2026",
+"ciudad": "Toronto",
+"pais": "Canadá",
+"inicio": "2026-10-01",
+"fin": "2026-10-04"
+},
+{
+"id": "karlsruhe-2026-10-01",
+"nombre": "Karlsruhe 2026",
+"ciudad": "Karlsruhe",
+"pais": "Alemania",
+"inicio": "2026-10-01",
+"fin": "2026-10-04"
+},
+{
+"id": "boston-2026-10-08",
+"nombre": "Boston 2026",
+"ciudad": "Boston",
+"pais": "Estados Unidos",
+"inicio": "2026-10-08",
+"fin": "2026-10-11"
+},
+{
+"id": "ginebra-2026-10-09",
+"nombre": "Ginebra 2026",
+"ciudad": "Ginebra",
+"pais": "Suiza",
+"inicio": "2026-10-09",
+"fin": "2026-10-11"
+},
+{
+"id": "gdansk-2026-10-10",
+"nombre": "Gdansk 2026",
+"ciudad": "Gdansk",
+"pais": "Polonia",
+"inicio": "2026-10-10",
+"fin": "2026-10-11"
+},
+{
+"id": "valencia-2026-10-15",
+"nombre": "Valencia 2026",
+"ciudad": "Valencia",
+"pais": "España",
+"inicio": "2026-10-15",
+"fin": "2026-10-18"
+},
+{
+"id": "budapest-2026-10-17",
+"nombre": "Budapest 2026",
+"ciudad": "Budapest",
+"pais": "Hungría",
+"inicio": "2026-10-17",
+"fin": "2026-10-17"
+},
+{
+"id": "são-paulo-2026-10-17",
+"nombre": "São Paulo 2026",
+"ciudad": "São Paulo",
+"pais": "Brasil",
+"inicio": "2026-10-17",
+"fin": "2026-10-18"
+},
+{
+"id": "tampa-2026-10-22",
+"nombre": "Tampa 2026",
+"ciudad": "Tampa",
+"pais": "Estados Unidos",
+"inicio": "2026-10-22",
+"fin": "2026-10-25"
+},
+{
+"id": "abu-dabi-2026-10-23",
+"nombre": "Abu Dabi 2026",
+"ciudad": "Abu Dabi",
+"pais": "Emiratos Árabes",
+"inicio": "2026-10-23",
+"fin": "2026-10-25"
+},
+{
+"id": "birmingham-2026-10-27",
+"nombre": "Birmingham 2026",
+"ciudad": "Birmingham",
+"pais": "Reino Unido",
+"inicio": "2026-10-27",
+"fin": "2026-11-01"
+},
+{
+"id": "hamburgo-2026-10-28",
+"nombre": "Hamburgo 2026",
+"ciudad": "Hamburgo",
+"pais": "Alemania",
+"inicio": "2026-10-28",
+"fin": "2026-11-01"
+},
+{
+"id": "ciudad-de-méxico-2026-10-29",
+"nombre": "Ciudad de México 2026",
+"ciudad": "Ciudad de México",
+"pais": "México",
+"inicio": "2026-10-29",
+"fin": "2026-11-01"
+},
+{
+"id": "niza-2026-10-29",
+"nombre": "Niza 2026",
+"ciudad": "Niza",
+"pais": "Francia",
+"inicio": "2026-10-29",
+"fin": "2026-11-01"
+},
+{
+"id": "düsseldorf-2026-11-11",
+"nombre": "Düsseldorf 2026",
+"ciudad": "Düsseldorf",
+"pais": "Alemania",
+"inicio": "2026-11-11",
+"fin": "2026-11-15"
+},
+{
+"id": "dublin-2026-11-11",
+"nombre": "Dublin 2026",
+"ciudad": "Dublin",
+"pais": "Irlanda",
+"inicio": "2026-11-11",
+"fin": "2026-11-15"
+},
+{
+"id": "barcelona-2026-11-11",
+"nombre": "Barcelona 2026",
+"ciudad": "Barcelona",
+"pais": "España",
+"inicio": "2026-11-11",
+"fin": "2026-11-15"
+},
+{
+"id": "denver-2026-11-12",
+"nombre": "Denver 2026",
+"ciudad": "Denver",
+"pais": "Estados Unidos",
+"inicio": "2026-11-12",
+"fin": "2026-11-15"
+},
+{
+"id": "seúl-2026-11-13",
+"nombre": "Seúl 2026",
+"ciudad": "Seúl",
+"pais": "Corea del Sur",
+"inicio": "2026-11-13",
+"fin": "2026-11-15"
+},
+{
+"id": "el-cairo-2026-11-14",
+"nombre": "El Cairo 2026",
+"ciudad": "El Cairo",
+"pais": "Egipto",
+"inicio": "2026-11-14",
+"fin": "2026-11-15"
+},
+{
+"id": "dallas-2026-11-18",
+"nombre": "Dallas 2026",
+"ciudad": "Dallas",
+"pais": "Estados Unidos",
+"inicio": "2026-11-18",
+"fin": "2026-11-22"
+},
+{
+"id": "poznan-2026-11-20",
+"nombre": "Poznan 2026",
+"ciudad": "Poznan",
+"pais": "Polonia",
+"inicio": "2026-11-20",
+"fin": "2026-11-22"
+},
+{
+"id": "guangzhou-2026-11-21",
+"nombre": "Guangzhou 2026",
+"ciudad": "Guangzhou",
+"pais": "China",
+"inicio": "2026-11-21",
+"fin": "2026-11-22"
+},
+{
+"id": "río-de-janeiro-2026-11-21",
+"nombre": "Río de Janeiro 2026",
+"ciudad": "Río de Janeiro",
+"pais": "Brasil",
+"inicio": "2026-11-21",
+"fin": "2026-11-22"
+},
+{
+"id": "singapur-2026-11-26",
+"nombre": "Singapur 2026",
+"ciudad": "Singapur",
+"pais": "Singapur",
+"inicio": "2026-11-26",
+"fin": "2026-11-29"
+},
+{
+"id": "utrecht-2026-11-26",
+"nombre": "Utrecht 2026",
+"ciudad": "Utrecht",
+"pais": "Países Bajos",
+"inicio": "2026-11-26",
+"fin": "2026-11-30"
+},
+{
+"id": "gandhinagar-2026-11-26",
+"nombre": "Gandhinagar 2026",
+"ciudad": "Gandhinagar",
+"pais": "India",
+"inicio": "2026-11-26",
+"fin": "2026-11-28"
+},
+{
+"id": "johannesburgo-2026-11-26",
+"nombre": "Johannesburgo 2026",
+"ciudad": "Johannesburgo",
+"pais": "Sudáfrica",
+"inicio": "2026-11-26",
+"fin": "2026-11-29"
+},
+{
+"id": "dubái-2026-11-27",
+"nombre": "Dubái 2026",
+"ciudad": "Dubái",
+"pais": "Emiratos Árabes",
+"inicio": "2026-11-27",
+"fin": "2026-11-28"
+},
+{
+"id": "londres-2026-12-02",
+"nombre": "Londres 2026",
+"ciudad": "Londres",
+"pais": "Reino Unido",
+"inicio": "2026-12-02",
+"fin": "2026-12-06"
+},
+{
+"id": "anaheim-2026-12-03",
+"nombre": "Anaheim 2026",
+"ciudad": "Anaheim",
+"pais": "Estados Unidos",
+"inicio": "2026-12-03",
+"fin": "2026-12-06"
+},
+{
+"id": "milán-2026-12-04",
+"nombre": "Milán 2026",
+"ciudad": "Milán",
+"pais": "Italia",
+"inicio": "2026-12-04",
+"fin": "2026-12-06"
+},
+{
+"id": "sanya-2026-12-05",
+"nombre": "Sanya 2026",
+"ciudad": "Sanya",
+"pais": "China",
+"inicio": "2026-12-05",
+"fin": "2026-12-06"
+},
+{
+"id": "melbourne-2026-12-09",
+"nombre": "Melbourne 2026",
+"ciudad": "Melbourne",
+"pais": "Australia",
+"inicio": "2026-12-09",
+"fin": "2026-12-13"
+},
+{
+"id": "nashville-2026-12-09",
+"nombre": "Nashville 2026",
+"ciudad": "Nashville",
+"pais": "Estados Unidos",
+"inicio": "2026-12-09",
+"fin": "2026-12-13"
+},
+{
+"id": "kuala-lumpur-2026-12-10",
+"nombre": "Kuala Lumpur 2026",
+"ciudad": "Kuala Lumpur",
+"pais": "Malasia",
+"inicio": "2026-12-10",
+"fin": "2026-12-13"
+},
+{
+"id": "fráncfort-2026-12-10",
+"nombre": "Fráncfort 2026",
+"ciudad": "Fráncfort",
+"pais": "Alemania",
+"inicio": "2026-12-10",
+"fin": "2026-12-13"
+},
+{
+"id": "estocolmo-2026-12-10",
+"nombre": "Estocolmo 2026",
+"ciudad": "Estocolmo",
+"pais": "Suecia",
+"inicio": "2026-12-10",
+"fin": "2026-12-13"
+},
+{
+"id": "parís-2026-12-12",
+"nombre": "París 2026",
+"ciudad": "París",
+"pais": "Francia",
+"inicio": "2026-12-12",
+"fin": "2026-12-20"
+},
+{
+"id": "gante-2026-12-17",
+"nombre": "Gante 2026",
+"ciudad": "Gante",
+"pais": "Bélgica",
+"inicio": "2026-12-17",
+"fin": "2026-12-20"
+},
+{
+"id": "vancouver-2026-12-17",
+"nombre": "Vancouver 2026",
+"ciudad": "Vancouver",
+"pais": "Canadá",
+"inicio": "2026-12-17",
+"fin": "2026-12-20"
+},
+{
+"id": "helsinki-2026-12-18",
+"nombre": "Helsinki 2026",
+"ciudad": "Helsinki",
+"pais": "Finlandia",
+"inicio": "2026-12-18",
+"fin": "2026-12-20"
+},
+{
+"id": "hong-kong-2027-01-07",
+"nombre": "Hong Kong 2027",
+"ciudad": "Hong Kong",
+"pais": "Hong Kong",
+"inicio": "2027-01-07",
+"fin": "2027-01-10"
+},
+{
+"id": "noida-2027-01-15",
+"nombre": "Noida 2027",
+"ciudad": "Noida",
+"pais": "India",
+"inicio": "2027-01-15",
+"fin": "2027-01-17"
+},
+{
+"id": "manchester-2027-01-20",
+"nombre": "Manchester 2027",
+"ciudad": "Manchester",
+"pais": "Reino Unido",
+"inicio": "2027-01-20",
+"fin": "2027-01-31"
+},
+{
+"id": "osaka-2027-01-21",
+"nombre": "Osaka 2027",
+"ciudad": "Osaka",
+"pais": "Japón",
+"inicio": "2027-01-21",
+"fin": "2027-01-25"
+},
+{
+"id": "ámsterdam-2027-01-22",
+"nombre": "Ámsterdam 2027",
+"ciudad": "Ámsterdam",
+"pais": "Países Bajos",
+"inicio": "2027-01-22",
+"fin": "2027-01-31"
+},
+{
+"id": "verona-2027-01-28",
+"nombre": "Verona 2027",
+"ciudad": "Verona",
+"pais": "Italia",
+"inicio": "2027-01-28",
+"fin": "2027-01-31"
+},
+{
+"id": "toulouse-2027-02-03",
+"nombre": "Toulouse 2027",
+"ciudad": "Toulouse",
+"pais": "Francia",
+"inicio": "2027-02-03",
+"fin": "2027-02-07"
+},
+{
+"id": "auckland-2027-02-04",
+"nombre": "Auckland 2027",
+"ciudad": "Auckland",
+"pais": "Nueva Zelanda",
+"inicio": "2027-02-04",
+"fin": "2027-02-07"
+},
+{
+"id": "bilbao-2027-02-06",
+"nombre": "Bilbao 2027",
+"ciudad": "Bilbao",
+"pais": "España",
+"inicio": "2027-02-06",
+"fin": "2027-02-07"
+},
+{
+"id": "bangkok-2027-02-11",
+"nombre": "Bangkok 2027",
+"ciudad": "Bangkok",
+"pais": "Tailandia",
+"inicio": "2027-02-11",
+"fin": "2027-02-14"
+},
+{
+"id": "chicago-2027-02-11",
+"nombre": "Chicago 2027",
+"ciudad": "Chicago",
+"pais": "Estados Unidos",
+"inicio": "2027-02-11",
+"fin": "2027-02-15"
+},
+{
+"id": "basilea-2027-02-12",
+"nombre": "Basilea 2027",
+"ciudad": "Basilea",
+"pais": "Suiza",
+"inicio": "2027-02-12",
+"fin": "2027-02-14"
+},
+{
+"id": "katowice-2027-02-19",
+"nombre": "Katowice 2027",
+"ciudad": "Katowice",
+"pais": "Polonia",
+"inicio": "2027-02-19",
+"fin": "2027-02-21"
+},
+{
+"id": "cancún-2027-02-19",
+"nombre": "Cancún 2027",
+"ciudad": "Cancún",
+"pais": "México",
+"inicio": "2027-02-19",
+"fin": "2027-02-21"
+},
+{
+"id": "viena-2027-02-19",
+"nombre": "Viena 2027",
+"ciudad": "Viena",
+"pais": "Austria",
+"inicio": "2027-02-19",
+"fin": "2027-02-21"
+},
+{
+"id": "phoenix-2027-02-25",
+"nombre": "Phoenix 2027",
+"ciudad": "Phoenix",
+"pais": "Estados Unidos",
+"inicio": "2027-02-25",
+"fin": "2027-02-28"
+},
+{
+"id": "malinas-2027-03-03",
+"nombre": "Malinas 2027",
+"ciudad": "Malinas",
+"pais": "Bélgica",
+"inicio": "2027-03-03",
+"fin": "2027-03-07"
+},
+{
+"id": "hanói-2027-03-06",
+"nombre": "Hanói 2027",
+"ciudad": "Hanói",
+"pais": "Vietnam",
+"inicio": "2027-03-06",
+"fin": "2027-03-07"
+},
+{
+"id": "glasgow-2027-03-10",
+"nombre": "Glasgow 2027",
+"ciudad": "Glasgow",
+"pais": "Reino Unido",
+"inicio": "2027-03-10",
+"fin": "2027-03-14"
+},
+{
+"id": "las-vegas-2027-03-12",
+"nombre": "Las Vegas 2027",
+"ciudad": "Las Vegas",
+"pais": "Estados Unidos",
+"inicio": "2027-03-12",
+"fin": "2027-03-14"
+},
+{
+"id": "taipéi-2027-03-12",
+"nombre": "Taipéi 2027",
+"ciudad": "Taipéi",
+"pais": "Taiwán",
+"inicio": "2027-03-12",
+"fin": "2027-03-14"
+},
+{
+"id": "madrid-2027-03-17",
+"nombre": "Madrid 2027",
+"ciudad": "Madrid",
+"pais": "España",
+"inicio": "2027-03-17",
+"fin": "2027-03-21"
+},
+{
+"id": "guadalajara-2027-03-19",
+"nombre": "Guadalajara 2027",
+"ciudad": "Guadalajara",
+"pais": "México",
+"inicio": "2027-03-19",
+"fin": "2027-03-21"
+},
+{
+"id": "buenos-aires-2027-03-20",
+"nombre": "Buenos Aires 2027",
+"ciudad": "Buenos Aires",
+"pais": "Argentina",
+"inicio": "2027-03-20",
+"fin": "2027-03-21"
+},
+{
+"id": "copenhague-2027-03-25",
+"nombre": "Copenhague 2027",
+"ciudad": "Copenhague",
+"pais": "Dinamarca",
+"inicio": "2027-03-25",
+"fin": "2027-03-28"
+},
+{
+"id": "miami-beach-2027-03-26",
+"nombre": "Miami Beach 2027",
+"ciudad": "Miami Beach",
+"pais": "Estados Unidos",
+"inicio": "2027-03-26",
+"fin": "2027-03-28"
+},
+{
+"id": "ciudad-del-cabo-2027-03-26",
+"nombre": "Ciudad del Cabo 2027",
+"ciudad": "Ciudad del Cabo",
+"pais": "Sudáfrica",
+"inicio": "2027-03-26",
+"fin": "2027-03-28"
+},
+{
+"id": "brisbane-2027-03-31",
+"nombre": "Brisbane 2027",
+"ciudad": "Brisbane",
+"pais": "Australia",
+"inicio": "2027-03-31",
+"fin": "2027-04-05"
+},
+{
+"id": "houston-2027-04-01",
+"nombre": "Houston 2027",
+"ciudad": "Houston",
+"pais": "Estados Unidos",
+"inicio": "2027-04-01",
+"fin": "2027-04-04"
+},
+{
+"id": "róterdam-2027-04-01",
+"nombre": "Róterdam 2027",
+"ciudad": "Róterdam",
+"pais": "Países Bajos",
+"inicio": "2027-04-01",
+"fin": "2027-04-04"
+},
+{
+"id": "bari-2027-04-02",
+"nombre": "Bari 2027",
+"ciudad": "Bari",
+"pais": "Italia",
+"inicio": "2027-04-02",
+"fin": "2027-04-04"
+},
+{
+"id": "varsovia-2027-04-07",
+"nombre": "Varsovia 2027",
+"ciudad": "Varsovia",
+"pais": "Polonia",
+"inicio": "2027-04-07",
+"fin": "2027-04-11"
+},
+{
+"id": "colonia-2027-04-08",
+"nombre": "Colonia 2027",
+"ciudad": "Colonia",
+"pais": "Alemania",
+"inicio": "2027-04-08",
+"fin": "2027-04-11"
+},
+{
+"id": "parís-grand-palais-2027-04-08",
+"nombre": "París Grand Palais 2027",
+"ciudad": "París Grand Palais",
+"pais": "Francia",
+"inicio": "2027-04-08",
+"fin": "2027-04-12"
+},
+{
+"id": "málaga-2027-04-14",
+"nombre": "Málaga 2027",
+"ciudad": "Málaga",
+"pais": "España",
+"inicio": "2027-04-14",
+"fin": "2027-04-18"
+},
+{
+"id": "helsinki-2027-04-16",
+"nombre": "Helsinki 2027",
+"ciudad": "Helsinki",
+"pais": "Finlandia",
+"inicio": "2027-04-16",
+"fin": "2027-04-18"
+},
+{
+"id": "monterrey-2027-04-16",
+"nombre": "Monterrey 2027",
+"ciudad": "Monterrey",
+"pais": "México",
+"inicio": "2027-04-16",
+"fin": "2027-04-18"
+},
+{
+"id": "nagoya-2027-04-16",
+"nombre": "Nagoya 2027",
+"ciudad": "Nagoya",
+"pais": "Japón",
+"inicio": "2027-04-16",
+"fin": "2027-04-18"
+},
+{
+"id": "ottawa-2027-04-21",
+"nombre": "Ottawa 2027",
+"ciudad": "Ottawa",
+"pais": "Canadá",
+"inicio": "2027-04-21",
+"fin": "2027-04-25"
+},
+{
+"id": "atlanta-2027-04-23",
+"nombre": "Atlanta 2027",
+"ciudad": "Atlanta",
+"pais": "Estados Unidos",
+"inicio": "2027-04-23",
+"fin": "2027-04-25"
+},
+{
+"id": "cracovia-2027-05-07",
+"nombre": "Cracovia 2027",
+"ciudad": "Cracovia",
+"pais": "Polonia",
+"inicio": "2027-05-07",
+"fin": "2027-05-09"
+},
+{
+"id": "são-paulo-2027-05-08",
+"nombre": "São Paulo 2027",
+"ciudad": "São Paulo",
+"pais": "Brasil",
+"inicio": "2027-05-08",
+"fin": "2027-05-09"
+},
+{
+"id": "bengaluru-2027-05-12",
+"nombre": "Bengaluru 2027",
+"ciudad": "Bengaluru",
+"pais": "India",
+"inicio": "2027-05-12",
+"fin": "2027-05-16"
+},
+{
+"id": "lyon-2027-05-12",
+"nombre": "Lyon 2027",
+"ciudad": "Lyon",
+"pais": "Francia",
+"inicio": "2027-05-12",
+"fin": "2027-05-16"
+},
+{
+"id": "incheon-2027-05-13",
+"nombre": "Incheon 2027",
+"ciudad": "Incheon",
+"pais": "Corea del Sur",
+"inicio": "2027-05-13",
+"fin": "2027-05-16"
+},
+{
+"id": "san-diego-2027-05-13",
+"nombre": "San Diego 2027",
+"ciudad": "San Diego",
+"pais": "Estados Unidos",
+"inicio": "2027-05-13",
+"fin": "2027-05-16"
+},
+{
+"id": "cardiff-2027-05-20",
+"nombre": "Cardiff 2027",
+"ciudad": "Cardiff",
+"pais": "Reino Unido",
+"inicio": "2027-05-20",
+"fin": "2027-05-29"
+},
+{
+"id": "portland-2027-05-21",
+"nombre": "Portland 2027",
+"ciudad": "Portland",
+"pais": "Estados Unidos",
+"inicio": "2027-05-21",
+"fin": "2027-05-23"
+},
+{
+"id": "rímini-2027-05-27",
+"nombre": "Rímini 2027",
+"ciudad": "Rímini",
+"pais": "Italia",
+"inicio": "2027-05-27",
+"fin": "2027-05-30"
+},
+{
+"id": "riga-2027-05-28",
+"nombre": "Riga 2027",
+"ciudad": "Riga",
+"pais": "Letonia",
+"inicio": "2027-05-28",
+"fin": "2027-05-30"
+},
+{
+"id": "hong-kong-2027-06-10",
+"nombre": "Hong Kong · Mundial 2027",
+"ciudad": "Hong Kong",
+"pais": "Hong Kong",
+"inicio": "2027-06-10",
+"fin": "2027-06-13"
+}
+]

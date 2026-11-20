@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
-import { ArrowUpRight, Check, ChevronRight, CircleX, Hourglass, MapPin, Plus, Settings, UserCheck, UserPlus, Users } from 'lucide-react'
+import { ArrowUpRight, CalendarPlus, Check, ChevronRight, CircleX, Globe, Hourglass, Lock, MapPin, Plus, Settings, Upload, UserCheck, UserPlus, Users } from 'lucide-react'
 import { Avatar } from './Avatar'
-import { formatoParcial } from './certificado'
 import { nombreCiudad } from './ciudades'
 import { borrarResultado, ESTACIONES, mejoresMarcas, useResultados } from './resultados'
 import { MisVideos, VideosDe } from './Videos'
 import { EntrenoFila } from './Entrenos'
 import { listaSeguimientos, mejoresDeEntrenos, useContadores, useEntrenos, useSeguir } from './datosEntrenos'
 import { Volver } from './Volver'
+import { ProximaFila } from './Carreras'
+import { cambiarVisibilidadCarrera, useProximas } from './datosCarreras'
+import { aSegundos, formatoParcial } from './certificado'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
 const fechaCarrera = (f) => f ? new Date(f + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }) : null
@@ -56,7 +58,7 @@ function ListaSeguimientos({ perfil, tipo, volver, onAbrirPerfil, yoId }) {
   )
 }
 
-export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAjustes, onCambio, onAbrirPerfil }) {
+export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAnadirProxima, onAjustes, onCambio, onAbrirPerfil }) {
   const [lista, setLista] = useState(null)
   const contadores = useContadores(perfil.id, esPropio)
   const { resultados, cargando, recargar } = useResultados(perfil.id)
@@ -77,6 +79,9 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
   const [pestana, setPestana] = useState('marcas')
   const verificadas = resultados.filter(r => r.estado === 'verificado')
   const visibles = esPropio ? resultados : verificadas
+  const { proximas, recargar: recargarProximas } = useProximas(perfil.id)
+  const proximasVisibles = esPropio ? proximas : proximas.filter(p => p.fecha >= new Date().toISOString().slice(0, 10))
+  const mejorId = verificadas.length ? verificadas.reduce((m, r) => (aSegundos(r.tiempo) < aSegundos(m.tiempo) ? r : m)).id : null
   const marcas = mejoresMarcas(resultados)
   const marcasEntreno = mejoresDeEntrenos(entrenos)
   const hayEntreno = ESTACIONES.some(e => !marcas[e] && marcasEntreno[e]) || (!marcas.Running && marcasEntreno.Running)
@@ -184,15 +189,29 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
 
       {pestana === 'carreras' && (
         <div>
+          {esPropio && (
+            <div className="carreras-botones">
+              <button className="btn-match btn-sm" onClick={() => onAnadirCarrera?.()}><Upload size={16} /> Sube una carrera</button>
+              <button className="btn-secondary btn-sm" onClick={onAnadirProxima}><CalendarPlus size={16} /> Próxima carrera</button>
+            </div>
+          )}
+
+          {(esPropio || proximasVisibles.length > 0) && <div className="section-label">Próximas carreras</div>}
+          {esPropio && proximas.length === 0 && <div className="pareja-vacia" style={{ paddingTop: 0 }}>Apunta las carreras a las que vas a ir: otros atletas lo verán y podrán proponerte hacer pareja.</div>}
+          {proximasVisibles.length > 0 && (
+            <div className="lista">{proximasVisibles.map(p => <ProximaFila key={p.id} p={p} propio={esPropio} onCambio={recargarProximas} onSubirCertificado={onAnadirCarrera} />)}</div>
+          )}
+
+          <div className="section-label">Historial</div>
           {cargando && <div className="pv-vacio">Cargando…</div>}
           {!cargando && visibles.length === 0 && (
-            <div className="pv-vacio">{esPropio ? <>Aún no has añadido carreras.{anadir}</> : 'Todavía no tiene carreras verificadas.'}</div>
+            <div className="pareja-vacia" style={{ paddingTop: 0 }}>{esPropio ? 'Sube el certificado de tus carreras y aquí tendrás tu historial. Tu mejor tiempo aparecerá destacado.' : 'Todavía no tiene carreras verificadas públicas.'}</div>
           )}
           {visibles.map(r => (
             <div key={r.id} className="carrera">
               <div className="carrera-top">
                 <div style={{ minWidth: 0 }}>
-                  <div className="carrera-nombre">{r.carrera}</div>
+                  <div className="carrera-nombre">{r.carrera}{r.id === mejorId && <span className="tag acento tag-mejor">Mejor</span>}</div>
                   <div className="carrera-sub">{[fechaCarrera(r.fecha), r.division, r.categoria].filter(Boolean).join(' · ')}</div>
                 </div>
                 <div>
@@ -202,6 +221,11 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
               <div className="carrera-pie">
                 <EstadoCarrera r={r} esPropio={esPropio} />
                 <span className="carrera-acciones">
+                  {esPropio && (
+                    <button className="vis-toggle" disabled={borrando === r.id} onClick={async () => { if (await cambiarVisibilidadCarrera(r.id, r.visibilidad === 'privado' ? 'publico' : 'privado')) await recargar() }}>
+                      {r.visibilidad === 'privado' ? <><Lock size={13} /> Solo yo</> : <><Globe size={13} /> Pública</>}
+                    </button>
+                  )}
                   <a href={r.certificado_url} target="_blank" rel="noopener noreferrer">Certificado <ArrowUpRight size={14} /></a>
                   {esPropio && <button className="video-borrar" disabled={borrando === r.id} onClick={() => borrar(r)}>{borrando === r.id ? 'Borrando…' : 'Borrar'}</button>}
                 </span>

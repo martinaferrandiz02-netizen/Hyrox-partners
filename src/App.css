@@ -519,3 +519,25 @@ button.fila:disabled { cursor: default; opacity: 1; }
 .requisitos li svg { color: var(--line-2); flex-shrink: 0; }
 .requisitos li.ok { color: var(--text); }
 .requisitos li.ok svg { color: var(--accent); }
+/* Carreras: próximas e historial */
+.carreras-botones { display: flex; gap: 10px; margin-top: 18px; }
+.carreras-botones > * { flex: 1; }
+.fila-icono { color: var(--sub); flex-shrink: 0; }
+.proxima { border-bottom: 1px solid var(--line); }
+.proxima .fila { border-bottom: none; }
+.proxima-acciones { padding: 0 0 14px 34px; display: flex; gap: 8px; }
+.busca-pareja { color: var(--accent); font-weight: 600; }
+.tag-mejor { margin-left: 8px; vertical-align: 3px; height: 20px; font-size: 11px; }
+.vis-toggle { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; padding: 0; cursor: pointer; color: var(--sub); font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+.carrera-acciones { flex-wrap: wrap; justify-content: flex-end; }
+.carrera-elegida { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--accent); border-radius: 12px; background: var(--surface); }
+.selector-carrera .campo-busqueda { margin-bottom: 4px; }
+.selector-carrera .sugeridas { margin-bottom: 14px; border-top: none; }
+.selector-carrera .sugeridas .fila { border: 1px solid var(--accent); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+.aviso-nombre { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,107,107,.5); background: rgba(255,107,107,.08); text-transform: none; letter-spacing: 0; font-family: var(--sans); }
+.aviso-nombre strong { color: var(--danger); font-size: 15px; }
+.aviso-nombre span { color: #d6d6d6; font-size: 13px; line-height: 1.5; font-weight: 400; }
+.aviso-nombre b { color: var(--text); }
+.upload-drop { text-transform: none; }
+.perfil-form label.campo-busqueda { flex-direction: row; align-items: center; gap: 10px; text-transform: none; letter-spacing: 0; font-family: var(--sans); }
+.perfil-form label.campo-busqueda input.buscador-input:not([type=checkbox]) { height: auto; padding: 0; background: none; border: none; font-size: 15px; }
