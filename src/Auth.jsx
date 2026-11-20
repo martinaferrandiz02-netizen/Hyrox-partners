@@ -4,6 +4,8 @@ import { CampoCiudad } from './Ciudad'
 import { CampoClub } from './Club'
 import { clubCanonico } from './clubs'
 import { Volver } from './Volver'
+import { CampoContrasena, RequisitosContrasena } from './CampoContrasena'
+import { contrasenaValida, MENSAJE_REQUISITOS } from './contrasena'
 import { URL_PRIVACIDAD, URL_TERMINOS } from './legal'
 
 // Al abrir el enlace del email de recuperación se vuelve a la app con ?recuperar=1
@@ -38,8 +40,8 @@ export function Acceso() {
         setEnviando(false)
         return
       }
-      if (password.length < 6) {
-        setEstado('La contraseña debe tener al menos 6 caracteres.')
+      if (!contrasenaValida(password)) {
+        setEstado(MENSAJE_REQUISITOS)
         setEnviando(false)
         return
       }
@@ -61,7 +63,8 @@ export function Acceso() {
       </div>
       <form className="acceso-form" onSubmit={enviar}>
         <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" autoComplete="email" />
-        {modo !== 'recuperar' && <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" autoComplete={modo === 'entrar' ? 'current-password' : 'new-password'} />}
+        {modo !== 'recuperar' && <CampoContrasena required value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" autoComplete={modo === 'entrar' ? 'current-password' : 'new-password'} />}
+        {modo === 'registro' && <RequisitosContrasena valor={password} />}
         {modo === 'entrar' && <button type="button" className="link-btn apagado acceso-olvido" onClick={() => { setModo('recuperar'); setEstado('') }}>¿Has olvidado tu contraseña?</button>}
         {modo === 'recuperar' && <div className="acceso-ayuda">Escribe el email de tu cuenta y te enviaremos un enlace para crear una contraseña nueva.</div>}
         {modo === 'registro' && (
@@ -89,7 +92,7 @@ export function NuevaContrasena({ listo }) {
   const [enviando, setEnviando] = useState(false)
   const guardar = async (e) => {
     e.preventDefault()
-    if (p1.length < 6) { setEstado('La contraseña debe tener al menos 6 caracteres.'); return }
+    if (!contrasenaValida(p1)) { setEstado(MENSAJE_REQUISITOS); return }
     if (p1 !== p2) { setEstado('Las dos contraseñas no coinciden.'); return }
     setEnviando(true)
     const { error } = await supabase.auth.updateUser({ password: p1 })
@@ -104,8 +107,9 @@ export function NuevaContrasena({ listo }) {
         <div className="acceso-sub">Crea tu contraseña<br />nueva</div>
       </div>
       <form className="acceso-form" onSubmit={guardar}>
-        <input type="password" required value={p1} onChange={e => setP1(e.target.value)} placeholder="Contraseña nueva" autoComplete="new-password" />
-        <input type="password" required value={p2} onChange={e => setP2(e.target.value)} placeholder="Repite la contraseña" autoComplete="new-password" />
+        <CampoContrasena required value={p1} onChange={e => setP1(e.target.value)} placeholder="Contraseña nueva" autoComplete="new-password" />
+        <RequisitosContrasena valor={p1} />
+        <CampoContrasena required value={p2} onChange={e => setP2(e.target.value)} placeholder="Repite la contraseña" autoComplete="new-password" />
         {estado && <div className="acceso-estado">{estado}</div>}
         <button className="btn-match" type="submit" disabled={enviando}>{enviando ? '…' : 'Guardar y entrar'}</button>
       </form>

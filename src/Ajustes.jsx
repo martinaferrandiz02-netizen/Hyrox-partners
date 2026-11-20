@@ -4,6 +4,8 @@ import { Avatar } from './Avatar'
 import { URL_PRIVACIDAD, URL_TERMINOS } from './legal'
 import { Ban, ChevronRight, FileText, KeyRound, LogOut, Mail, Pencil, ScrollText, Smartphone, Trash2 } from 'lucide-react'
 import { Volver } from './Volver'
+import { CampoContrasena, RequisitosContrasena } from './CampoContrasena'
+import { contrasenaValida, MENSAJE_REQUISITOS } from './contrasena'
 import { desbloquear, misBloqueados } from './bloqueos'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
@@ -82,7 +84,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
   }
 
   const guardarPassword = async () => {
-    if (campo1.length < 6) { setEstado('La contraseña debe tener al menos 6 caracteres.'); return }
+    if (!contrasenaValida(campo1)) { setEstado(MENSAJE_REQUISITOS); return }
     if (campo1 !== campo2) { setEstado('Las contraseñas no coinciden.'); return }
     const { error } = await supabase.auth.updateUser({ password: campo1 })
     if (error) { setEstado(`No se ha podido cambiar (${error.message}).`); return }
@@ -129,8 +131,9 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
             <button className="btn-match" onClick={guardarEmail}>Guardar</button>
           </>}
           {vista === 'password' && <>
-            <label>Nueva contraseña<input type="password" value={campo1} onChange={e => setCampo1(e.target.value)} autoComplete="new-password" /></label>
-            <label>Repite la contraseña<input type="password" value={campo2} onChange={e => setCampo2(e.target.value)} autoComplete="new-password" /></label>
+            <label>Nueva contraseña<CampoContrasena value={campo1} onChange={e => setCampo1(e.target.value)} autoComplete="new-password" /></label>
+            <RequisitosContrasena valor={campo1} />
+            <label>Repite la contraseña<CampoContrasena value={campo2} onChange={e => setCampo2(e.target.value)} autoComplete="new-password" /></label>
             <button className="btn-match" onClick={guardarPassword}>Guardar</button>
           </>}
           {vista === 'telefono' && <>
