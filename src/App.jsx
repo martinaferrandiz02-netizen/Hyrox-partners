@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Activity, ArrowUpRight, BadgeCheck, Check, ChevronLeft, ChevronRight, House, Inbox, MapPin, MessageCircle, Plus, Search, SlidersHorizontal, Ticket, Trophy, User, Users, X } from 'lucide-react'
 import { Entrenos } from './Entrenos'
 import './App.css'
-import { Acceso, FormPerfil } from './Auth'
+import { Acceso, FormPerfil, NuevaContrasena } from './Auth'
 import { supabase } from './supabase'
 import { Avatar } from './Avatar'
 import { nombreCiudad } from './ciudades'
@@ -32,10 +32,15 @@ const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categori
 export default function App() {
   const [sesion, setSesion] = useState(undefined)
   const [perfil, setPerfil] = useState(undefined)
+  // Viene del enlace "he olvidado mi contraseña"
+  const [recuperando, setRecuperando] = useState(() => /[?&]recuperar=1|type=recovery/.test(window.location.search + window.location.hash))
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSesion(data.session))
-    const { data } = supabase.auth.onAuthStateChange((_evento, s) => setSesion(s))
+    const { data } = supabase.auth.onAuthStateChange((evento, s) => {
+      setSesion(s)
+      if (evento === 'PASSWORD_RECOVERY') setRecuperando(true)
+    })
     return () => data.subscription.unsubscribe()
   }, [])
 
@@ -48,6 +53,7 @@ export default function App() {
 
   let contenido
   if (sesion === undefined || (sesion && (perfil === undefined || (perfil && perfil.id !== userId)))) contenido = <div className="screen cargando">Cargando…</div>
+  else if (sesion && recuperando) contenido = <NuevaContrasena listo={() => { setRecuperando(false); window.history.replaceState(null, '', '/') }} />
   else if (!sesion) contenido = <Acceso />
   else if (!perfil) contenido = <FormPerfil userId={userId} onGuardado={setPerfil} />
   else return <Pairx perfil={perfil} setPerfil={setPerfil} />

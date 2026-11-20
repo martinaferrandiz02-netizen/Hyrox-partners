@@ -6,7 +6,10 @@ import { clubCanonico } from './clubs'
 import { Volver } from './Volver'
 import { URL_PRIVACIDAD, URL_TERMINOS } from './legal'
 
-// Pantalla de acceso: iniciar sesión o crear cuenta con email y contraseña
+// Al abrir el enlace del email de recuperación se vuelve a la app con ?recuperar=1
+const URL_RECUPERAR = 'https://pairx-app.vercel.app/?recuperar=1'
+
+// Pantalla de acceso: iniciar sesión, crear cuenta o recuperar la contraseña
 export function Acceso() {
   const [modo, setModo] = useState('entrar')
   const [email, setEmail] = useState('')
@@ -19,7 +22,14 @@ export function Acceso() {
     e.preventDefault()
     setEnviando(true)
     setEstado('')
-    if (modo === 'entrar') {
+    if (modo === 'recuperar') {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: URL_RECUPERAR })
+      setEstado(error && !/rate|limit/i.test(error.message) && error.status !== 429
+        ? `No se ha podido enviar el email (${error.message}).`
+        : error
+          ? 'Has pedido varios enlaces seguidos. Espera unos minutos y vuelve a intentarlo.'
+          : 'Si hay una cuenta con ese email, te hemos enviado un enlace para crear una contraseña nueva. Revisa también la carpeta de spam.')
+    } else if (modo === 'entrar') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setEstado(error.message.includes('Invalid') ? 'Email o contraseña incorrectos.' : `No se ha podido iniciar sesión (${error.message}).`)
     } else {
@@ -51,7 +61,9 @@ export function Acceso() {
       </div>
       <form className="acceso-form" onSubmit={enviar}>
         <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" autoComplete="email" />
-        <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" autoComplete={modo === 'entrar' ? 'current-password' : 'new-password'} />
+        {modo !== 'recuperar' && <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" autoComplete={modo === 'entrar' ? 'current-password' : 'new-password'} />}
+        {modo === 'entrar' && <button type="button" className="link-btn apagado acceso-olvido" onClick={() => { setModo('recuperar'); setEstado('') }}>¿Has olvidado tu contraseña?</button>}
+        {modo === 'recuperar' && <div className="acceso-ayuda">Escribe el email de tu cuenta y te enviaremos un enlace para crear una contraseña nueva.</div>}
         {modo === 'registro' && (
           <label className="acceso-acepto">
             <input type="checkbox" checked={acepta} onChange={e => setAcepta(e.target.checked)} />
@@ -59,12 +71,44 @@ export function Acceso() {
           </label>
         )}
         {estado && <div className="acceso-estado">{estado}</div>}
-        <button className="btn-match" type="submit" disabled={enviando}>{enviando ? '…' : modo === 'entrar' ? 'Entrar' : 'Crear cuenta'}</button>
+        <button className="btn-match" type="submit" disabled={enviando}>{enviando ? '…' : modo === 'entrar' ? 'Entrar' : modo === 'recuperar' ? 'Enviar enlace' : 'Crear cuenta'}</button>
       </form>
       <button className="link-btn acceso-cambio" onClick={() => { setModo(m => m === 'entrar' ? 'registro' : 'entrar'); setEstado('') }}>
-        {modo === 'entrar' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entra'}
+        {modo === 'entrar' ? '¿No tienes cuenta? Regístrate' : modo === 'recuperar' ? 'Volver a entrar' : '¿Ya tienes cuenta? Entra'}
       </button>
       <div className="acceso-legal"><a href={URL_TERMINOS} target="_blank" rel="noreferrer">Términos</a> · <a href={URL_PRIVACIDAD} target="_blank" rel="noreferrer">Privacidad</a></div>
+    </div>
+  )
+}
+
+// Tras abrir el enlace del email: elegir una contraseña nueva
+export function NuevaContrasena({ listo }) {
+  const [p1, setP1] = useState('')
+  const [p2, setP2] = useState('')
+  const [estado, setEstado] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const guardar = async (e) => {
+    e.preventDefault()
+    if (p1.length < 6) { setEstado('La contraseña debe tener al menos 6 caracteres.'); return }
+    if (p1 !== p2) { setEstado('Las dos contraseñas no coinciden.'); return }
+    setEnviando(true)
+    const { error } = await supabase.auth.updateUser({ password: p1 })
+    setEnviando(false)
+    if (error) { setEstado(/same|different/i.test(error.message) ? 'La contraseña nueva tiene que ser distinta de la anterior.' : `No se ha podido cambiar (${error.message}). Pide otro enlace si ha caducado.`); return }
+    listo()
+  }
+  return (
+    <div className="screen acceso">
+      <div className="acceso-marca">
+        <div className="acceso-logo">PAIRX</div>
+        <div className="acceso-sub">Crea tu contraseña<br />nueva</div>
+      </div>
+      <form className="acceso-form" onSubmit={guardar}>
+        <input type="password" required value={p1} onChange={e => setP1(e.target.value)} placeholder="Contraseña nueva" autoComplete="new-password" />
+        <input type="password" required value={p2} onChange={e => setP2(e.target.value)} placeholder="Repite la contraseña" autoComplete="new-password" />
+        {estado && <div className="acceso-estado">{estado}</div>}
+        <button className="btn-match" type="submit" disabled={enviando}>{enviando ? '…' : 'Guardar y entrar'}</button>
+      </form>
     </div>
   )
 }
