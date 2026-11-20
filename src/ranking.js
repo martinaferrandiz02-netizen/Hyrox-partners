@@ -51,7 +51,8 @@ export function calcularRanking(perfil, otros) {
     posGrupo, totalGrupo: delGrupo.length,
     posCiudad: posicion(delGrupo.filter(p => p.ciudad === yo.ciudad)),
     posClub: yo.club ? posicion(delGrupo.filter(p => p.club === yo.club)) : null,
-    topPct: posGrupo ? Math.max(1, Math.round(100 * posGrupo / delGrupo.length)) : null,
+    // El "Top X %" solo tiene sentido con un mínimo de atletas comparables
+    topPct: posGrupo && delGrupo.length >= 10 ? Math.max(1, Math.round(100 * posGrupo / delGrupo.length)) : null,
     grupos, clubsDe,
   }
 }
