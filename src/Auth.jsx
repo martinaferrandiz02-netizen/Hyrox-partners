@@ -127,12 +127,14 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
 
   const guardar = async (e) => {
     e.preventDefault()
-    if (!f.nombre.trim()) { setEstado('Escribe tu nombre.'); return }
+    const nombre = f.nombre.trim().replace(/\s+/g, ' ')
+    if (nombre.split(' ').filter(p => p.length >= 2).length < 2) { setEstado('Escribe tu nombre y al menos un apellido, como aparecen en tus certificados.'); return }
     if (!f.ciudad.trim()) { setEstado('Elige tu ciudad de la lista.'); return }
     setEstado('Guardando…')
     const fila = {
       id: userId,
-      nombre: f.nombre.trim(),
+      nombre,
+      nombre_completo: nombre,   // el certificado se comprueba siempre con el nombre de la cuenta
       ciudad: f.ciudad.trim(),
       sexo: f.sexo,
       categoria: f.categoria,
@@ -150,7 +152,9 @@ export function FormPerfil({ userId, perfil, onGuardado, onCancelar }) {
       <div className="screen-title">{perfil ? 'Editar perfil' : 'Crea tu perfil'}</div>
       <div className="screen-sub">{perfil ? 'Así te verán otros atletas' : 'Para que otros atletas puedan encontrarte'}</div>
       <form className="perfil-form" onSubmit={guardar}>
-        <label>Nombre<input value={f.nombre} onChange={e => set('nombre', e.target.value)} placeholder="Ej. Laura G." maxLength={40} /></label>
+        <label>Nombre y apellidos<input value={f.nombre} onChange={e => set('nombre', e.target.value)} placeholder="Ej. Laura García López" maxLength={60} autoComplete="name" />
+          <span className="ayuda">Escríbelo como aparece en tus certificados de carrera: lo usamos para verificar tus tiempos.</span>
+        </label>
         <label>Ciudad<CampoCiudad valor={f.ciudad} onChange={v => set('ciudad', v)} /></label>
         <label>Club <span>(opcional)</span><CampoClub valor={f.club} onChange={v => set('club', v)} /></label>
         <div className="form-grupo">

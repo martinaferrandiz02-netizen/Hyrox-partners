@@ -9,7 +9,7 @@ const TIPOS = ['application/pdf', 'image/png', 'image/jpeg']
 
 // Añadir una carrera nueva: sube el certificado, la app lee nombre, tiempo total y parciales
 export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
-  const [nombreCompleto, setNombreCompleto] = useState(perfil.nombre_completo || '')
+  const nombreCompleto = perfil.nombre   // siempre el nombre de la cuenta
   const [carrera, setCarrera] = useState('')
   const [fecha, setFecha] = useState('')
   const [division, setDivision] = useState('Doubles')
@@ -48,7 +48,7 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
   const guardar = async () => {
     if (!carrera.trim()) { setEstado('Escribe el nombre de la carrera (ej. Ginebra 2026).'); return }
     if (!archivo) { setEstado('Sube el certificado.'); return }
-    if (!nombreCompleto.trim()) { setEstado('Escribe tu nombre completo tal y como aparece en el certificado.'); return }
+
     if (manual) {
       if (aSegundos(tiempoManual) === null) { setEstado('Escribe tu tiempo total con el formato 1:31:56.'); return }
     } else if (!comprobacion?.ok) { setEstado(comprobacion?.motivo || 'Sube el certificado y escribe tu nombre completo.'); return }
@@ -93,9 +93,6 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
           <div className="filtro-titulo">Categoría</div>
           <div className="chips">{['Open', 'Pro'].map(o => <button type="button" key={o} className={categoria === o ? 'chip active' : 'chip'} onClick={() => setCategoria(o)}>{o}</button>)}</div>
         </div>
-        <label>Tu nombre completo <span>(como aparece en el certificado)</span>
-          <input value={nombreCompleto} onChange={e => setNombreCompleto(e.target.value)} placeholder="Ej. Laura García López" maxLength={80} />
-        </label>
         <label>Certificado <span>(PDF, PNG o JPG)</span>
           <span className="upload-drop">
             <input type="file" accept="application/pdf,image/png,image/jpeg" onChange={elegir} />
@@ -111,8 +108,8 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar }) {
           </label>
         )}
         {!leyendo && !manual && comprobacion && (comprobacion.ok
-          ? <div className="cert-estado ok">Tu nombre aparece en el certificado</div>
-          : <div className="cert-estado error">{comprobacion.motivo}</div>)}
+          ? <div className="cert-estado ok">{perfil.nombre} aparece en el certificado</div>
+          : <div className="cert-estado error">{/nombre/i.test(comprobacion.motivo || '') ? `El nombre de tu cuenta (${perfil.nombre}) no aparece en el certificado. Solo puedes subir certificados de carreras en las que hayas competido tú. Si tu nombre está escrito distinto, cámbialo en Editar perfil.` : comprobacion.motivo}</div>)}
 
         {!leyendo && texto && total && (
           <div className="lectura">
