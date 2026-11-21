@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { Avatar } from './Avatar'
-import { URL_PRIVACIDAD, URL_TERMINOS } from './legal'
-import { Ban, ChevronRight, FileText, KeyRound, LogOut, Mail, Pencil, ScrollText, Smartphone, Trash2 } from 'lucide-react'
+import { URL_PRIVACIDAD, URL_SOPORTE, URL_TERMINOS } from './legal'
+import { Ban, ChevronRight, FileText, KeyRound, LifeBuoy, LogOut, Mail, Pencil, ScrollText, Smartphone, Trash2 } from 'lucide-react'
 import { Volver } from './Volver'
 import { CampoContrasena, RequisitosContrasena } from './CampoContrasena'
 import { contrasenaValida, MENSAJE_REQUISITOS } from './contrasena'
@@ -190,6 +190,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
 
       <div className="aj-grupo">Privacidad y seguridad</div>
       <Fila icono={<Ban size={18} />} titulo="Usuarios bloqueados" onClick={abrirBloqueados} />
+      <Fila icono={<LifeBuoy size={18} />} titulo="Ayuda y contacto" onClick={() => window.open(URL_SOPORTE, '_blank')} />
       <Fila icono={<FileText size={18} />} titulo="Política de privacidad" onClick={() => window.open(URL_PRIVACIDAD, '_blank')} />
       <Fila icono={<ScrollText size={18} />} titulo="Términos de uso" onClick={() => window.open(URL_TERMINOS, '_blank')} />
 

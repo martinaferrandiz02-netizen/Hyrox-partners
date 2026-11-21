@@ -2,3 +2,4 @@
 const BASE = 'https://pairx-app.vercel.app'
 export const URL_PRIVACIDAD = `${BASE}/legal/privacidad.html`
 export const URL_TERMINOS = `${BASE}/legal/terminos.html`
+export const URL_SOPORTE = `${BASE}/legal/soporte.html`
