@@ -66,3 +66,43 @@ export async function cambiarVisibilidadCarrera(id, visibilidad) {
   const { error } = await supabase.from('resultados').update({ visibilidad }).eq('id', id)
   return !error
 }
+
+// ───────── Quién busca pareja para cada carrera ─────────
+// Clave común para comparar carreras del calendario y carreras escritas a mano
+export const claveCarrera = (p) => p.evento || `${p.carrera.trim().toLowerCase()}|${p.fecha}`
+export const fechasCarrera = (p) => {
+  const e = p.evento && eventoPorId(p.evento)
+  return e ? rangoFechas(e.inicio, e.fin) : rangoFechas(p.fecha)
+}
+
+// Todas las próximas carreras (desde hoy) de la gente que busca pareja, y las mías
+export function useBuscanPareja(yoId) {
+  const [filas, setFilas] = useState([])
+  const recargar = useCallback(async () => {
+    if (!yoId) return
+    const { data } = await supabase.from('proximas_carreras').select('*')
+      .gte('fecha', hoyISO()).or(`busca_pareja.eq.true,user_id.eq.${yoId}`).order('fecha')
+    setFilas(data || [])
+  }, [yoId])
+  useEffect(() => {
+    const t = setTimeout(recargar, 0)
+    return () => clearTimeout(t)
+  }, [recargar])
+
+  const mias = new Set(filas.filter(f => f.user_id === yoId).map(claveCarrera))
+  const porUsuario = new Map()
+  const carreras = new Map()
+  for (const f of filas) {
+    if (f.user_id === yoId || !f.busca_pareja) continue
+    const clave = claveCarrera(f)
+    if (!porUsuario.has(f.user_id)) porUsuario.set(f.user_id, [])
+    porUsuario.get(f.user_id).push({ ...f, clave, mia: mias.has(clave) })
+    if (!carreras.has(clave)) carreras.set(clave, { clave, nombre: f.carrera, fecha: f.fecha, fechas: fechasCarrera(f), mia: mias.has(clave), usuarios: new Set() })
+    carreras.get(clave).usuarios.add(f.user_id)
+  }
+  // Primero las carreras a las que también voy yo, luego por fecha
+  const listaCarreras = [...carreras.values()]
+    .map(c => ({ ...c, n: c.usuarios.size }))
+    .sort((a, b) => (b.mia - a.mia) || a.fecha.localeCompare(b.fecha))
+  return { porUsuario, carreras: listaCarreras, recargar }
+}

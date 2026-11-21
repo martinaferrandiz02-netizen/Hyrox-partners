@@ -47,6 +47,7 @@ Tokens: `--bg #0a0a0a`, `--accent #e8ff3c`, `--surface #141414`, `--line #242424
 **Social**
 - Seguir a gente. En perfiles ajenos no se ve el número de seguidores; en el tuyo sí. "Seguidores" y "Siguiendo" se pueden pulsar para ver la lista y abrir perfiles.
 - Al recibir una solicitud de pareja se puede abrir el perfil y ver sus tiempos.
+- Parejas → Buscar: fila "Buscan pareja para" con las próximas carreras donde alguien busca pareja (primero las carreras a las que también vas tú, marcadas con ✓). Pulsar una filtra a esa gente. En la tarjeta sale "Busca pareja para X" y, si coincide, "Tú también vas". Quien busca pareja para una de tus carreras sale primero. La solicitud menciona la carrera.
 
 **Cuenta**
 - Recuperar contraseña desde el login (correo vía SMTP de Gmail de hello.pairx@gmail.com). Contraseña mínima: 8 caracteres, mayúscula, minúscula y número, con icono de ojo.
@@ -56,5 +57,4 @@ Tokens: `--bg #0a0a0a`, `--accent #e8ff3c`, `--surface #141414`, `--line #242424
 ## Ideas ofrecidas y aún no aprobadas
 
 - Plantillas de correo en español (recuperar contraseña, confirmar registro).
-- Mostrar en Buscar las próximas carreras de la gente y quién "busca pareja".
 - Preparar la ficha de la App Store (capturas, descripción, palabras clave, categoría, edad).

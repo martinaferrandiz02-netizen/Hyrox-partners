@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Activity, ArrowUpRight, BadgeCheck, Check, ChevronLeft, ChevronRight, House, Inbox, MapPin, MessageCircle, Plus, Search, SlidersHorizontal, Ticket, Trophy, User, Users, X } from 'lucide-react'
+import { Activity, ArrowUpRight, BadgeCheck, Check, ChevronLeft, ChevronRight, Flag, House, Inbox, MapPin, MessageCircle, Plus, Search, SlidersHorizontal, Ticket, Trophy, User, Users, X } from 'lucide-react'
 import { Entrenos } from './Entrenos'
 import { NuevaProxima } from './Carreras'
+import { fechasCarrera, useBuscanPareja } from './datosCarreras'
 import './App.css'
 import { Acceso, FormPerfil, NuevaContrasena } from './Auth'
 import { supabase } from './supabase'
@@ -28,7 +29,7 @@ const aCandidato = (p) => ({
   compitio: p.compitio, division: p.division, parejaId: p.pareja_id, club: p.club || 'Sin club', mejorTiempo: p.mejor_tiempo, certificadoUrl: p.certificado_url, verificado: p.certificado_estado === 'verificado',
   carreras: [], marcas: [], fortalezas: [], raw: p, fotoUrl: p.foto_url,
 })
-const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos' }
+const FILTROS_INICIALES = { texto:'', compitio:'Todos', ciudad:'Todas', categoria:'Todas', sexo:'Todos', carrera:'Todas' }
 
 export default function App() {
   const [sesion, setSesion] = useState(undefined)
@@ -85,7 +86,12 @@ function Pairx({ perfil, setPerfil }) {
   // Bloqueos: quien he bloqueado o me ha bloqueado desaparece de toda la app
   const { ocultos, recargar: recargarOcultos } = useOcultos()
   const visible = (id) => !ocultos.has(id)
+  // Próximas carreras de la gente que busca pareja: salen primero quienes van a una carrera a la que también vas tú
+  const { porUsuario, carreras: carrerasPareja, recargar: recargarBuscan } = useBuscanPareja(perfil.id)
+  const prioridad = (c) => (c.buscaPara.some(b => b.mia) ? 2 : c.buscaPara.length ? 1 : 0)
   const candidatos = candidatosReales.filter(c => visible(c.userId))
+    .map(c => ({ ...c, buscaPara: porUsuario.get(c.userId) || [] }))
+    .sort((a, b) => prioridad(b) - prioridad(a))
 
   // Solicitudes y chats reales
   const { solicitudes, recargar } = useSolicitudes(perfil.id)
@@ -94,9 +100,12 @@ function Pairx({ perfil, setPerfil }) {
   const conversaciones = solicitudes.filter(s => s.estado === 'aceptada' && visible(s.otro.id)).map(s => aCandidato(s.otro))
   const estadoCon = (userId) => solicitudes.find(s => s.otro.id === userId)
 
-  const solicitar = async (persona) => {
+  const solicitar = async (persona, carrera = null) => {
     if (!persona.userId) return true
-    const ok = await enviarSolicitud(perfil.id, persona.userId, `¡Hola! Soy ${perfil.nombre}. Me encaja tu perfil, ¿hacemos pareja de Doubles?`)
+    const texto = carrera
+      ? `¡Hola! Soy ${perfil.nombre}. He visto que buscas pareja para ${carrera.carrera}, ¿la corremos juntos en Doubles?`
+      : `¡Hola! Soy ${perfil.nombre}. Me encaja tu perfil, ¿hacemos pareja de Doubles?`
+    const ok = await enviarSolicitud(perfil.id, persona.userId, texto)
     if (ok) recargar()
     return ok
   }
@@ -144,7 +153,7 @@ function Pairx({ perfil, setPerfil }) {
   }
 
   const TABS = [['inicio', 'Inicio', House], ['entrenos', 'Entrenos', Activity], ['parejas', 'Parejas', Users], ['rankings', 'Ranking', Trophy], ['perfil', 'Perfil', User]]
-  const irA = (p) => { setPantalla(p); if (p === 'parejas') { setSubPantalla('buscar'); setPerfilAbierto(null) } }
+  const irA = (p) => { setPantalla(p); if (p === 'parejas') { setSubPantalla('buscar'); setPerfilAbierto(null); recargarBuscan() } }
 
   return (
     <div className="app">
@@ -164,6 +173,7 @@ function Pairx({ perfil, setPerfil }) {
             plazas={listaPlazas}
             recargarPlazas={recargarPlazas}
             candidatos={candidatos}
+            carrerasPareja={carrerasPareja}
             yo={yo}
             recibidasReales={recibidasReales}
             conversaciones={conversaciones}
@@ -340,7 +350,7 @@ function Vacio({ icono: Icono, titulo, children }) {
   )
 }
 
-function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, recargarPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chatActivo, setChatActivo, elegirPareja , trasBloquear}) {
+function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setFiltros, perfilAbierto, setPerfilAbierto, plazas, recargarPlazas, contactarPlaza, candidatos, yo, recibidasReales, conversaciones, ultimos, estadoCon, solicitar, responder, chatActivo, setChatActivo, elegirPareja , trasBloquear, carrerasPareja = []}) {
   if (chatActivo?.userId) {
     return <ChatReal yo={yo} otro={chatActivo} trasBloquear={trasBloquear} volver={()=>setChatActivo(null)} elegirPareja={elegirPareja} abrirPerfil={()=>{setPerfilAbierto(chatActivo);setChatActivo(null)}} />
   }
@@ -357,9 +367,12 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
     (filtros.compitio === 'Todos' || (filtros.compitio === 'Ya ha competido') === c.compitio) &&
     (filtros.ciudad === 'Todas' || c.ciudad === filtros.ciudad) &&
     (filtros.categoria === 'Todas' || c.categoria === filtros.categoria) &&
-    (filtros.sexo === 'Todos' || c.sexo === filtros.sexo)
+    (filtros.sexo === 'Todos' || c.sexo === filtros.sexo) &&
+    (filtros.carrera === 'Todas' || c.buscaPara.some(b => b.clave === filtros.carrera))
   )
   const candidato = lista[indice]
+  // La carrera que enseñamos en la tarjeta: la del filtro, una a la que también vas tú, o la más próxima
+  const buscaEn = candidato && (candidato.buscaPara.find(b => b.clave === filtros.carrera) || candidato.buscaPara.find(b => b.mia) || candidato.buscaPara[0])
   const cambiarFiltro = (campo, valor) => { setFiltros(f => ({ ...f, [campo]: valor })); setIndice(0) }
   const pestanas = [['buscar', 'Buscar', 0], ['solicitudes', 'Solicitudes', recibidasReales.length], ['chats', 'Chats', 0], ['plazas', 'Plazas', 0]]
   return (
@@ -376,6 +389,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
       {subPantalla === 'buscar' && (
         <div>
           <Buscador filtros={filtros} cambiarFiltro={cambiarFiltro} ciudades={ciudades} total={lista.length} limpiar={()=>{setFiltros(FILTROS_INICIALES);setIndice(0)}} />
+          {carrerasPareja.length > 0 && <CarrerasPareja carreras={carrerasPareja} elegida={filtros.carrera} elegir={(c)=>cambiarFiltro('carrera', filtros.carrera === c ? 'Todas' : c)} />}
           {candidato ? (
             <div className="atleta">
               <div className="atleta-tocable" onClick={()=>setPerfilAbierto(candidato)}>
@@ -386,6 +400,12 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
                     <div className="atleta-meta"><MapPin size={14} /> {[candidato.ciudad, candidato.club !== 'Sin club' && candidato.club].filter(Boolean).join(' · ')}</div>
                   </div>
                 </div>
+                {buscaEn && (
+                  <div className="busca-en">
+                    <Flag size={15} />
+                    <span>Busca pareja para <strong>{buscaEn.carrera}</strong> · {fechasCarrera(buscaEn)}{buscaEn.mia && <em> · Tú también vas</em>}</span>
+                  </div>
+                )}
                 <div className="stats">
                   <div><strong className={candidato.verificado && candidato.mejorTiempo ? 'acento' : ''}>{candidato.verificado && candidato.mejorTiempo ? candidato.mejorTiempo : '—'}</strong><span>Mejor tiempo</span></div>
                   <div><strong>{candidato.division || '—'}</strong><span>División</span></div>
@@ -403,7 +423,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
                 <button className="btn-pass" onClick={()=>setIndice(i=>Math.min(i+1,lista.length))}><X size={18} /> Pasar</button>
                 {estadoCon(candidato.userId)
                   ? <button className="btn-match" disabled>{estadoCon(candidato.userId).estado === 'aceptada' ? 'Ya conectados' : 'Solicitud enviada'}</button>
-                  : <button className="btn-match" onClick={async()=>{ if (await solicitar(candidato)) setIndice(i=>Math.min(i+1,lista.length)) }}>Solicitar</button>}
+                  : <button className="btn-match" onClick={async()=>{ if (await solicitar(candidato, buscaEn)) setIndice(i=>Math.min(i+1,lista.length)) }}>Solicitar</button>}
               </div>
               <div className="contador">{indice + 1} de {lista.length}</div>
             </div>
@@ -496,6 +516,23 @@ function Buscador({ filtros, cambiarFiltro, ciudades, total, limpiar }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// Fila de carreras con gente buscando pareja: pulsas una y solo ves a quienes buscan para esa carrera
+function CarrerasPareja({ carreras, elegida, elegir }) {
+  return (
+    <div className="carreras-pareja">
+      <div className="filtro-titulo">Buscan pareja para</div>
+      <div className="carreras-pareja-fila">
+        {carreras.map(c => (
+          <button key={c.clave} className={elegida === c.clave ? 'cp-chip active' : 'cp-chip'} onClick={() => elegir(c.clave)}>
+            <span className="cp-nombre">{c.nombre}{c.mia && <Check size={12} strokeWidth={3} />}</span>
+            <span className="cp-meta">{c.fechas} · {c.n} {c.n === 1 ? 'atleta' : 'atletas'}</span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
