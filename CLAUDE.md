@@ -32,6 +32,8 @@ Tokens: `--bg #0a0a0a`, `--accent #e8ff3c`, `--surface #141414`, `--line #242424
 - Se añade una carrera solo subiendo el certificado: la app lee el tiempo, los parciales y cuántos atletas hay. El usuario elige la carrera de una lista del calendario (`src/data/calendario.json`) y confirma división y categoría.
 - El nombre de la cuenta tiene que aparecer en el certificado (en Doubles, uno de los dos). Si no coincide, aviso claro en rojo explicando por qué.
 - Perfil → pestaña Carreras: "Próximas carreras" (con opción "Busco pareja") e "Historial". Al subir el certificado de una próxima, pasa al historial automáticamente.
+- El PDF del certificado es privado (bucket `certificados` privado, `supabase/certificados_privados.sql`): solo lo abren su dueño y las admins con enlace temporal; los demás ven solo los tiempos. En Doubles se avisa de que el certificado lleva el nombre de la pareja (privacidad actualizada).
+- Pendiente: verificar que el certificado viene de la web oficial de resultados (huella del PDF original, rechazar PDFs editados, imágenes a revisión manual). Necesita certificados reales de Martina para ver su huella. Excepción solo para la cuenta de prueba de Apple.
 - Cada carrera del historial es pública o privada. El mejor tiempo verificado siempre se ve en el perfil y en el ranking.
 - Al registrarse: si ya ha competido → "Añade tu carrera más reciente"; si no → "¿Cuál es tu próxima carrera?".
 - Pendiente a propósito: verificación de identidad (DNI), bloquear el nombre tras verificar y "esta carrera es mía". No hacer hasta que Martina lo pida.

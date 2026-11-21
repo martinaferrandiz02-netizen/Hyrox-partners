@@ -41,7 +41,7 @@ export function Moderacion({ yoId, volver }) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <div className="pv-barra"><button className="icon-btn" onClick={() => setViendo(null)} aria-label="Volver"><ChevronLeft size={22} /></button></div>
-        <PerfilVista perfil={viendo} yoId={yoId} color="purple" acciones={
+        <PerfilVista perfil={viendo} verCertificados yoId={yoId} color="purple" acciones={
           viendo.suspendido
             ? <button className="btn-match" disabled={ocupado === viendo.id} onClick={() => accion('reactivar', viendo)}><UserCheck size={18} /> Reactivar cuenta</button>
             : <button className="btn-peligro" disabled={ocupado === viendo.id} onClick={() => accion('suspender', viendo)}><UserX size={18} /> Suspender cuenta</button>

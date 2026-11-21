@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { EtiquetaNivel } from './EtiquetaNivel'
 import { ArrowUpRight, CalendarPlus, Check, ChevronRight, CircleX, Globe, Hourglass, Lock, MapPin, Plus, Settings, Upload, UserCheck, UserPlus, Users } from 'lucide-react'
 import { Avatar } from './Avatar'
+import { supabase } from './supabase'
 import { nombreCiudad } from './ciudades'
 import { borrarResultado, ESTACIONES, mejoresMarcas, useResultados } from './resultados'
 import { MisVideos, VideosDe } from './Videos'
@@ -59,7 +60,29 @@ function ListaSeguimientos({ perfil, tipo, volver, onAbrirPerfil, yoId }) {
   )
 }
 
-export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAnadirProxima, onAjustes, onCambio, onAbrirPerfil }) {
+// El certificado es privado: solo su dueño (y la administración) recibe un enlace temporal para abrirlo
+function useEnlacesCertificado(resultados) {
+  const [enlaces, setEnlaces] = useState({})
+  const clave = resultados.map(r => r.id).join(',')
+  useEffect(() => {
+    const conArchivo = resultados.filter(r => r.certificado_ruta)
+    if (!conArchivo.length) return
+    let vivo = true
+    const demo = conArchivo.filter(r => r.certificado_ruta.startsWith('demo/'))   // certificado de ejemplo de la cuenta de prueba
+    const reales = conArchivo.filter(r => !r.certificado_ruta.startsWith('demo/'))
+    const base = Object.fromEntries(demo.map(r => [r.id, r.certificado_url]))
+    if (!reales.length) { const t = setTimeout(() => vivo && setEnlaces(base), 0); return () => { vivo = false; clearTimeout(t) } }
+    supabase.storage.from('certificados').createSignedUrls(reales.map(r => r.certificado_ruta), 3600).then(({ data }) => {
+      if (!vivo) return
+      const porRuta = Object.fromEntries((data || []).filter(d => d.signedUrl).map(d => [d.path, d.signedUrl]))
+      setEnlaces({ ...base, ...Object.fromEntries(reales.filter(r => porRuta[r.certificado_ruta]).map(r => [r.id, porRuta[r.certificado_ruta]])) })
+    })
+    return () => { vivo = false }
+  }, [clave]) // eslint-disable-line react-hooks/exhaustive-deps
+  return enlaces
+}
+
+export function PerfilVista({ perfil, esPropio, verCertificados = false, yoId, color = 'yellow', acciones, onEditar, onAnadirCarrera, onAnadirProxima, onAjustes, onCambio, onAbrirPerfil }) {
   const [lista, setLista] = useState(null)
   const contadores = useContadores(perfil.id, esPropio)
   const { resultados, cargando, recargar } = useResultados(perfil.id)
@@ -93,6 +116,7 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
     </button>
   )
   const verificado = perfil.certificado_estado === 'verificado'
+  const enlaces = useEnlacesCertificado(esPropio || verCertificados ? visibles : [])
   const anadir = <button className="link-btn" onClick={onAnadirCarrera}><Plus size={16} /> Añadir carrera</button>
 
   if (lista) return <ListaSeguimientos perfil={perfil} tipo={lista} yoId={yoId || (esPropio ? perfil.id : null)} volver={() => setLista(null)} onAbrirPerfil={onAbrirPerfil} />
@@ -227,7 +251,7 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
                       {r.visibilidad === 'privado' ? <><Lock size={13} /> Solo yo</> : <><Globe size={13} /> Pública</>}
                     </button>
                   )}
-                  <a href={r.certificado_url} target="_blank" rel="noopener noreferrer">Certificado <ArrowUpRight size={14} /></a>
+                  {enlaces[r.id] && <a href={enlaces[r.id]} target="_blank" rel="noopener noreferrer">Certificado <ArrowUpRight size={14} /></a>}
                   {esPropio && <button className="video-borrar" disabled={borrando === r.id} onClick={() => borrar(r)}>{borrando === r.id ? 'Borrando…' : 'Borrar'}</button>}
                 </span>
               </div>

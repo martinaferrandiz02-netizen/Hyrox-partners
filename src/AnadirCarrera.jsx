@@ -153,7 +153,8 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar, sugerida = null, titu
                 <button type="button" className={visibilidad === 'publico' ? 'chip active' : 'chip'} onClick={() => setVisibilidad('publico')}><Globe size={13} /> Pública</button>
                 <button type="button" className={visibilidad === 'privado' ? 'chip active' : 'chip'} onClick={() => setVisibilidad('privado')}><Lock size={13} /> Solo yo</button>
               </div>
-              <span className="ayuda">Tu mejor tiempo verificado se muestra siempre en tu perfil y en el ranking.</span>
+              <span className="ayuda">Tu mejor tiempo verificado se muestra siempre en tu perfil y en el ranking. El certificado es privado: los demás ven tus tiempos, nunca el documento.</span>
+              {division !== 'Individual' && <span className="ayuda">Tu certificado incluye el nombre de tu pareja. Al guardarlo confirmas que sabe que lo compartes con Pairx solo para verificar la carrera.</span>}
             </div>
           </>
         )}
