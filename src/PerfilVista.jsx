@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { EtiquetaNivel } from './EtiquetaNivel'
 import { ArrowUpRight, CalendarPlus, Check, ChevronRight, CircleX, Globe, Hourglass, Lock, MapPin, Plus, Settings, Upload, UserCheck, UserPlus, Users } from 'lucide-react'
 import { Avatar } from './Avatar'
 import { nombreCiudad } from './ciudades'
@@ -124,7 +125,7 @@ export function PerfilVista({ perfil, esPropio, yoId, color = 'yellow', acciones
         <span className="tag">{perfil.sexo}</span>
         <span className="tag">{perfil.categoria}</span>
         {perfil.division && <span className="tag">{perfil.division}</span>}
-        {verificado && <span className="tag acento"><Check size={12} strokeWidth={3} /> Verificado</span>}
+        <EtiquetaNivel verificado={verificado} compitio={perfil.compitio} />
       </div>
 
       {/* Lo importante, a primera vista */}

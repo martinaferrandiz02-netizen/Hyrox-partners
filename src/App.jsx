@@ -7,6 +7,7 @@ import './App.css'
 import { Acceso, FormPerfil, NuevaContrasena } from './Auth'
 import { supabase } from './supabase'
 import { Avatar } from './Avatar'
+import { EtiquetaNivel } from './EtiquetaNivel'
 import { nombreCiudad } from './ciudades'
 import { ChatReal } from './ChatReal'
 import { PerfilVista } from './PerfilVista'
@@ -414,8 +415,7 @@ function Parejas({ subPantalla, setSubPantalla, indice, setIndice, filtros, setF
                 <div className="atleta-tags">
                   <span className="tag">{candidato.sexo}</span>
                   {candidato.division && <span className="tag">{candidato.division}</span>}
-                  <span className="tag">{candidato.compitio ? 'Ha competido' : 'Aún no ha competido'}</span>
-                  {candidato.verificado && <span className="tag acento"><Check size={12} strokeWidth={3} /> Verificado</span>}
+                  <EtiquetaNivel verificado={candidato.verificado} compitio={candidato.compitio} />
                 </div>
                 <div className="ver-perfil">Ver perfil y vídeos <ChevronRight size={20} /></div>
               </div>
