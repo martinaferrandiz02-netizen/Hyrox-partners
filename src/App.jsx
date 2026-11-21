@@ -60,6 +60,7 @@ export default function App() {
   if (sesion === undefined || (sesion && (perfil === undefined || (perfil && perfil.id !== userId)))) contenido = <div className="screen cargando">Cargando…</div>
   else if (sesion && recuperando) contenido = <NuevaContrasena listo={() => { setRecuperando(false); window.history.replaceState(null, '', '/') }} />
   else if (!sesion) contenido = <Acceso />
+  else if (perfil?.suspendido) contenido = <CuentaSuspendida />
   else if (!perfil) contenido = <FormPerfil userId={userId} onGuardado={(p) => { setPerfil(p); setBienvenida(p.compitio ? 'carrera' : 'proxima') }} />
   else if (bienvenida === 'carrera') contenido = <AnadirCarrera perfil={perfil} setPerfil={setPerfil} cerrar={() => setBienvenida(null)} textoCerrar="Ahora no"
     titulo="Añade tu carrera más reciente" subtitulo="Sube el certificado y nosotros leemos tus tiempos. Así tu perfil tendrá tu marca verificada desde el primer día." />
@@ -68,6 +69,18 @@ export default function App() {
   else return <Pairx perfil={perfil} setPerfil={setPerfil} />
 
   return <div className="app"><div className="phone"><div className="notch"></div>{contenido}</div></div>
+}
+
+// Si la cuenta está suspendida (y aún quedaba la sesión abierta), solo se ve este aviso
+function CuentaSuspendida() {
+  return (
+    <div className="screen suspendida">
+      <div className="screen-title">Cuenta suspendida</div>
+      <p>Hemos suspendido tu cuenta porque ha recibido denuncias por incumplir los términos de uso de Pairx.</p>
+      <p>Si crees que es un error, escríbenos a <a href="mailto:hello.pairx@gmail.com">hello.pairx@gmail.com</a>.</p>
+      <button className="btn-secondary" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
+    </div>
+  )
 }
 
 function Pairx({ perfil, setPerfil }) {

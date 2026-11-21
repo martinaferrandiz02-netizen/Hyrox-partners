@@ -26,8 +26,11 @@ export async function desbloquear(meId, otroId) {
 }
 
 export async function denunciar(meId, otroId, motivo, detalle, contexto) {
-  const { error } = await supabase.from('denuncias')
+  const { data, error } = await supabase.from('denuncias')
     .insert({ denunciante: meId, denunciado: otroId, motivo, detalle: detalle.trim() || null, contexto })
+    .select('id').single()
+  // Aviso por email a la administración (si falla, la denuncia ya está guardada igualmente)
+  if (!error && data) supabase.functions.invoke('aviso-denuncia', { body: { id: data.id } }).catch(() => {})
   return !error
 }
 

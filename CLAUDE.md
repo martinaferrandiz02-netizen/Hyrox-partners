@@ -60,6 +60,12 @@ Tokens: `--bg #0a0a0a`, `--accent #e8ff3c`, `--surface #141414`, `--line #242424
 - Ficha preparada en el doc "Pairx · Ficha de la App Store": 18+, Salud y forma física / Deportes, gratis. No usar la marca de la competición en textos ni palabras clave.
 - Compromiso en las notas de revisión: las denuncias se revisan en menos de 24 h.
 
+## Moderación
+
+- `supabase/moderacion.sql`: tabla `admins`, `es_admin()`, `profiles.suspendido` (cuenta suspendida invisible para los demás; solo el servidor puede cambiarlo), las admins ven y resuelven `denuncias`.
+- Edge Function `moderar` (suspender / reactivar / borrar cuenta, solo admins; suspender también banea el login) y `aviso-denuncia` (email a GMAIL_USER al denunciar; secretos GMAIL_USER y GMAIL_APP_PASSWORD).
+- Panel en Ajustes → Moderación (solo admins): denuncias abiertas / revisadas / cuentas suspendidas. Una cuenta suspendida que aún tenga sesión ve la pantalla "Cuenta suspendida".
+
 ## Ideas ofrecidas y aún no aprobadas
 
 - Plantillas de correo en español (recuperar contraseña, confirmar registro).

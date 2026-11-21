@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { Avatar } from './Avatar'
 import { URL_PRIVACIDAD, URL_SOPORTE, URL_TERMINOS } from './legal'
-import { Ban, ChevronRight, FileText, KeyRound, LifeBuoy, LogOut, Mail, Pencil, ScrollText, Smartphone, Trash2 } from 'lucide-react'
+import { Ban, ChevronRight, FileText, KeyRound, LifeBuoy, LogOut, Mail, Pencil, ScrollText, ShieldAlert, Smartphone, Trash2 } from 'lucide-react'
 import { Volver } from './Volver'
 import { CampoContrasena, RequisitosContrasena } from './CampoContrasena'
 import { contrasenaValida, MENSAJE_REQUISITOS } from './contrasena'
 import { desbloquear, misBloqueados } from './bloqueos'
+import { useEsAdmin } from './moderacion'
+import { Moderacion } from './Moderacion'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
 
@@ -46,6 +48,7 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
       .then(({ data }) => setTelefono(data?.telefono || ''))
   }, [perfil.id])
 
+  const esAdmin = useEsAdmin(perfil.id)
   const abrir = (v, inicial = '') => { setVista(v); setEstado(''); setCampo1(inicial); setCampo2('') }
 
   const cambiarFoto = async (e) => {
@@ -118,6 +121,8 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
     if (await desbloquear(perfil.id, b.bloqueado)) setBloqueados(prev => prev.filter(x => x.bloqueado !== b.bloqueado))
   }
 
+  if (vista === 'moderacion') return <Moderacion yoId={perfil.id} volver={() => setVista(null)} />
+
   if (vista) {
     const titulos = { email: 'Cambiar email', password: 'Cambiar contraseña', telefono: 'Teléfono', borrar: 'Borrar cuenta', bloqueados: 'Usuarios bloqueados' }
     return (
@@ -180,6 +185,10 @@ export function Ajustes({ perfil, setPerfil, volver, editarPerfil }) {
       </div>
       {estado && <div className="acceso-estado">{estado}</div>}
 
+      {esAdmin && <>
+        <div className="aj-grupo">Administración</div>
+        <Fila icono={<ShieldAlert size={18} />} titulo="Moderación" valor="Denuncias y cuentas" onClick={() => setVista('moderacion')} />
+      </>}
       <div className="aj-grupo">Perfil</div>
       <Fila icono={<Pencil size={18} />} titulo="Datos del perfil" valor="Nombre, ciudad, club…" onClick={editarPerfil} />
 
