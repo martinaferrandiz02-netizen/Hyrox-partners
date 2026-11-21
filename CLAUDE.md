@@ -53,9 +53,13 @@ Tokens: `--bg #0a0a0a`, `--accent #e8ff3c`, `--surface #141414`, `--line #242424
 **Cuenta**
 - Recuperar contraseña desde el login (correo vía SMTP de Gmail de hello.pairx@gmail.com). Contraseña mínima: 8 caracteres, mayúscula, minúscula y número, con icono de ojo.
 - Borrar cuenta vía Edge Function `borrar-cuenta` (borra archivos, perfil y usuario).
-- Legal: privacidad y términos según la ley española (`public/legal/`).
+- Legal: privacidad y términos según la ley española (`public/legal/`). Ayuda y contacto en `public/legal/soporte.html` (URL de soporte de la App Store).
+
+## App Store
+
+- Ficha preparada en el doc "Pairx · Ficha de la App Store": 18+, Salud y forma física / Deportes, gratis. No usar la marca de la competición en textos ni palabras clave.
+- Compromiso en las notas de revisión: las denuncias se revisan en menos de 24 h.
 
 ## Ideas ofrecidas y aún no aprobadas
 
 - Plantillas de correo en español (recuperar contraseña, confirmar registro).
-- Preparar la ficha de la App Store (capturas, descripción, palabras clave, categoría, edad).
