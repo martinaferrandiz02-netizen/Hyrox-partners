@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ChevronLeft, Flag, ShieldOff, UserCheck, UserX } from 'lucide-react'
+import { ArrowUpRight, ChevronLeft, Flag, ShieldOff, UserCheck, UserX } from 'lucide-react'
 import { Avatar } from './Avatar'
 import { Volver } from './Volver'
 import { PerfilVista } from './PerfilVista'
 import { nombreCiudad } from './ciudades'
-import { cargarDenuncias, moderarCuenta, resolverDenuncia } from './moderacion'
+import { cargarDenuncias, cargarPendientes, moderarCuenta, resolverDenuncia, revisarCarrera } from './moderacion'
 
 const fecha = (iso) => new Date(iso).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 const aPersona = (p) => ({ ...p, iniciales: p.nombre.split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join(''), fotoUrl: p.foto_url, color: 'purple' })
@@ -17,7 +17,10 @@ export function Moderacion({ yoId, volver }) {
   const [ocupado, setOcupado] = useState(null)
   const [aviso, setAviso] = useState('')
 
-  const recargar = useCallback(async () => setDatos(await cargarDenuncias()), [])
+  const recargar = useCallback(async () => {
+    const [d, pendientes] = await Promise.all([cargarDenuncias(), cargarPendientes()])
+    setDatos({ ...d, pendientes })
+  }, [])
   useEffect(() => { const t = setTimeout(recargar, 0); return () => clearTimeout(t) }, [recargar])
 
   const accion = async (tipo, persona, denunciaId) => {
@@ -33,6 +36,18 @@ export function Moderacion({ yoId, volver }) {
     setOcupado(null)
     setAviso(error ? `No se ha podido: ${error}` : { suspender: 'Cuenta suspendida.', reactivar: 'Cuenta reactivada.', borrar: 'Cuenta borrada.' }[tipo])
     setViendo(null)
+    recargar()
+  }
+  const revisar = async (r, accion) => {
+    let motivo = null
+    if (accion === 'rechazar-carrera') {
+      motivo = window.prompt('¿Por qué no es válido? (lo verá la persona)', 'El certificado no es el original de la web de resultados.')
+      if (motivo === null) return
+    }
+    setOcupado(r.id); setAviso('')
+    const error = await revisarCarrera(accion, r.id, motivo)
+    setOcupado(null)
+    setAviso(error ? `No se ha podido: ${error}` : accion === 'aprobar-carrera' ? 'Carrera verificada.' : 'Carrera rechazada.')
     recargar()
   }
   const resolver = async (d, estado) => { if (await resolverDenuncia(d.id, estado)) recargar() }
@@ -53,7 +68,7 @@ export function Moderacion({ yoId, volver }) {
   const abiertas = datos?.denuncias.filter(d => d.estado === 'abierta') || []
   const cerradas = datos?.denuncias.filter(d => d.estado !== 'abierta') || []
   const lista = pestana === 'abiertas' ? abiertas : cerradas
-  const pestanas = [['abiertas', 'Abiertas', abiertas.length], ['revisadas', 'Revisadas', 0], ['suspendidas', 'Suspendidas', datos?.suspendidos.length || 0]]
+  const pestanas = [['abiertas', 'Denuncias', abiertas.length], ['certificados', 'Certificados', datos?.pendientes?.length || 0], ['revisadas', 'Revisadas', 0], ['suspendidas', 'Suspendidas', datos?.suspendidos.length || 0]]
 
   return (
     <div className="screen">
@@ -71,10 +86,28 @@ export function Moderacion({ yoId, volver }) {
       {!datos && <div className="cert-estado">Cargando…</div>}
       {datos?.error && <div className="cert-estado error">{datos.error}</div>}
 
-      {datos && pestana !== 'suspendidas' && lista.length === 0 && (
+      {datos && pestana === 'certificados' && (datos.pendientes.length === 0
+        ? <div className="pareja-vacia">No hay certificados pendientes de revisar.</div>
+        : datos.pendientes.map(r => (
+          <div className="mod-denuncia" key={r.id}>
+            <div className="mod-cabecera">
+              {r.persona ? <Avatar p={aPersona(r.persona)} /> : <div className="avatar purple">?</div>}
+              <div className="mod-quien"><strong>{r.persona?.nombre || 'Cuenta borrada'}</strong><span>{r.carrera} · {r.division} {r.categoria}</span></div>
+              <strong className="mod-tiempo">{r.tiempo}</strong>
+            </div>
+            <div className="mod-meta">{r.motivo || 'Pendiente de revisión'} · subida el {fecha(r.created_at)}</div>
+            <div className="mod-acciones">
+              {r.enlace && <a className="btn-secondary btn-sm" href={r.enlace} target="_blank" rel="noopener noreferrer">Ver certificado <ArrowUpRight size={14} /></a>}
+              <button className="btn-match btn-sm" disabled={ocupado === r.id} onClick={() => revisar(r, 'aprobar-carrera')}>Verificar</button>
+              <button className="link-btn peligro" disabled={ocupado === r.id} onClick={() => revisar(r, 'rechazar-carrera')}>Rechazar</button>
+            </div>
+            <p className="ranking-nota">Comprueba que el nombre y el tiempo coinciden y que el documento parece el original de la web de resultados.</p>
+          </div>
+        )))}
+      {datos && pestana !== 'suspendidas' && pestana !== 'certificados' && lista.length === 0 && (
         <div className="pareja-vacia">{pestana === 'abiertas' ? 'No hay denuncias pendientes. Todo en orden.' : 'Aún no has revisado ninguna denuncia.'}</div>
       )}
-      {datos && pestana !== 'suspendidas' && lista.map(d => (
+      {datos && pestana !== 'suspendidas' && pestana !== 'certificados' && lista.map(d => (
         <div className="mod-denuncia" key={d.id}>
           <div className="mod-cabecera">
             {d.contra ? <Avatar p={aPersona(d.contra)} /> : <div className="avatar purple">?</div>}

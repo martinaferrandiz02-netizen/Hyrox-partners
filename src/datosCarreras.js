@@ -28,7 +28,7 @@ export function rangoFechas(inicio, fin) {
 
 // Cuántos atletas firman el certificado: los nombres van antes del primer ejercicio
 export function atletasEnCertificado(texto) {
-  const corte = texto.search(/\d{3,4}\s*M\b|SKI\s*-?\s*ERG/i)
+  const corte = texto.search(/\d{3,4}\s*M\b|SKI\s*-?\s*ERG|TOTAL\s*TIME/i)
   const cabecera = (corte > 0 ? texto.slice(0, corte) : '').replace(/[^A-Za-zÀ-ÿ\s]/g, ' ')
   const palabras = cabecera.split(/\s+/).filter(p => p.length >= 2 && /^[A-ZÀ-Ý]/.test(p))
   return palabras.length ? Math.max(1, Math.round(palabras.length / 2)) : null

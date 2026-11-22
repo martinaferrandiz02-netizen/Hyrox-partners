@@ -1,6 +1,9 @@
 // Pairx · Función "verificar-certificado"
 // Comprueba en el servidor una carrera subida: lee el PDF, mira que esté tu nombre y el tiempo total,
-// y guarda los tiempos de cada estación. Las imágenes (PNG/JPG) quedan pendientes de revisión manual.
+// y guarda los tiempos. Además comprueba que el PDF es el original de la web oficial de resultados:
+//  · editado o guardado con otro programa → rechazado
+//  · de origen desconocido → pendiente de revisión manual (Moderación → Certificados)
+// Las imágenes (PNG/JPG) quedan siempre pendientes de revisión manual.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
 import { extractText, getDocumentProxy } from 'npm:unpdf@0.12.1'
 
@@ -73,6 +76,25 @@ function tiempoTotal(texto: string) {
   return todos.length ? Math.max(...todos) : null
 }
 
+// Cuenta de prueba de la revisión de Apple: su certificado de ejemplo no es oficial
+const CUENTA_REVISION = 'hello.pairx+revision@gmail.com'
+
+// Programas que dejan rastro al editar o volver a guardar un PDF
+const EDITORES = /quartz|acrobat|ilovepdf|smallpdf|sejda|pdfescape|foxit|nitro|word|pages|canva|photoshop|preview|skia|reportlab|libreoffice|openoffice|microsoft|google|chrome|pdf24|smallpdf/i
+
+// 'oficial' | 'editado' | 'desconocido'
+function origenDelPdf(crudo: string, info: Record<string, unknown>) {
+  const productor = String(info?.Producer ?? '')
+  const autor = String(info?.Author ?? '')
+  const creado = String(info?.CreationDate ?? '')
+  const modificado = String(info?.ModDate ?? '')
+  const revisiones = (crudo.match(/startxref/g) || []).length
+  if (revisiones > 1 || (creado && modificado && creado !== modificado) || EDITORES.test(productor)) return 'editado'
+  // Certificados oficiales: generados por el sistema de cronometraje (mika:timing) con TCPDF y sus fuentes
+  if (/mikatiming/i.test(autor) && /^TCPDF/i.test(productor) && /BrutalType|MartianMono/.test(crudo)) return 'oficial'
+  return 'desconocido'
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   const responder = (cuerpo: unknown, status = 200) =>
@@ -97,17 +119,25 @@ Deno.serve(async (req) => {
   }
 
   // Imágenes: revisión manual
-  if (!r.certificado_ruta.toLowerCase().endsWith('.pdf')) return actualizar({ estado: 'pendiente' })
+  if (!r.certificado_ruta.toLowerCase().endsWith('.pdf')) return actualizar({ estado: 'pendiente', motivo: 'Las imágenes las revisamos a mano. Para verificarla al momento, sube el PDF original.' })
 
   const { data: archivo, error } = await admin.storage.from('certificados').download(r.certificado_ruta)
   if (error || !archivo) return actualizar({ estado: 'pendiente' })
 
   let texto = ''
+  let origen = 'desconocido'
   try {
-    const pdf = await getDocumentProxy(new Uint8Array(await archivo.arrayBuffer()))
+    const bytes = new Uint8Array(await archivo.arrayBuffer())
+    const crudo = new TextDecoder('latin1').decode(bytes)
+    const pdf = await getDocumentProxy(bytes.slice())
+    const { info } = await pdf.getMetadata()
+    origen = user.email?.toLowerCase() === CUENTA_REVISION ? 'oficial' : origenDelPdf(crudo, info as Record<string, unknown>)
     texto = (await extractText(pdf, { mergePages: true })).text as string
   } catch {
-    return actualizar({ estado: 'pendiente' })
+    return actualizar({ estado: 'pendiente', motivo: 'Lo revisaremos a mano.' })
+  }
+  if (origen === 'editado') {
+    return actualizar({ estado: 'rechazado', motivo: 'Este PDF se ha editado o guardado con otro programa. Sube el certificado tal cual lo descargas de la web de resultados.' })
   }
   if (texto.replace(/\s/g, '').length < 20) return actualizar({ estado: 'pendiente' }) // PDF escaneado
 
@@ -118,6 +148,9 @@ Deno.serve(async (req) => {
   if (!total) return actualizar({ estado: 'rechazado', motivo: 'No se ha encontrado el tiempo total en el certificado.' })
   if (aSegundos(r.tiempo) !== total) {
     return actualizar({ estado: 'rechazado', motivo: `El tiempo del certificado es ${formatoTiempo(total)}.` })
+  }
+  if (origen !== 'oficial') {
+    return actualizar({ estado: 'pendiente', motivo: 'No reconocemos el formato del certificado: lo revisaremos a mano.', parciales: parciales(texto), tiempo: formatoTiempo(total) })
   }
   return actualizar({ estado: 'verificado', motivo: null, parciales: parciales(texto), tiempo: formatoTiempo(total) })
 })

@@ -572,3 +572,5 @@ button.fila:disabled { cursor: default; opacity: 1; }
 .link-btn.peligro { color: var(--danger); }
 .suspendida { justify-content: center; text-align: center; gap: 14px; }
 .suspendida p { color: var(--sub); line-height: 1.5; margin: 0; }
+.mod-tiempo { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--accent); }
+.mod-acciones a.btn-sm { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }

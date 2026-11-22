@@ -33,7 +33,9 @@ Tokens: `--bg #0a0a0a`, `--accent #e8ff3c`, `--surface #141414`, `--line #242424
 - El nombre de la cuenta tiene que aparecer en el certificado (en Doubles, uno de los dos). Si no coincide, aviso claro en rojo explicando por qué.
 - Perfil → pestaña Carreras: "Próximas carreras" (con opción "Busco pareja") e "Historial". Al subir el certificado de una próxima, pasa al historial automáticamente.
 - El PDF del certificado es privado (bucket `certificados` privado, `supabase/certificados_privados.sql`): solo lo abren su dueño y las admins con enlace temporal; los demás ven solo los tiempos. En Doubles se avisa de que el certificado lleva el nombre de la pareja (privacidad actualizada).
-- Pendiente: verificar que el certificado viene de la web oficial de resultados (huella del PDF original, rechazar PDFs editados, imágenes a revisión manual). Necesita certificados reales de Martina para ver su huella. Excepción solo para la cuenta de prueba de Apple.
+- Certificados oficiales (vistos en uno real de Martina): PDF de mika:timing (Author `mikatiming.de`, Producer `TCPDF`, Title `Urkunde`, fuentes BrutalType/MartianMono, una sola revisión, CreationDate = ModDate). Solo traen nombres, TOTAL TIME, TOTAL RUN-TIME y AG RANKING: NO hay parciales por estación.
+- `verificar-certificado` comprueba el origen: editado/guardado con otro programa → rechazado; formato desconocido → pendiente (revisión manual en Moderación → Certificados); oficial → verifica nombre y tiempo. Imágenes siempre pendientes. Excepción: la cuenta de prueba de Apple (hello.pairx+revision@gmail.com).
+- Huella anti-duplicados = tiempos + nombres del certificado. Faltan más certificados reales (otras carreras/temporadas) para confirmar que el formato no cambia.
 - Cada carrera del historial es pública o privada. El mejor tiempo verificado siempre se ve en el perfil y en el ranking.
 - Al registrarse: si ya ha competido → "Añade tu carrera más reciente"; si no → "¿Cuál es tu próxima carrera?".
 - Pendiente a propósito: verificación de identidad (DNI), bloquear el nombre tras verificar y "esta carrera es mía". No hacer hasta que Martina lo pida.

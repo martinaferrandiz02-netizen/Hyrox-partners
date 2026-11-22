@@ -23,7 +23,19 @@ Deno.serve(async (req) => {
   const { data: esAdmin } = await admin.from('admins').select('user_id').eq('user_id', user.id).maybeSingle()
   if (!esAdmin) return responder({ error: 'Solo administradoras' }, 403)
 
-  const { accion, userId } = await req.json().catch(() => ({}))
+  const { accion, userId, resultadoId, motivo } = await req.json().catch(() => ({}))
+
+  // Revisión manual de una carrera pendiente
+  if (accion === 'aprobar-carrera' || accion === 'rechazar-carrera') {
+    if (!resultadoId) return responder({ error: 'Falta la carrera' }, 400)
+    const cambios = accion === 'aprobar-carrera'
+      ? { estado: 'verificado', motivo: null }
+      : { estado: 'rechazado', motivo: motivo || 'El certificado no es válido.' }
+    const { error } = await admin.from('resultados').update(cambios).eq('id', resultadoId).eq('estado', 'pendiente')
+    if (error) return responder({ error: `carrera: ${error.message}` }, 500)
+    return responder({ ok: true })
+  }
+
   if (!userId || typeof userId !== 'string') return responder({ error: 'Falta la cuenta' }, 400)
   if (userId === user.id) return responder({ error: 'No puedes moderar tu propia cuenta' }, 400)
 

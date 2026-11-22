@@ -11,7 +11,7 @@ import { Volver } from './Volver'
 
 const TIPOS = ['application/pdf', 'image/png', 'image/jpeg']
 
-// Añadir una carrera: subes el certificado y la app lee el tiempo, los parciales y cuántos sois.
+// Añadir una carrera: subes el certificado y la app lee el tiempo total, el de carrera a pie y cuántos sois.
 // Solo hay que elegir qué carrera era (de la lista) y confirmar división y categoría.
 export function AnadirCarrera({ perfil, setPerfil, cerrar, sugerida = null, titulo = 'Sube una carrera', subtitulo = 'Sube el certificado y nosotros leemos tus tiempos.', textoCerrar }) {
   const nombreCompleto = perfil.nombre   // siempre el nombre de la cuenta
@@ -119,8 +119,8 @@ export function AnadirCarrera({ perfil, setPerfil, cerrar, sugerida = null, titu
           <div className="lectura">
             <div className="lectura-total"><span>{nombreCompleto} · tiempo total</span><strong>{formatoTiempo(total)}</strong></div>
             <div className="lectura-parciales">
-              {ESTACIONES.map(e => <div key={e}><span>{e}</span><strong>{parciales[e] ? formatoParcial(parciales[e]) : '—'}</strong></div>)}
-              {parciales.Running && <div><span>Running (8 km)</span><strong>{formatoParcial(parciales.Running)}</strong></div>}
+              {parciales.Running && <div><span>Carrera a pie (8 km)</span><strong>{formatoParcial(parciales.Running)}</strong></div>}
+              {ESTACIONES.filter(e => parciales[e]).map(e => <div key={e}><span>{e}</span><strong>{formatoParcial(parciales[e])}</strong></div>)}
             </div>
           </div>
         )}

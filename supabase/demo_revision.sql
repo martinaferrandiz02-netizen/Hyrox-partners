@@ -12,7 +12,7 @@ begin
   delete from public.resultados where user_id = uid;
   insert into public.resultados (user_id, carrera, fecha, evento, division, categoria, tiempo, parciales, certificado_url, certificado_ruta, huella, estado, visibilidad)
   values (uid, 'Valencia 2026', '2026-10-15', 'valencia-2026-10-15', 'Doubles', 'Open', '1:29:44',
-    '{"Ski erg": 288, "Sled push": 112, "Sled pull": 220, "Burpee broad jumps": 271, "Rowing": 295, "Farmer carry": 104, "Sandbag lunges": 229, "Wall balls": 277, "Running": 2840}',
+    '{"Running": 2840}',
     'https://pairx-app.vercel.app/demo/certificado-demo-1.pdf', 'demo/certificado-demo-1.pdf', 'demo-revision-valencia-2026', 'verificado', 'publico');
 
   -- Próximas carreras: una buscando pareja

@@ -121,11 +121,14 @@ export function comprobarCertificado(texto, nombreCompleto, tiempoDeclarado) {
   return { ok: true, motivo: '', tiempoTotal }
 }
 
-// "Huella" del certificado: la lista ordenada de todos sus tiempos (total y parciales).
-// Es prácticamente única por resultado, aunque el archivo sea una captura distinta.
+// "Huella" del certificado: sus tiempos ordenados más los nombres que lleva.
+// Los certificados oficiales solo traen el tiempo total, el de carrera a pie y el ranking,
+// así que los nombres hacen falta para que sea única por resultado.
 export function huellaCertificado(texto) {
   const tiempos = tiemposEnTexto(texto).sort((a, b) => a - b)
-  return tiempos.length >= 3 ? tiempos.join('-') : null
+  if (tiempos.length < 2) return null
+  const nombres = normalizar(texto.split(/TOTAL\s*TIME|\d{1,2}\s*:\s*\d{2}/i)[0]).replace(/[0-9:]/g, '').trim()
+  return `${tiempos.join('-')}|${nombres}`
 }
 
 // ───────────── Tiempos por estación ─────────────

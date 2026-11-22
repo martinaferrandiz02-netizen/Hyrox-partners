@@ -30,6 +30,31 @@ export async function cargarDenuncias() {
   }
 }
 
+// Carreras pendientes de revisión manual, con el perfil y un enlace temporal al certificado
+export async function cargarPendientes() {
+  const { data, error } = await supabase.from('resultados').select('*').eq('estado', 'pendiente').order('created_at', { ascending: true }).limit(100)
+  if (error || !data?.length) return []
+  const ids = [...new Set(data.map(r => r.user_id))]
+  const rutas = data.map(r => r.certificado_ruta).filter(r => r && !r.startsWith('demo/'))
+  const [{ data: perfiles }, { data: firmados }] = await Promise.all([
+    supabase.from('profiles').select('id, nombre, ciudad, foto_url').in('id', ids),
+    rutas.length ? supabase.storage.from('certificados').createSignedUrls(rutas, 3600) : Promise.resolve({ data: [] }),
+  ])
+  const porId = Object.fromEntries((perfiles || []).map(p => [p.id, p]))
+  const enlace = Object.fromEntries((firmados || []).filter(f => f.signedUrl).map(f => [f.path, f.signedUrl]))
+  return data.map(r => ({ ...r, persona: porId[r.user_id] || null, enlace: enlace[r.certificado_ruta] || null }))
+}
+
+export async function revisarCarrera(accion, resultadoId, motivo) {
+  const { data, error } = await supabase.functions.invoke('moderar', { body: { accion, resultadoId, motivo } })
+  if (error) {
+    let detalle = error.message
+    try { detalle = (await error.context.json()).error || detalle } catch { /* sin detalle */ }
+    return detalle
+  }
+  return data?.ok ? null : (data?.error || 'Error desconocido')
+}
+
 export async function resolverDenuncia(id, estado) {
   const { error } = await supabase.from('denuncias').update({ estado, revisada_at: new Date().toISOString() }).eq('id', id)
   return !error
