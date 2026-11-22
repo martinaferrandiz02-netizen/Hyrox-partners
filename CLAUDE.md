@@ -13,7 +13,7 @@ Fundadora: Martina Ferrandiz. Responsable legal en Alicante (España). Contacto:
 - App móvil: Capacitor 7 (`com.pairx.app`, `webDir: dist`). Solo iOS por ahora (Android aparcado).
 - Compilación iOS en Codemagic (el Mac de Martina es Intel con macOS 13, no puede usar Xcode actual). Workflow `ios` en `codemagic.yaml`, se lanza al hacer push a la rama `ios` → sube a TestFlight (grupo interno "Equipo"). iOS mínimo 15.0.
 - Ramas: `main` (web), `backend`, `ios` (dispara build). Normalmente se empuja el mismo commit a las tres.
-- macOS no distingue mayúsculas: nunca dos archivos que solo difieran en mayúsculas (pasó con `entrenos.js` / `Entrenos.jsx`).
+- macOS no distingue mayúsculas: nunca dos archivos que solo difieran en mayúsculas (pasó con `entrenos.js` / `Entrenos.jsx` y `moderacion.js` / `Moderacion.jsx`). `npm run build` lo comprueba antes (scripts/comprobar-nombres.mjs). Los módulos de datos se llaman `datosX.js`.
 - Los SQL de `supabase/*.sql` los ejecuta Martina a mano en el SQL Editor.
 
 ## Diseño

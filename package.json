@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "app": "vite build && cap sync"
+    "app": "vite build && cap sync",
+    "prebuild": "node scripts/comprobar-nombres.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.9",

@@ -4,7 +4,7 @@ import { Avatar } from './Avatar'
 import { Volver } from './Volver'
 import { PerfilVista } from './PerfilVista'
 import { nombreCiudad } from './ciudades'
-import { cargarDenuncias, cargarPendientes, moderarCuenta, resolverDenuncia, revisarCarrera } from './moderacion'
+import { cargarDenuncias, cargarPendientes, moderarCuenta, resolverDenuncia, revisarCarrera } from './datosModeracion'
 
 const fecha = (iso) => new Date(iso).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 const aPersona = (p) => ({ ...p, iniciales: p.nombre.split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join(''), fotoUrl: p.foto_url, color: 'purple' })

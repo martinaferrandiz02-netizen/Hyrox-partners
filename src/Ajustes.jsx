@@ -7,7 +7,7 @@ import { Volver } from './Volver'
 import { CampoContrasena, RequisitosContrasena } from './CampoContrasena'
 import { contrasenaValida, MENSAJE_REQUISITOS } from './contrasena'
 import { desbloquear, misBloqueados } from './bloqueos'
-import { useEsAdmin } from './moderacion'
+import { useEsAdmin } from './datosModeracion'
 import { Moderacion } from './Moderacion'
 
 const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('')
