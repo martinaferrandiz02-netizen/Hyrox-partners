@@ -56,6 +56,7 @@ Tokens: `--bg #0a0a0a`, `--accent #e8ff3c`, `--surface #141414`, `--line #242424
 - Una sola etiqueta de nivel: "✓ Verificado" (certificado subido), "Ha competido · sin verificar" o "Aún no ha competido".
 
 **Cuenta**
+- Correos de Supabase en español con diseño Pairx: `supabase/emails/` (confirmar registro, recuperar contraseña, cambiar email; el asunto va en la primera línea). Se pegan en Supabase → Authentication → Emails.
 - Recuperar contraseña desde el login (correo vía SMTP de Gmail de hello.pairx@gmail.com). Contraseña mínima: 8 caracteres, mayúscula, minúscula y número, con icono de ojo.
 - Borrar cuenta vía Edge Function `borrar-cuenta` (borra archivos, perfil y usuario).
 - Legal: privacidad y términos según la ley española (`public/legal/`). Ayuda y contacto en `public/legal/soporte.html` (URL de soporte de la App Store).
@@ -73,4 +74,3 @@ Tokens: `--bg #0a0a0a`, `--accent #e8ff3c`, `--surface #141414`, `--line #242424
 
 ## Ideas ofrecidas y aún no aprobadas
 
-- Plantillas de correo en español (recuperar contraseña, confirmar registro).
