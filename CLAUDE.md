@@ -10,7 +10,7 @@ Fundadora: Martina Ferrandiz. Responsable legal en Alicante (España). Contacto:
 - React 19 + Vite 8, ESLint (las exportaciones que no son componentes van en archivos `.js`).
 - Supabase: auth, Postgres con RLS, storage (`videos`, `certificados`, `avatares`), realtime y Edge Functions (`borrar-cuenta`, `verificar-certificado`).
 - Web: Vercel → https://pairx-app.vercel.app (rama `main`).
-- App móvil: Capacitor 7 (`com.pairx.app`, `webDir: dist`). Solo iOS por ahora (Android aparcado).
+- App móvil: Capacitor 7 (`com.pairx.app`, `webDir: dist`). Solo iOS por ahora (Android aparcado). Solo iPhone (TARGETED_DEVICE_FAMILY = 1), sin iPad.
 - Compilación iOS en Codemagic (el Mac de Martina es Intel con macOS 13, no puede usar Xcode actual). Workflow `ios` en `codemagic.yaml`, se lanza al hacer push a la rama `ios` → sube a TestFlight (grupo interno "Equipo"). iOS mínimo 15.0.
 - Ramas: `main` (web), `backend`, `ios` (dispara build). Normalmente se empuja el mismo commit a las tres.
 - macOS no distingue mayúsculas: nunca dos archivos que solo difieran en mayúsculas (pasó con `entrenos.js` / `Entrenos.jsx` y `moderacion.js` / `Moderacion.jsx`). `npm run build` lo comprueba antes (scripts/comprobar-nombres.mjs). Los módulos de datos se llaman `datosX.js`.
