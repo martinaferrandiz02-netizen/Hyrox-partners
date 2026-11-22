@@ -77,7 +77,7 @@ function tiempoTotal(texto: string) {
 }
 
 // Cuenta de prueba de la revisión de Apple: su certificado de ejemplo no es oficial
-const CUENTA_REVISION = 'hello.pairx@gmail.com'
+const CUENTA_REVISION = 'hello.pairx+revision@gmail.com'
 
 // Programas que dejan rastro al editar o volver a guardar un PDF
 const EDITORES = /quartz|acrobat|ilovepdf|smallpdf|sejda|pdfescape|foxit|nitro|word|pages|canva|photoshop|preview|skia|reportlab|libreoffice|openoffice|microsoft|google|chrome|pdf24|smallpdf/i
