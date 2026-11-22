@@ -1,12 +1,12 @@
 -- Pairx · Datos para la cuenta de prueba del revisor de Apple
--- 1. Antes, crea la cuenta desde la app con el email hello.pairx+revision@gmail.com
+-- 1. La cuenta de prueba es la de hello.pairx@gmail.com (creada desde la app)
 --    y el nombre "Alex Romero" (Madrid, Hombre, Open, "Ya he competido").
 -- 2. Luego ejecuta esto entero en el SQL Editor.
 do $$
 declare uid uuid;
 begin
-  select id into uid from auth.users where lower(email) = 'hello.pairx+revision@gmail.com';
-  if uid is null then raise exception 'Primero crea la cuenta hello.pairx+revision@gmail.com desde la app'; end if;
+  select id into uid from auth.users where lower(email) = 'hello.pairx@gmail.com';
+  if uid is null then raise exception 'Primero crea la cuenta hello.pairx@gmail.com desde la app'; end if;
 
   -- Una carrera ya verificada, con su certificado de ejemplo
   delete from public.resultados where user_id = uid;
@@ -35,4 +35,4 @@ end $$;
 -- Comprobación: tiene que salir 1:29:44 y verificado
 select p.nombre, p.mejor_tiempo, p.certificado_estado
 from public.profiles p join auth.users u on u.id = p.id
-where lower(u.email) = 'hello.pairx+revision@gmail.com';
+where lower(u.email) = 'hello.pairx@gmail.com';
